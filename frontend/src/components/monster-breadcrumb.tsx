@@ -5,12 +5,16 @@
 // marker with an escape hatch rather than real navigation.
 
 import { Undo2, X } from 'lucide-react'
+import { MonsterPicker } from '@/components/monster-picker'
 import type { MonsterSummary } from '@/lib/types'
 
 export interface MonsterBreadcrumbProps {
   summaries: readonly MonsterSummary[]
   onClear: () => void
   onRemove: (monster: string) => void
+  /** Every monster with its task count, for the inline picker. */
+  monsters: readonly { name: string; count: number }[]
+  onToggleMonster: (monster: string) => void
   /** Search text the pivot set aside, if any -- offered back rather than lost. */
   parkedSearch?: string | null
   onRestoreSearch?: () => void
@@ -20,6 +24,8 @@ export function MonsterBreadcrumb({
   summaries,
   onClear,
   onRemove,
+  monsters,
+  onToggleMonster,
   parkedSearch,
   onRestoreSearch,
 }: MonsterBreadcrumbProps) {
@@ -62,6 +68,18 @@ export function MonsterBreadcrumb({
             </span>
           </li>
         ))}
+        {/* Right where the chosen ones are listed, because this is the only way
+            to add a second: with the table filtered to the first, no other
+            monster's rows are on screen to click. */}
+        <li>
+          <MonsterPicker
+            monsters={monsters}
+            selected={summaries.map((summary) => summary.monster)}
+            onToggle={onToggleMonster}
+            showCount={false}
+            className="h-7 rounded-full px-2.5 text-xs"
+          />
+        </li>
       </ol>
 
       <p className="text-muted-foreground text-sm tabular-nums">

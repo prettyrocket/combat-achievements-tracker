@@ -7,10 +7,10 @@
 // Sort left this bar: the column headers own it now, which is where you were
 // already pointing when you decided to re-sort.
 
-import { useState } from 'react'
-import { Plus, Search, X } from 'lucide-react'
-import { addMonster, isEmptyQuery } from '@/lib/task-query'
+import { Search, X } from 'lucide-react'
+import { isEmptyQuery } from '@/lib/task-query'
 import { TIERS, TASK_TYPES, type TaskQuery, type TaskType, type Tier } from '@/lib/types'
+import { MonsterPicker } from '@/components/monster-picker'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -69,7 +69,9 @@ export interface FilterBarProps {
   query: TaskQuery
   onChange: (next: TaskQuery) => void
   onClear: () => void
-  monsters: readonly string[]
+  /** Every monster with its task count, for the picker. */
+  monsters: readonly { name: string; count: number }[]
+  onToggleMonster: (monster: string) => void
   resultCount: number
   totalCount: number
 }
@@ -79,24 +81,12 @@ export function FilterBar({
   onChange,
   onClear,
   monsters,
+  onToggleMonster,
   resultCount,
   totalCount,
 }: FilterBarProps) {
-  // The only local state in the bar, and it isn't filter state: it's the half-typed
-  // monster name that hasn't been committed to the query yet.
-  const [draft, setDraft] = useState('')
-
   const patch = (partial: Partial<TaskQuery>) => onChange({ ...query, ...partial })
   const selected = query.monster ?? []
-
-  /** Commit the draft, matching the data's own casing so the chip reads right. */
-  function commitMonster(raw: string) {
-    const value = raw.trim()
-    if (!value) return
-    const known = monsters.find((m) => m.toLowerCase() === value.toLowerCase())
-    onChange(addMonster(query, known ?? value))
-    setDraft('')
-  }
 
   return (
     <section aria-label="Filters" className="mt-4 space-y-2.5">
@@ -115,51 +105,17 @@ export function FilterBar({
           />
         </div>
 
-        {/* A plain datalist rather than a combobox: 89 monsters, and the browser's
-            own autocomplete is keyboard- and screen-reader-correct for free.
-            Selecting one adds a chip and empties the box, so the next one can be
-            typed straight after. */}
-        <div className="flex items-center gap-1">
-          <Input
-            list="monster-options"
-            value={draft}
-            onChange={(event) => {
-              const value = event.target.value
-              setDraft(value)
-              // Picking from the datalist fires a change with the full value and
-              // no keypress; committing it here saves a redundant Enter.
-              if (monsters.some((m) => m.toLowerCase() === value.toLowerCase())) {
-                commitMonster(value)
-              }
-            }}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                event.preventDefault()
-                commitMonster(draft)
-              }
-            }}
-            placeholder="Add a monster…"
-            aria-label="Filter by monster"
-            className="w-44"
-          />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => commitMonster(draft)}
-            disabled={draft.trim() === ''}
-            aria-label="Add this monster to the filter"
-            className="h-9 px-2"
-          >
-            <Plus className="size-4" aria-hidden />
-          </Button>
-        </div>
-        <datalist id="monster-options">
-          {monsters
-            .filter((m) => !selected.some((s) => s.toLowerCase() === m.toLowerCase()))
-            .map((monster) => (
-              <option key={monster} value={monster} />
-            ))}
-        </datalist>
+        {/* The picker, not a text box: with the table filtered to one monster
+            there is no second monster left on screen to click, so this is the
+            only way to build a set of them. The same control appears in the
+            breadcrumb, where the chosen ones are listed. */}
+        <MonsterPicker
+          monsters={monsters}
+          selected={selected}
+          onToggle={onToggleMonster}
+          label="Monsters"
+          className="h-9"
+        />
       </div>
 
       {/* The selected monsters are deliberately *not* listed here. The breadcrumb

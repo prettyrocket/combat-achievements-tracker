@@ -34,9 +34,17 @@ import { useTaskList } from '@/lib/use-tasklist'
 import { useTaskQuery } from '@/lib/use-task-query'
 import type { SortKey } from '@/lib/types'
 
-// Every distinct monster, for the filter's autocomplete. Static data, so it's
-// computed once at module load rather than per render.
-const MONSTERS = [...new Set(TASKS.map((t) => t.monster).filter((m) => m !== null))].sort()
+// Every distinct monster with its task count, for the picker. Static data, so
+// it's computed once at module load rather than per render.
+const MONSTERS = (() => {
+  const counts = new Map<string, number>()
+  for (const task of TASKS) {
+    if (task.monster !== null) counts.set(task.monster, (counts.get(task.monster) ?? 0) + 1)
+  }
+  return [...counts]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => a.name.localeCompare(b.name))
+})()
 
 const BY_ID = new Map(TASKS.map((task) => [task.wikiId, task]))
 
@@ -117,6 +125,18 @@ export default function App() {
 
   const dropMonster = useCallback(
     (monster: string) => setQuery(removeMonster(query, monster), 'push'),
+    [query, setQuery],
+  )
+
+  /** The picker's one action: in if it's out, out if it's in. */
+  const toggleMonster = useCallback(
+    (monster: string) => {
+      const isOn = (query.monster ?? []).some(
+        (m) => m.trim().toLowerCase() === monster.trim().toLowerCase(),
+      )
+      setQuery(isOn ? removeMonster(query, monster) : addMonster(query, monster), 'push')
+      if (!isOn && query.q?.trim()) setParkedSearch(query.q.trim())
+    },
     [query, setQuery],
   )
 
@@ -236,6 +256,7 @@ export default function App() {
             onChange={setQuery}
             onClear={clearAll}
             monsters={MONSTERS}
+            onToggleMonster={toggleMonster}
             resultCount={visible.length}
             totalCount={TASKS.length}
           />
@@ -245,6 +266,8 @@ export default function App() {
               summaries={monsterSummaries}
               onClear={unpivot}
               onRemove={dropMonster}
+              monsters={MONSTERS}
+              onToggleMonster={toggleMonster}
               parkedSearch={parkedSearch}
               onRestoreSearch={restoreSearch}
             />

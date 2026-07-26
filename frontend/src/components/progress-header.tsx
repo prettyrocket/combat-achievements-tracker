@@ -10,7 +10,7 @@
 
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { percent } from '@/lib/progress-summary'
-import type { ProgressSummary, Tier } from '@/lib/types'
+import type { ProgressSummary, Tier, TierProgress } from '@/lib/types'
 
 const TIER_LABEL: Record<Tier, string> = {
   EASY: 'Easy',
@@ -21,15 +21,6 @@ const TIER_LABEL: Record<Tier, string> = {
   GRANDMASTER: 'Grandmaster',
 }
 
-const TIER_SHORT: Record<Tier, string> = {
-  EASY: 'E',
-  MEDIUM: 'M',
-  HARD: 'H',
-  ELITE: 'El',
-  MASTER: 'Ma',
-  GRANDMASTER: 'GM',
-}
-
 // Matches the tier colours used by the table's TierBadge.
 const TIER_BAR: Record<Tier, string> = {
   EASY: 'bg-emerald-400',
@@ -38,6 +29,47 @@ const TIER_BAR: Record<Tier, string> = {
   ELITE: 'bg-amber-400',
   MASTER: 'bg-rose-400',
   GRANDMASTER: 'bg-fuchsia-400',
+}
+
+// The same colours again at low opacity: the fill *behind* a chip's text has to
+// sit under type without fighting it, which the solid bar colours would.
+const TIER_FILL: Record<Tier, string> = {
+  EASY: 'bg-emerald-400/25',
+  MEDIUM: 'bg-sky-400/25',
+  HARD: 'bg-violet-400/25',
+  ELITE: 'bg-amber-400/25',
+  MASTER: 'bg-rose-400/25',
+  GRANDMASTER: 'bg-fuchsia-400/25',
+}
+
+/**
+ * Half chip, half meter: the tier's full name and count, with the chip filling
+ * left-to-right as the tier gets done.
+ *
+ * Abbreviating to "GM" saved a few pixels and cost the reading -- so the name is
+ * whole, and the progress is carried by the fill rather than by a separate bar
+ * needing its own row.
+ */
+function TierChip({ tier }: { tier: TierProgress }) {
+  const value = percent(tier.completed, tier.total)
+  return (
+    <li
+      className="relative isolate overflow-hidden rounded-full border px-2.5 py-0.5"
+      title={`${TIER_LABEL[tier.tier]}: ${tier.completed} of ${tier.total} tasks · ${tier.pointsEarned}/${tier.pointsTotal} points`}
+    >
+      <span
+        className={`absolute inset-y-0 left-0 -z-10 transition-[width] duration-300 ${TIER_FILL[tier.tier]}`}
+        style={{ width: `${value}%` }}
+        aria-hidden
+      />
+      <span className="flex items-baseline gap-1.5 text-xs whitespace-nowrap">
+        <span className="font-medium">{TIER_LABEL[tier.tier]}</span>
+        <span className="text-muted-foreground tabular-nums">
+          {tier.completed}/{tier.total}
+        </span>
+      </span>
+    </li>
+  )
 }
 
 function Meter({ value, className }: { value: number; className: string }) {
@@ -92,45 +124,34 @@ export function ProgressHeader({ summary, compact, onCompactChange }: ProgressHe
         aria-label="Progress summary"
         className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border px-4 py-2"
       >
-        <h2 className="text-base font-semibold tabular-nums">
-          {headline}%<span className="text-muted-foreground text-sm font-normal"> complete</span>
-        </h2>
-
-        <div
-          className="min-w-32 flex-1"
+        {/* One reading, one place: the percentage and the two counts it is
+            derived from, rather than the same fact at opposite ends of a bar. */}
+        <h2
+          className="flex flex-wrap items-baseline gap-x-2 text-base font-semibold tabular-nums"
           role="meter"
           aria-valuenow={Math.round(overall)}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-label="Overall completion"
         >
-          <Meter value={overall} className="bg-foreground" />
-        </div>
+          {headline}%<span className="text-muted-foreground text-sm font-normal">complete</span>
+          <span className="text-muted-foreground text-sm font-normal">
+            · <span className="text-foreground font-medium">{summary.pointsEarned}</span>/
+            {summary.pointsTotal} pts ·{' '}
+            <span className="text-foreground font-medium">{summary.completedTasks}</span>/
+            {summary.totalTasks} tasks
+          </span>
+        </h2>
 
-        {/* The tiers survive the collapse as pips -- the shape of where you're
-            behind is the part worth keeping when the numbers go. */}
-        <ul className="hidden items-center gap-3 sm:flex">
+        {/* The tiers survive the collapse as chips that fill as you go -- where
+            you're behind is the part worth keeping when the meters go. */}
+        <ul className="flex flex-wrap items-center gap-1.5">
           {summary.perTier.map((tier) => (
-            <li
-              key={tier.tier}
-              className="flex items-center gap-1.5"
-              title={`${TIER_LABEL[tier.tier]}: ${tier.completed}/${tier.total} tasks`}
-            >
-              <span className="text-muted-foreground text-[11px] font-medium">
-                {TIER_SHORT[tier.tier]}
-              </span>
-              <span className="bg-muted h-1.5 w-8 overflow-hidden rounded-full">
-                <span
-                  className={`block h-full rounded-full ${TIER_BAR[tier.tier]}`}
-                  style={{ width: `${percent(tier.completed, tier.total)}%` }}
-                />
-              </span>
-            </li>
+            <TierChip key={tier.tier} tier={tier} />
           ))}
         </ul>
 
-        {points}
-        {toggle}
+        <span className="ml-auto">{toggle}</span>
       </section>
     )
   }
