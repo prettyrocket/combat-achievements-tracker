@@ -8,6 +8,12 @@
     "allowArbitraryExtensions": true,
     "skipLibCheck": true,
 
+    /* Path alias — shadcn/ui generates imports like "@/lib/utils". No `baseUrl`:
+       it's deprecated in TS 6, and `paths` resolves relative to this file without it. */
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,

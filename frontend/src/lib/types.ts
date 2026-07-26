@@ -38,6 +38,11 @@ export interface Task {
   completed: boolean
 }
 
+// A row of the build-time bundle (src/data/tasks.json), written by
+// `npm run refresh-data`. `completed` is deliberately absent: that field is
+// localStorage state layered on at runtime, not something the wiki knows about.
+export type TaskRow = Omit<Task, 'completed'>
+
 export interface MonsterSummary {
   monster: string
   total: number
