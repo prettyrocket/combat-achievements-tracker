@@ -8,6 +8,7 @@ import { useRef, useState } from 'react'
 import { Download, Upload, RotateCcw } from 'lucide-react'
 import { buildExport, importProgress } from '@/lib/progress-store'
 import { WikiSyncDialog } from '@/components/wikisync-dialog'
+import type { ImportMode } from '@/lib/wikisync'
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,
@@ -38,14 +39,14 @@ export interface ProgressToolbarProps {
   completed: ReadonlySet<number>
   completedCount: number
   onReset: () => void
-  onMerge: (wikiIds: number[]) => void
+  onWikiSyncApply: (wikiIds: number[], mode: ImportMode) => void
 }
 
 export function ProgressToolbar({
   completed,
   completedCount,
   onReset,
-  onMerge,
+  onWikiSyncApply,
 }: ProgressToolbarProps) {
   const fileInput = useRef<HTMLInputElement>(null)
   const [notice, setNotice] = useState<Notice | null>(null)
@@ -80,7 +81,7 @@ export function ProgressToolbar({
   return (
     <div className="flex flex-col items-end gap-2">
       <div className="flex items-center gap-2">
-        <WikiSyncDialog completed={completed} onApply={onMerge} />
+        <WikiSyncDialog completed={completed} onApply={onWikiSyncApply} />
 
         <Button variant="outline" size="sm" onClick={handleExport}>
           <Download className="size-4" aria-hidden />

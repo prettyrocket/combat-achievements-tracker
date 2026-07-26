@@ -7,9 +7,17 @@
 
 import { useEffect, useState } from 'react'
 import { Check, ClipboardPaste, Copy, ExternalLink } from 'lucide-react'
-import { buildSyncUrl, diffAgainst, parseWikiSync, WikiSyncParseError } from '@/lib/wikisync'
+import {
+  buildSyncUrl,
+  diffAgainst,
+  diffIsNoop,
+  parseWikiSync,
+  WikiSyncParseError,
+  type ImportMode,
+} from '@/lib/wikisync'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Dialog,
@@ -25,11 +33,12 @@ import type { WikiSyncDiff } from '@/lib/wikisync'
 
 export interface WikiSyncDialogProps {
   completed: ReadonlySet<number>
-  onApply: (ids: number[]) => void
+  onApply: (ids: number[], mode: ImportMode) => void
 }
 
 export function WikiSyncDialog({ completed, onApply }: WikiSyncDialogProps) {
   const [open, setOpen] = useState(false)
+  const [mode, setMode] = useState<ImportMode>('merge')
   const [rsn, setRsn] = useState('')
   const [copied, setCopied] = useState(false)
   const [text, setText] = useState('')
@@ -51,6 +60,9 @@ export function WikiSyncDialog({ completed, onApply }: WikiSyncDialogProps) {
     setDiff(null)
     setError(null)
     setCopied(false)
+    // Back to the mode that can't lose anything. Replace is a per-import choice,
+    // not a preference to inherit next time the dialog opens.
+    setMode('merge')
   }
 
   async function handleCopy() {
@@ -65,19 +77,28 @@ export function WikiSyncDialog({ completed, onApply }: WikiSyncDialogProps) {
     }
   }
 
-  function handlePreview() {
+  function handlePreview(nextMode: ImportMode = mode) {
     setError(null)
     try {
-      setDiff(diffAgainst(parseWikiSync(text), completed))
+      setDiff(diffAgainst(parseWikiSync(text), completed, nextMode))
     } catch (err) {
       setDiff(null)
       setError(err instanceof WikiSyncParseError ? err.message : 'Could not read that paste.')
     }
   }
 
+  function handleModeChange(next: string) {
+    const nextMode = next as ImportMode
+    setMode(nextMode)
+    // Recompute rather than clear: switching mode with a preview on screen is
+    // usually the user asking "what would the other one do?", and the answer
+    // should be immediate.
+    if (diff) handlePreview(nextMode)
+  }
+
   function handleApply() {
     if (!diff) return
-    onApply([...diff.newlyCompleted, ...diff.alreadyCompleted])
+    onApply([...diff.newlyCompleted, ...diff.alreadyCompleted], diff.mode)
     setOpen(false)
     resetState()
   }
@@ -188,6 +209,27 @@ export function WikiSyncDialog({ completed, onApply }: WikiSyncDialogProps) {
           aria-label="WikiSync JSON"
         />
 
+        <RadioGroup value={mode} onValueChange={handleModeChange} className="gap-2">
+          <div className="flex items-start gap-2.5">
+            <RadioGroupItem value="merge" id="mode-merge" className="mt-0.5" />
+            <label htmlFor="mode-merge" className="cursor-pointer text-sm leading-tight">
+              <span className="font-medium">Merge</span>
+              <span className="text-muted-foreground block text-xs">
+                Add these to what's already ticked. Nothing is lost.
+              </span>
+            </label>
+          </div>
+          <div className="flex items-start gap-2.5">
+            <RadioGroupItem value="replace" id="mode-replace" className="mt-0.5" />
+            <label htmlFor="mode-replace" className="cursor-pointer text-sm leading-tight">
+              <span className="font-medium">Replace</span>
+              <span className="text-muted-foreground block text-xs">
+                Make this browser match the paste exactly, un-ticking anything missing from it.
+              </span>
+            </label>
+          </div>
+        </RadioGroup>
+
         {error && (
           <p role="alert" className="text-sm text-red-400">
             {error}
@@ -195,8 +237,23 @@ export function WikiSyncDialog({ completed, onApply }: WikiSyncDialogProps) {
         )}
 
         {diff && (
-          <div className="bg-muted/40 rounded-md border p-3 text-sm">
-            <p>
+          <div
+            className={`rounded-md border p-3 text-sm ${
+              diff.removed.length > 0
+                ? 'border-amber-500/40 bg-amber-500/10'
+                : 'bg-muted/40'
+            }`}
+          >
+            {/* Removals lead. In replace mode the destructive number is the one
+                worth reading, and burying it under the additions is how someone
+                clears progress they meant to keep. */}
+            {diff.removed.length > 0 && (
+              <p className="font-medium text-amber-300">
+                {diff.removed.length} completed task
+                {diff.removed.length === 1 ? '' : 's'} will be un-ticked.
+              </p>
+            )}
+            <p className={diff.removed.length > 0 ? 'mt-1' : undefined}>
               <span className="text-foreground font-medium">
                 {diff.newlyCompleted.length} task
                 {diff.newlyCompleted.length === 1 ? '' : 's'}
@@ -207,9 +264,9 @@ export function WikiSyncDialog({ completed, onApply }: WikiSyncDialogProps) {
               {diff.alreadyCompleted.length} already complete
               {diff.dropped > 0 && ` · ${diff.dropped} unrecognised entries ignored`}
             </p>
-            {diff.newlyCompleted.length === 0 && (
+            {diffIsNoop(diff) && (
               <p className="text-muted-foreground mt-1 text-xs">
-                Nothing to add — your progress already matches this paste.
+                Nothing to change — your progress already matches this paste.
               </p>
             )}
           </div>
@@ -220,11 +277,17 @@ export function WikiSyncDialog({ completed, onApply }: WikiSyncDialogProps) {
             <Button variant="outline">Cancel</Button>
           </DialogClose>
           {diff ? (
-            <Button onClick={handleApply} disabled={diff.newlyCompleted.length === 0}>
-              Mark {diff.newlyCompleted.length} complete
+            <Button
+              onClick={handleApply}
+              disabled={diffIsNoop(diff)}
+              variant={diff.removed.length > 0 ? 'destructive' : 'default'}
+            >
+              {diff.removed.length > 0
+                ? `Replace — un-tick ${diff.removed.length}`
+                : `Mark ${diff.newlyCompleted.length} complete`}
             </Button>
           ) : (
-            <Button onClick={handlePreview} disabled={text.trim() === ''}>
+            <Button onClick={() => handlePreview()} disabled={text.trim() === ''}>
               Preview
             </Button>
           )}

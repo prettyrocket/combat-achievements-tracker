@@ -106,26 +106,59 @@ function toResult(list: unknown[]): WikiSyncParse {
   return { ids, dropped }
 }
 
+/**
+ * How a paste combines with existing progress.
+ *
+ * `merge` is the default because it cannot lose anything: WikiSync only knows
+ * what it has seen, so a task ticked by hand for content it hasn't captured
+ * should survive. `replace` exists for the case merge can't express -- making
+ * this browser match the account exactly, including un-ticking things.
+ */
+export type ImportMode = 'merge' | 'replace'
+
 export interface WikiSyncDiff {
   /** Not currently ticked, and will be after applying. */
   newlyCompleted: number[]
   /** Already ticked; the paste agrees. */
   alreadyCompleted: number[]
+  /** Currently ticked but absent from the paste. Only ever non-empty in `replace`. */
+  removed: number[]
   /** Unrecognised entries, ignored rather than failing the whole import. */
   dropped: number
+  mode: ImportMode
 }
 
 /**
  * What applying this paste would actually change. Shown before anything is
  * written -- a paste can carry hundreds of tasks and the user should see the
- * size of it first.
+ * size of it first, and in `replace` mode the number that matters is what
+ * disappears, not what arrives.
  */
-export function diffAgainst(parse: WikiSyncParse, completed: ReadonlySet<number>): WikiSyncDiff {
+export function diffAgainst(
+  parse: WikiSyncParse,
+  completed: ReadonlySet<number>,
+  mode: ImportMode = 'merge',
+): WikiSyncDiff {
   const newlyCompleted: number[] = []
   const alreadyCompleted: number[] = []
   for (const id of parse.ids) {
     if (completed.has(id)) alreadyCompleted.push(id)
     else newlyCompleted.push(id)
   }
-  return { newlyCompleted, alreadyCompleted, dropped: parse.dropped }
+
+  const removed: number[] = []
+  if (mode === 'replace') {
+    const incoming = new Set(parse.ids)
+    for (const id of completed) {
+      if (!incoming.has(id)) removed.push(id)
+    }
+    removed.sort((a, b) => a - b)
+  }
+
+  return { newlyCompleted, alreadyCompleted, removed, dropped: parse.dropped, mode }
+}
+
+/** Whether applying this diff would change anything at all. */
+export function diffIsNoop(diff: WikiSyncDiff): boolean {
+  return diff.newlyCompleted.length === 0 && diff.removed.length === 0
 }

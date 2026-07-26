@@ -4,7 +4,7 @@ import { ProgressToolbar } from '@/components/progress-toolbar'
 import { useProgress } from '@/lib/use-progress'
 
 export default function App() {
-  const { completed, toggle, mergeMany, reset, storageError } = useProgress()
+  const { completed, toggle, setMany, mergeMany, reset, storageError } = useProgress()
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8">
@@ -19,7 +19,7 @@ export default function App() {
           completed={completed}
           completedCount={completed.size}
           onReset={reset}
-          onMerge={mergeMany}
+          onWikiSyncApply={(ids, mode) => (mode === 'replace' ? setMany(ids) : mergeMany(ids))}
         />
       </header>
 
