@@ -1,6 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
-import { backendHealth } from './api/client'
-import { TIERS, TIER_POINTS, type Tier } from './api/types'
+import { TIERS, TIER_POINTS, type Tier } from './lib/types'
 
 // Tailwind utility classes per tier — a small taste of the styling system.
 const TIER_STYLES: Record<Tier, string> = {
@@ -16,22 +14,6 @@ function titleCase(t: Tier): string {
   return t[0] + t.slice(1).toLowerCase()
 }
 
-function HealthBadge() {
-  const { data, isLoading } = useQuery({
-    queryKey: ['health'],
-    queryFn: backendHealth,
-    refetchInterval: 10_000,
-  })
-  const up = data === 'UP'
-  const label = isLoading ? 'checking…' : up ? 'backend: UP' : 'backend: down'
-  const cls = isLoading
-    ? 'bg-neutral-700 text-neutral-300'
-    : up
-      ? 'bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/40'
-      : 'bg-rose-500/20 text-rose-300 ring-1 ring-rose-500/40'
-  return <span className={`rounded-full px-3 py-1 text-xs font-medium ${cls}`}>{label}</span>
-}
-
 export default function App() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
@@ -44,7 +26,9 @@ export default function App() {
             OSRS · 646 tasks · data from the wiki Bucket API
           </p>
         </div>
-        <HealthBadge />
+        <span className="rounded-full bg-neutral-800 px-3 py-1 text-xs font-medium text-neutral-300">
+          static · no server
+        </span>
       </header>
 
       <section className="mt-6">
@@ -64,11 +48,11 @@ export default function App() {
       <section className="mt-10 rounded-lg border border-neutral-800 bg-neutral-900/40 p-6">
         <h2 className="text-base font-semibold text-neutral-200">Scaffold ready 🎉</h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-400">
-          Vite + React + TypeScript + Tailwind v4 + TanStack Query/Table are wired up, with a
-          dev proxy to the Spring Boot API. Next up (tracked as GitHub issues): the task table
-          (#8), filters/search/sort with URL state (#9), pivot-by-monster (#10), progress
-          toggles + per-tier meters (#11), and the import modal (#12) — once the backend data
-          endpoints (#1–5) are live.
+          Vite + React + TypeScript + Tailwind v4 + TanStack Query/Table are wired up. The app
+          is now fully client-side: task data comes straight from the wiki Bucket API and
+          progress lives in localStorage. Next up: the data-fetch script, the task table,
+          filters/search/sort with URL state, pivot-by-monster, progress toggles + per-tier
+          meters, and WikiSync JSON import.
         </p>
       </section>
     </div>

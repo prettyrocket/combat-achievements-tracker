@@ -1,4 +1,8 @@
-// Shared types mirroring the backend DTOs / enums (see vault Design §4–5).
+// Domain types for the app. These outlived the backend: tiers, points and task
+// shape are facts about the game, not about any server. `Task` mirrors a row of
+// the wiki's `combat_achievement` Bucket, plus two locally-owned fields:
+// `completionPct` (from Module:Combat_Achievements/completion.json) and
+// `completed` (from localStorage).
 
 export const TIERS = ['EASY', 'MEDIUM', 'HARD', 'ELITE', 'MASTER', 'GRANDMASTER'] as const
 export type Tier = (typeof TIERS)[number]
@@ -56,15 +60,10 @@ export interface ProgressSummary {
   perTier: TierProgress[]
 }
 
-export interface Meta {
-  tiers: { tier: Tier; points: number }[]
-  types: TaskType[]
-  totalTasks: number
-  lastSyncedAt: string | null
-}
-
 export type SortKey = 'comp_desc' | 'comp_asc' | 'tier' | 'name' | 'monster'
 
+// Client-side filter/sort state (was a query string to the API; now it just
+// drives filtering over the in-memory task list, and serialises to the URL).
 export interface TaskQuery {
   tier?: Tier[]
   type?: TaskType[]
