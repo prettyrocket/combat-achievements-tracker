@@ -1,0 +1,74 @@
+// Domain types for the app. These outlived the backend: tiers, points and task
+// shape are facts about the game, not about any server. `Task` mirrors a row of
+// the wiki's `combat_achievement` Bucket, plus two locally-owned fields:
+// `completionPct` (from Module:Combat_Achievements/completion.json) and
+// `completed` (from localStorage).
+
+export const TIERS = ['EASY', 'MEDIUM', 'HARD', 'ELITE', 'MASTER', 'GRANDMASTER'] as const
+export type Tier = (typeof TIERS)[number]
+export const TIER_POINTS: Record<Tier, number> = {
+  EASY: 1,
+  MEDIUM: 2,
+  HARD: 3,
+  ELITE: 4,
+  MASTER: 5,
+  GRANDMASTER: 6,
+}
+
+export const TASK_TYPES = [
+  'KILL_COUNT',
+  'RESTRICTION',
+  'PERFECTION',
+  'MECHANICAL',
+  'SPEED',
+  'STAMINA',
+] as const
+export type TaskType = (typeof TASK_TYPES)[number]
+
+export interface Task {
+  wikiId: number
+  name: string
+  monster: string | null
+  description: string
+  tier: Tier
+  points: number
+  type: TaskType
+  leagueRegion: string | null
+  completionPct: number | null
+  completed: boolean
+}
+
+export interface MonsterSummary {
+  monster: string
+  total: number
+  completed: number
+}
+
+export interface TierProgress {
+  tier: Tier
+  total: number
+  completed: number
+  pointsTotal: number
+  pointsEarned: number
+}
+
+export interface ProgressSummary {
+  totalTasks: number
+  completedTasks: number
+  pointsTotal: number
+  pointsEarned: number
+  perTier: TierProgress[]
+}
+
+export type SortKey = 'comp_desc' | 'comp_asc' | 'tier' | 'name' | 'monster'
+
+// Client-side filter/sort state (was a query string to the API; now it just
+// drives filtering over the in-memory task list, and serialises to the URL).
+export interface TaskQuery {
+  tier?: Tier[]
+  type?: TaskType[]
+  monster?: string
+  q?: string
+  completed?: boolean
+  sort?: SortKey
+}
