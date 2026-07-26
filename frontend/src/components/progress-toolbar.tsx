@@ -6,7 +6,7 @@
 
 import { useRef, useState } from 'react'
 import { Download, Upload, RotateCcw } from 'lucide-react'
-import { buildExport, importProgress } from '@/lib/progress-store'
+import { buildBackup, importBackup } from '@/lib/backup'
 import { WikiSyncDialog } from '@/components/wikisync-dialog'
 import type { ImportMode } from '@/lib/wikisync'
 import { Button } from '@/components/ui/button'
@@ -38,6 +38,8 @@ function exportFilename(): string {
 export interface ProgressToolbarProps {
   completed: ReadonlySet<number>
   completedCount: number
+  /** Entries on the plan, for the export message. */
+  listCount: number
   onReset: () => void
   onWikiSyncApply: (wikiIds: number[], mode: ImportMode) => void
 }
@@ -45,6 +47,7 @@ export interface ProgressToolbarProps {
 export function ProgressToolbar({
   completed,
   completedCount,
+  listCount,
   onReset,
   onWikiSyncApply,
 }: ProgressToolbarProps) {
@@ -52,7 +55,7 @@ export function ProgressToolbar({
   const [notice, setNotice] = useState<Notice | null>(null)
 
   function handleExport() {
-    const blob = new Blob([JSON.stringify(buildExport(), null, 2)], {
+    const blob = new Blob([JSON.stringify(buildBackup(), null, 2)], {
       type: 'application/json',
     })
     const url = URL.createObjectURL(blob)
@@ -61,17 +64,25 @@ export function ProgressToolbar({
     link.download = exportFilename()
     link.click()
     URL.revokeObjectURL(url)
-    setNotice({ tone: 'ok', message: `Exported ${completedCount} completed tasks.` })
+    setNotice({
+      tone: 'ok',
+      message:
+        `Exported ${completedCount} completed tasks` +
+        (listCount > 0 ? ` and ${listCount} on your list.` : '.'),
+    })
   }
 
   async function handleImportFile(file: File) {
     try {
-      const result = importProgress(await file.text())
+      const result = importBackup(await file.text())
       setNotice({
         tone: 'ok',
         message:
-          `Imported ${result.imported} completed tasks.` +
-          (result.dropped > 0 ? ` Ignored ${result.dropped} unrecognised entries.` : ''),
+          `Imported ${result.imported} completed tasks` +
+          (result.listImported > 0 ? ` and ${result.listImported} on your list.` : '.') +
+          (result.dropped + result.listDropped > 0
+            ? ` Ignored ${result.dropped + result.listDropped} unrecognised entries.`
+            : ''),
       })
     } catch (err) {
       setNotice({ tone: 'error', message: err instanceof Error ? err.message : 'Import failed.' })
@@ -118,6 +129,8 @@ export function ProgressToolbar({
               <AlertDialogDescription>
                 This clears all {completedCount} completed tasks from this browser. There's no
                 undo, and no copy on a server — export first if you might want it back.
+                {listCount > 0 &&
+                  ` Your list of ${listCount} planned tasks is left alone; clear that from the panel.`}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

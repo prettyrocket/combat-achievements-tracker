@@ -8,6 +8,11 @@
 // without mounting anything.
 
 import { TASKS } from '@/data/tasks'
+import { getStorageError, readJson, writeJson } from '@/lib/local-store'
+
+// Re-exported so callers keep asking one module about one concern: the storage
+// failure they need to report is the same failure whatever wrote last.
+export { getStorageError }
 
 /** Versioned so the stored shape can migrate without guessing at what's there. */
 const STORAGE_KEY = 'ca-tracker:progress:v1'
@@ -57,48 +62,13 @@ export function sanitizeIds(input: unknown, known: ReadonlySet<number> = KNOWN_I
 
 // --- storage access ---------------------------------------------------------
 //
-// Private browsing, disabled cookies and a full quota all surface as a throw from
-// perfectly ordinary calls. None of that should take the app down: we fall back to
-// an in-memory snapshot that works for the session, and say so rather than
-// pretending the data is safe.
-
-let storageError: string | null = null
-
-function storage(): Storage | null {
-  if (storageError !== null) return null
-  // No window during SSR/tests. Not an error worth reporting -- there's no user
-  // there to tell, and the in-memory snapshot behaves correctly.
-  if (typeof window === 'undefined') return null
-  try {
-    const probe = '__ca_probe__'
-    window.localStorage.setItem(probe, probe)
-    window.localStorage.removeItem(probe)
-    return window.localStorage
-  } catch {
-    storageError = 'This browser is blocking local storage, so progress will be lost when you close the tab. Export to keep it.'
-    return null
-  }
-}
-
-/** Non-null when progress is memory-only, with a message fit for the user. */
-export function getStorageError(): string | null {
-  return storageError
-}
+// The plumbing -- probing, and surviving a blocked or full store -- lives in
+// local-store.ts, shared with the task list. What's left here is what the shape
+// of *progress* means.
 
 function load(): ReadonlySet<number> {
-  const store = storage()
-  if (!store) return new Set()
-  try {
-    const raw = store.getItem(STORAGE_KEY)
-    if (raw === null) return new Set()
-    const parsed: unknown = JSON.parse(raw)
-    const completed = (parsed as { completed?: unknown } | null)?.completed
-    return new Set(sanitizeIds(completed).ids)
-  } catch {
-    // Corrupt or hand-edited JSON. Starting empty beats refusing to boot; the
-    // bad value stays on disk untouched until the next successful write.
-    return new Set()
-  }
+  const completed = (readJson(STORAGE_KEY) as { completed?: unknown } | null)?.completed
+  return new Set(sanitizeIds(completed).ids)
 }
 
 // --- snapshot + subscription ------------------------------------------------
@@ -111,21 +81,13 @@ const listeners = new Set<() => void>()
 
 function commit(next: ReadonlySet<number>): void {
   current = next
-  const store = storage()
-  if (store) {
-    const payload: ProgressExport = {
-      app: EXPORT_APP,
-      version: SCHEMA_VERSION,
-      exportedAt: new Date().toISOString(),
-      completed: [...next].sort((a, b) => a - b),
-    }
-    try {
-      store.setItem(STORAGE_KEY, JSON.stringify(payload))
-    } catch {
-      storageError =
-        'Ran out of local storage space, so progress is no longer being saved. Export to keep it.'
-    }
+  const payload: ProgressExport = {
+    app: EXPORT_APP,
+    version: SCHEMA_VERSION,
+    exportedAt: new Date().toISOString(),
+    completed: [...next].sort((a, b) => a - b),
   }
+  writeJson(STORAGE_KEY, payload)
   for (const listener of listeners) listener()
 }
 
