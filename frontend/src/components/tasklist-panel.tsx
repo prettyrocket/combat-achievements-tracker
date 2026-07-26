@@ -9,7 +9,7 @@
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { ChevronRight, GripVertical, ListChecks, ListPlus, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, GripVertical, ListChecks, ListPlus, X } from 'lucide-react'
 import { TASKLIST_DROPPABLE, dragId } from '@/lib/dnd'
 import { percent } from '@/lib/progress-summary'
 import { summarize, type TaskListEntry } from '@/lib/tasklist'
@@ -120,42 +120,47 @@ export function TaskListPanel({
   const { setNodeRef, isOver } = useDroppable({ id: TASKLIST_DROPPABLE })
 
   if (!open) {
-    // One element, two shapes: a thin vertical rail beside the table on wide
-    // screens, a full-width bar where the panel stacks. Collapsing must never be
-    // a way to lose the list -- there is always something to click to get it back.
+    // One element, two shapes: a narrow rail beside the table on wide screens, a
+    // full-width bar where the panel stacks. Collapsing must never be a way to
+    // lose the list -- there is always something to click to get it back.
+    //
+    // The rail label used to be turned on its side. Sideways text for two words
+    // is a party trick that reads badly, so the wide form is now the icon and the
+    // count -- both legible the normal way up -- with the words kept for the bar,
+    // where there is room for them.
     return (
-      <aside ref={setNodeRef} aria-label="My list" className="w-full shrink-0 lg:w-10">
+      <aside ref={setNodeRef} aria-label="My list" className="w-full shrink-0 lg:h-full lg:w-12">
         <button
           type="button"
           onClick={() => onOpenChange(true)}
           aria-expanded={false}
-          className={`hover:bg-muted flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2 transition-colors lg:sticky lg:top-4 lg:flex-col lg:px-0 lg:py-3 ${
+          title={isOver ? 'Drop to add' : `My list — ${summary.completed}/${summary.total} done`}
+          className={`hover:bg-muted flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2 transition-colors lg:h-full lg:flex-col lg:justify-start lg:px-0 lg:py-3 ${
             isOver ? 'border-foreground bg-muted' : ''
           }`}
         >
           <ListChecks className="size-4 shrink-0" aria-hidden />
           <span className="text-xs font-medium tabular-nums">{summary.total}</span>
-          {/* Turned on its side only once it's a rail. */}
-          <span className="text-muted-foreground text-xs lg:[writing-mode:vertical-rl]">
+          <span className="text-muted-foreground text-xs lg:hidden">
             {isOver ? 'Drop to add' : 'My list'}
           </span>
+          {/* The rail's own affordance: a chevron pointing back the way the panel
+              will come from, instead of a word lying on its side. */}
+          <ChevronLeft className="text-muted-foreground hidden size-4 lg:block" aria-hidden />
         </button>
       </aside>
     )
   }
 
   return (
-    <aside
-      aria-label="My list"
-      className="w-full shrink-0 lg:sticky lg:top-4 lg:w-80 lg:self-start"
-    >
+    <aside aria-label="My list" className="w-full shrink-0 lg:h-full lg:w-80">
       <div
         ref={setNodeRef}
-        className={`rounded-lg border transition-colors ${
+        className={`flex max-h-[45vh] flex-col rounded-lg border transition-colors lg:max-h-full lg:h-full ${
           isOver ? 'border-foreground bg-muted/40' : ''
         }`}
       >
-        <div className="flex items-center justify-between gap-2 border-b px-3 py-2">
+        <div className="flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2">
           <h2 className="flex items-center gap-2 text-sm font-semibold">
             <ListChecks className="size-4" aria-hidden />
             My list
@@ -175,7 +180,7 @@ export function TaskListPanel({
         </div>
 
         {summary.total > 0 && (
-          <div className="bg-muted h-1 w-full overflow-hidden">
+          <div className="bg-muted h-1 w-full shrink-0 overflow-hidden">
             <div
               className="bg-foreground h-full transition-[width] duration-300"
               style={{ width: `${percent(summary.completed, summary.total)}%` }}
@@ -196,7 +201,9 @@ export function TaskListPanel({
               items={entries.map((entry) => dragId('list', entry.task.wikiId))}
               strategy={verticalListSortingStrategy}
             >
-              <ul className="max-h-[70vh] space-y-1.5 overflow-y-auto p-2">
+              {/* The one part of the panel that scrolls: the header, the meter
+                  and Clear all stay put, however long the plan gets. */}
+              <ul className="min-h-0 flex-1 space-y-1.5 overflow-y-auto p-2">
                 {entries.map((entry) => (
                   <Entry
                     key={entry.task.wikiId}
@@ -208,7 +215,7 @@ export function TaskListPanel({
               </ul>
             </SortableContext>
 
-            <div className="flex justify-end border-t px-2 py-1.5">
+            <div className="flex shrink-0 justify-end border-t px-2 py-1.5">
               <Button variant="ghost" size="sm" onClick={onClear} className="h-6 px-2 text-xs">
                 <X className="size-3" aria-hidden />
                 Clear list

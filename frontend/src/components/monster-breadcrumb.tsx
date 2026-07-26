@@ -4,21 +4,33 @@
 // deep -- there is no hierarchy above "all tasks" -- so this is a location
 // marker with an escape hatch rather than real navigation.
 
-import { X } from 'lucide-react'
+import { Undo2, X } from 'lucide-react'
 import type { MonsterSummary } from '@/lib/types'
 
 export interface MonsterBreadcrumbProps {
-  summary: MonsterSummary
+  summaries: readonly MonsterSummary[]
   onClear: () => void
+  onRemove: (monster: string) => void
+  /** Search text the pivot set aside, if any -- offered back rather than lost. */
+  parkedSearch?: string | null
+  onRestoreSearch?: () => void
 }
 
-export function MonsterBreadcrumb({ summary, onClear }: MonsterBreadcrumbProps) {
+export function MonsterBreadcrumb({
+  summaries,
+  onClear,
+  onRemove,
+  parkedSearch,
+  onRestoreSearch,
+}: MonsterBreadcrumbProps) {
+  const total = summaries.reduce((sum, s) => sum + s.total, 0)
+  const completed = summaries.reduce((sum, s) => sum + s.completed, 0)
   // A monster typed into the URL that matches nothing: say so, rather than
   // showing a confident "0 / 0 done" over an empty table.
-  const known = summary.total > 0
+  const known = total > 0
 
   return (
-    <nav aria-label="Breadcrumb" className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1">
+    <nav aria-label="Breadcrumb" className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1">
       <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
         <li>
           <button
@@ -32,31 +44,49 @@ export function MonsterBreadcrumb({ summary, onClear }: MonsterBreadcrumbProps) 
         <li className="text-muted-foreground" aria-hidden>
           /
         </li>
-        <li aria-current="page">
-          <span className="bg-muted inline-flex items-center gap-1.5 rounded-full py-1 pr-1 pl-3 font-medium">
-            {summary.monster}
-            <button
-              type="button"
-              onClick={onClear}
-              aria-label={`Clear the ${summary.monster} filter`}
-              className="hover:bg-background rounded-full p-1 transition-colors"
-            >
-              <X className="size-3.5" aria-hidden />
-            </button>
-          </span>
-        </li>
+        {summaries.map((summary) => (
+          <li key={summary.monster} aria-current="page">
+            <span className="bg-muted inline-flex items-center gap-1.5 rounded-full py-1 pr-1 pl-3 font-medium">
+              {summary.monster}
+              <span className="text-muted-foreground text-xs tabular-nums">
+                {summary.completed}/{summary.total}
+              </span>
+              <button
+                type="button"
+                onClick={() => onRemove(summary.monster)}
+                aria-label={`Clear the ${summary.monster} filter`}
+                className="hover:bg-background rounded-full p-1 transition-colors"
+              >
+                <X className="size-3.5" aria-hidden />
+              </button>
+            </span>
+          </li>
+        ))}
       </ol>
 
       <p className="text-muted-foreground text-sm tabular-nums">
         {known ? (
           <>
-            <span className="text-foreground font-medium">{summary.completed}</span> /{' '}
-            {summary.total} done here
+            <span className="text-foreground font-medium">{completed}</span> / {total} done here
           </>
         ) : (
           'No tasks for that monster'
         )}
       </p>
+
+      {/* The pivot drops the search on purpose -- a leftover word would hide most
+          of the rows you just asked for -- but dropping it silently is what made
+          this feel like losing your place. So it's offered back. */}
+      {parkedSearch && onRestoreSearch && (
+        <button
+          type="button"
+          onClick={onRestoreSearch}
+          className="text-muted-foreground hover:text-foreground hover:bg-muted inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs transition-colors"
+        >
+          <Undo2 className="size-3" aria-hidden />
+          Restore search “{parkedSearch}”
+        </button>
+      )}
     </nav>
   )
 }

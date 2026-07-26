@@ -1,13 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import {
   DEFAULT_SORT,
+  addMonster,
   applyQuery,
   clearMonster,
   filterTasks,
   isEmptyQuery,
   parseQuery,
   pivotToMonster,
+  removeMonster,
   serializeQuery,
+  sortDirection,
   sortTasks,
 } from '@/lib/task-query'
 import type { TaskQuery, TaskRow, TaskType, Tier } from '@/lib/types'
@@ -73,23 +76,40 @@ describe('filterTasks: tier and type', () => {
 describe('filterTasks: monster', () => {
   it('matches a monster exactly', () => {
     const tasks = [task({ monster: 'Zulrah' }), task({ monster: 'Vorkath' })]
-    expect(ids(filterTasks(tasks, { monster: 'Vorkath' }, new Set()))).toEqual([tasks[1].wikiId])
+    expect(ids(filterTasks(tasks, { monster: ['Vorkath'] }, new Set()))).toEqual([tasks[1].wikiId])
+  })
+
+  // The point of the chips: two bosses on screen at once.
+  it('ORs several monsters together', () => {
+    const tasks = [task({ monster: 'Zulrah' }), task({ monster: 'Vorkath' }), task({ monster: 'Araxxor' })]
+    const result = filterTasks(tasks, { monster: ['Zulrah', 'Araxxor'] }, new Set())
+    expect(ids(result)).toEqual([tasks[0].wikiId, tasks[2].wikiId])
+  })
+
+  it('treats an empty monster list as no monster filter at all', () => {
+    const tasks = [task({ monster: 'Zulrah' }), task({ monster: null })]
+    expect(filterTasks(tasks, { monster: [] }, new Set())).toHaveLength(2)
   })
 
   // The value arrives from a URL someone may have typed or shared.
   it('is case-insensitive', () => {
     const tasks = [task({ monster: 'Zulrah' })]
-    expect(filterTasks(tasks, { monster: 'zulrah' }, new Set())).toHaveLength(1)
+    expect(filterTasks(tasks, { monster: ['zulrah'] }, new Set())).toHaveLength(1)
+  })
+
+  it('ignores surrounding whitespace and blank entries', () => {
+    const tasks = [task({ monster: 'Zulrah' })]
+    expect(filterTasks(tasks, { monster: ['  Zulrah  ', '   '] }, new Set())).toHaveLength(1)
   })
 
   it('does not match on a partial name', () => {
     const tasks = [task({ monster: 'Abyssal Sire' })]
-    expect(filterTasks(tasks, { monster: 'Abyssal' }, new Set())).toHaveLength(0)
+    expect(filterTasks(tasks, { monster: ['Abyssal'] }, new Set())).toHaveLength(0)
   })
 
   it('never matches the tasks that have no monster', () => {
     const tasks = [task({ monster: null }), task({ monster: 'Zulrah' })]
-    expect(ids(filterTasks(tasks, { monster: 'Zulrah' }, new Set()))).toEqual([tasks[1].wikiId])
+    expect(ids(filterTasks(tasks, { monster: ['Zulrah'] }, new Set()))).toEqual([tasks[1].wikiId])
   })
 })
 
@@ -145,6 +165,13 @@ describe('filterTasks: completion', () => {
   })
 })
 
+describe('sortDirection', () => {
+  it('reads the direction off the key', () => {
+    expect(sortDirection('comp_desc')).toBe('desc')
+    expect(sortDirection('name_asc')).toBe('asc')
+  })
+})
+
 describe('sortTasks', () => {
   it('defaults to most-completed first, the easiest-remaining view', () => {
     expect(DEFAULT_SORT).toBe('comp_desc')
@@ -169,19 +196,42 @@ describe('sortTasks', () => {
     expect(sortTasks(tasks, 'comp_asc').map((t) => t.completionPct)).toEqual([40, null])
   })
 
-  it('sorts by tier, easiest first', () => {
+  it('sorts by tier in both directions', () => {
     const tasks = [task({ tier: 'MASTER' }), task({ tier: 'EASY' }), task({ tier: 'ELITE' })]
-    expect(sortTasks(tasks, 'tier').map((t) => t.tier)).toEqual(['EASY', 'ELITE', 'MASTER'])
+    expect(sortTasks(tasks, 'tier_asc').map((t) => t.tier)).toEqual(['EASY', 'ELITE', 'MASTER'])
+    expect(sortTasks(tasks, 'tier_desc').map((t) => t.tier)).toEqual(['MASTER', 'ELITE', 'EASY'])
   })
 
-  it('sorts by name alphabetically', () => {
+  it('sorts by name in both directions', () => {
     const tasks = [task({ name: 'Zebra' }), task({ name: 'apple' }), task({ name: 'Mango' })]
-    expect(sortTasks(tasks, 'name').map((t) => t.name)).toEqual(['apple', 'Mango', 'Zebra'])
+    expect(sortTasks(tasks, 'name_asc').map((t) => t.name)).toEqual(['apple', 'Mango', 'Zebra'])
+    expect(sortTasks(tasks, 'name_desc').map((t) => t.name)).toEqual(['Zebra', 'Mango', 'apple'])
   })
 
-  it('sorts by monster, with the no-monster tasks last', () => {
+  it('sorts by points, biggest first by default', () => {
+    const tasks = [task({ tier: 'EASY' }), task({ tier: 'GRANDMASTER' }), task({ tier: 'HARD' })]
+    expect(sortTasks(tasks, 'points_desc').map((t) => t.points)).toEqual([6, 3, 1])
+    expect(sortTasks(tasks, 'points_asc').map((t) => t.points)).toEqual([1, 3, 6])
+  })
+
+  it('sorts by type in the tier-like order the chips use', () => {
+    const tasks = [task({ type: 'SPEED' }), task({ type: 'KILL_COUNT' }), task({ type: 'PERFECTION' })]
+    expect(sortTasks(tasks, 'type_asc').map((t) => t.type)).toEqual([
+      'KILL_COUNT',
+      'PERFECTION',
+      'SPEED',
+    ])
+    expect(sortTasks(tasks, 'type_desc').map((t) => t.type)).toEqual([
+      'SPEED',
+      'PERFECTION',
+      'KILL_COUNT',
+    ])
+  })
+
+  it('sorts by monster, with the no-monster tasks last in both directions', () => {
     const tasks = [task({ monster: 'Zulrah' }), task({ monster: null }), task({ monster: 'Araxxor' })]
-    expect(sortTasks(tasks, 'monster').map((t) => t.monster)).toEqual(['Araxxor', 'Zulrah', null])
+    expect(sortTasks(tasks, 'monster_asc').map((t) => t.monster)).toEqual(['Araxxor', 'Zulrah', null])
+    expect(sortTasks(tasks, 'monster_desc').map((t) => t.monster)).toEqual(['Zulrah', 'Araxxor', null])
   })
 
   // Without a tiebreak the order of equal rows is unspecified, so the table
@@ -228,37 +278,54 @@ describe('serializeQuery / parseQuery', () => {
 
   it('omits the default sort but keeps a non-default one', () => {
     expect(serializeQuery({ sort: DEFAULT_SORT }).toString()).toBe('')
-    expect(serializeQuery({ sort: 'name' }).get('sort')).toBe('name')
+    expect(serializeQuery({ sort: 'name_asc' }).get('sort')).toBe('name_asc')
   })
 
   it('omits empty facet lists and blank searches', () => {
-    expect(serializeQuery({ tier: [], type: [], q: '  ', monster: '' }).toString()).toBe('')
+    expect(serializeQuery({ tier: [], type: [], q: '  ', monster: [] }).toString()).toBe('')
+  })
+
+  // One param per monster rather than a joined list: no delimiter to collide
+  // with a name the wiki chose.
+  it('writes one monster param per monster', () => {
+    expect(serializeQuery({ monster: ['Zulrah', 'Vorkath'] }).getAll('monster')).toEqual([
+      'Zulrah',
+      'Vorkath',
+    ])
   })
 
   it.each([
     ['tiers', { tier: ['EASY', 'MASTER'] as Tier[] }],
     ['types', { type: ['SPEED'] as TaskType[] }],
-    ['a monster', { monster: 'Abyssal Sire' }],
+    ['a monster', { monster: ['Abyssal Sire'] }],
+    ['several monsters', { monster: ['Zulrah', 'Vorkath', 'Araxxor'] }],
     ['a search', { q: 'graardor' }],
     ['completed true', { completed: true }],
     ['completed false', { completed: false }],
-    ['a sort', { sort: 'tier' as const }],
+    ['a sort', { sort: 'tier_asc' as const }],
     ['everything at once', {
       tier: ['ELITE'] as Tier[],
       type: ['PERFECTION'] as TaskType[],
-      monster: 'Zulrah',
+      monster: ['Zulrah', 'Vorkath'],
       q: 'orb',
       completed: false,
-      sort: 'name' as const,
+      sort: 'name_asc' as const,
     }],
   ])('round-trips %s', (_label, query) => {
     expect(roundTrip(query as TaskQuery)).toEqual(query)
   })
 
-  it('survives a monster name with a space', () => {
-    expect(roundTrip({ monster: 'Chambers of Xeric: Challenge Mode' }).monster).toBe(
+  it('survives a monster name with a space and a colon', () => {
+    expect(roundTrip({ monster: ['Chambers of Xeric: Challenge Mode'] }).monster).toEqual([
       'Chambers of Xeric: Challenge Mode',
-    )
+    ])
+  })
+
+  // Links shared before the headers took over sorting still have to work.
+  it('accepts the old directionless sort names', () => {
+    expect(parseQuery(new URLSearchParams('sort=tier')).sort).toBe('tier_asc')
+    expect(parseQuery(new URLSearchParams('sort=name')).sort).toBe('name_asc')
+    expect(parseQuery(new URLSearchParams('sort=monster')).sort).toBe('monster_asc')
   })
 
   // The query string is user-editable and shareable, so it is untrusted input.
@@ -270,6 +337,10 @@ describe('serializeQuery / parseQuery', () => {
 
   it('ignores an unknown sort key and falls back to the default', () => {
     expect(parseQuery(new URLSearchParams('sort=chaos')).sort).toBeUndefined()
+  })
+
+  it('drops blank monster params', () => {
+    expect(parseQuery(new URLSearchParams('monster=&monster=%20')).monster).toBeUndefined()
   })
 
   it('treats any non-true/false completed value as unset', () => {
@@ -284,7 +355,7 @@ describe('serializeQuery / parseQuery', () => {
 describe('isEmptyQuery', () => {
   it('is true for nothing set and for explicitly empty values', () => {
     expect(isEmptyQuery({})).toBe(true)
-    expect(isEmptyQuery({ tier: [], q: '  ', monster: '' })).toBe(true)
+    expect(isEmptyQuery({ tier: [], q: '  ', monster: [] })).toBe(true)
     expect(isEmptyQuery({ sort: DEFAULT_SORT })).toBe(true)
   })
 
@@ -292,13 +363,14 @@ describe('isEmptyQuery', () => {
     expect(isEmptyQuery({ tier: ['EASY'] })).toBe(false)
     expect(isEmptyQuery({ q: 'x' })).toBe(false)
     expect(isEmptyQuery({ completed: false })).toBe(false)
-    expect(isEmptyQuery({ sort: 'name' })).toBe(false)
+    expect(isEmptyQuery({ sort: 'name_asc' })).toBe(false)
+    expect(isEmptyQuery({ monster: ['Zulrah'] })).toBe(false)
   })
 })
 
 describe('pivotToMonster', () => {
   it('sets the monster', () => {
-    expect(pivotToMonster({}, 'Zulrah').monster).toBe('Zulrah')
+    expect(pivotToMonster({}, 'Zulrah').monster).toEqual(['Zulrah'])
   })
 
   // The headline workflow: Comp% desc + not-completed, pivot to the top row's
@@ -310,17 +382,18 @@ describe('pivotToMonster', () => {
       tier: ['EASY', 'MEDIUM'],
       type: ['KILL_COUNT'],
     }
-    expect(pivotToMonster(query, 'Vardorvis')).toEqual({ ...query, monster: 'Vardorvis' })
+    expect(pivotToMonster(query, 'Vardorvis')).toEqual({ ...query, monster: ['Vardorvis'] })
   })
 
   // A leftover search term would hide most of the rows the pivot just asked for,
-  // with nothing near the table to explain why.
+  // with nothing near the table to explain why. The caller hands it back through
+  // the breadcrumb instead.
   it('drops the free-text search', () => {
     expect(pivotToMonster({ q: 'vard' }, 'Vardorvis').q).toBeUndefined()
   })
 
-  it('replaces a monster already pivoted to', () => {
-    expect(pivotToMonster({ monster: 'Zulrah' }, 'Vorkath').monster).toBe('Vorkath')
+  it('replaces every monster already pivoted to', () => {
+    expect(pivotToMonster({ monster: ['Zulrah', 'Araxxor'] }, 'Vorkath').monster).toEqual(['Vorkath'])
   })
 
   it('does not mutate the query it was given', () => {
@@ -330,15 +403,55 @@ describe('pivotToMonster', () => {
   })
 
   it('round-trips through the URL', () => {
-    const pivoted = pivotToMonster({ sort: 'name' }, 'Kree\'arra')
+    const pivoted = pivotToMonster({ sort: 'name_asc' }, 'Kree\'arra')
     expect(parseQuery(serializeQuery(pivoted))).toEqual(pivoted)
   })
 })
 
+describe('addMonster / removeMonster', () => {
+  it('appends to what is already there', () => {
+    expect(addMonster({ monster: ['Zulrah'] }, 'Vorkath').monster).toEqual(['Zulrah', 'Vorkath'])
+  })
+
+  it('starts the list when there is none', () => {
+    expect(addMonster({}, 'Zulrah').monster).toEqual(['Zulrah'])
+  })
+
+  // Shift-clicking the same boss twice shouldn't stack a duplicate chip.
+  it('ignores a monster already on the list, whatever the case', () => {
+    const query: TaskQuery = { monster: ['Zulrah'] }
+    expect(addMonster(query, 'zulrah')).toBe(query)
+  })
+
+  it('drops the search, same as a pivot', () => {
+    expect(addMonster({ q: 'vard' }, 'Vardorvis').q).toBeUndefined()
+  })
+
+  it('removes one monster and leaves the others', () => {
+    expect(removeMonster({ monster: ['Zulrah', 'Vorkath'] }, 'Zulrah').monster).toEqual(['Vorkath'])
+  })
+
+  it('unsets the facet entirely when the last one goes', () => {
+    expect(removeMonster({ monster: ['Zulrah'] }, 'zulrah').monster).toBeUndefined()
+  })
+
+  it('does not mutate the query it was given', () => {
+    const query: TaskQuery = { monster: ['Zulrah'] }
+    addMonster(query, 'Vorkath')
+    removeMonster(query, 'Zulrah')
+    expect(query.monster).toEqual(['Zulrah'])
+  })
+})
+
 describe('clearMonster', () => {
-  it('removes the monster and leaves everything else alone', () => {
-    const query: TaskQuery = { monster: 'Zulrah', tier: ['ELITE'], completed: false, sort: 'name' }
-    expect(clearMonster(query)).toEqual({ tier: ['ELITE'], completed: false, sort: 'name' })
+  it('removes every monster and leaves everything else alone', () => {
+    const query: TaskQuery = {
+      monster: ['Zulrah', 'Vorkath'],
+      tier: ['ELITE'],
+      completed: false,
+      sort: 'name_asc',
+    }
+    expect(clearMonster(query)).toEqual({ tier: ['ELITE'], completed: false, sort: 'name_asc' })
   })
 
   it('is a no-op when nothing was pivoted to', () => {
@@ -346,9 +459,9 @@ describe('clearMonster', () => {
   })
 
   it('does not mutate the query it was given', () => {
-    const query: TaskQuery = { monster: 'Zulrah' }
+    const query: TaskQuery = { monster: ['Zulrah'] }
     clearMonster(query)
-    expect(query.monster).toBe('Zulrah')
+    expect(query.monster).toEqual(['Zulrah'])
   })
 })
 
@@ -370,6 +483,17 @@ describe('pivot: end to end over a task list', () => {
       tasks[2].wikiId,
       tasks[1].wikiId,
     ])
+  })
+
+  // Shift-click: hold two bosses side by side, still easiest-first.
+  it('widens to both bosses when a second is added', () => {
+    const tasks = [
+      task({ monster: 'Vardorvis', completionPct: 9 }),
+      task({ monster: 'Zulrah', completionPct: 80 }),
+      task({ monster: 'Araxxor', completionPct: 40 }),
+    ]
+    const widened = addMonster(pivotToMonster({}, 'Vardorvis'), 'Zulrah')
+    expect(ids(applyQuery(tasks, widened, new Set()))).toEqual([tasks[1].wikiId, tasks[0].wikiId])
   })
 
   it('matches the monster whatever case the URL carried it in', () => {

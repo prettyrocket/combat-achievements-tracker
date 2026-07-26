@@ -65,14 +65,33 @@ export interface ProgressSummary {
   perTier: TierProgress[]
 }
 
-export type SortKey = 'comp_desc' | 'comp_asc' | 'tier' | 'name' | 'monster'
+// Every sort is directional now that the column headers are the control: a
+// header has to be able to say which way it is pointing, and "Tier" with no
+// direction can't. The two `comp_*` names predate the convention and are kept
+// as they are, because they are already out there in shared URLs.
+export const SORT_KEYS = [
+  'comp_desc',
+  'comp_asc',
+  'tier_asc',
+  'tier_desc',
+  'name_asc',
+  'name_desc',
+  'monster_asc',
+  'monster_desc',
+  'type_asc',
+  'type_desc',
+  'points_desc',
+  'points_asc',
+] as const
+export type SortKey = (typeof SORT_KEYS)[number]
 
 // Client-side filter/sort state (was a query string to the API; now it just
 // drives filtering over the in-memory task list, and serialises to the URL).
 export interface TaskQuery {
   tier?: Tier[]
   type?: TaskType[]
-  monster?: string
+  /** Monsters to show, OR'd together. Empty or absent means every monster. */
+  monster?: string[]
   q?: string
   completed?: boolean
   sort?: SortKey

@@ -21,10 +21,18 @@ import { TASKLIST_DROPPABLE, parseDragId } from '@/lib/dnd'
 import { readJson, writeJson } from '@/lib/local-store'
 import { summarize, summarizeMonster } from '@/lib/progress-summary'
 import { resolve } from '@/lib/tasklist'
-import { applyQuery, clearMonster, pivotToMonster } from '@/lib/task-query'
+import {
+  DEFAULT_SORT,
+  addMonster,
+  clearMonster,
+  pivotToMonster,
+  removeMonster,
+  applyQuery,
+} from '@/lib/task-query'
 import { useProgress } from '@/lib/use-progress'
 import { useTaskList } from '@/lib/use-tasklist'
 import { useTaskQuery } from '@/lib/use-task-query'
+import type { SortKey } from '@/lib/types'
 
 // Every distinct monster, for the filter's autocomplete. Static data, so it's
 // computed once at module load rather than per render.
@@ -32,14 +40,29 @@ const MONSTERS = [...new Set(TASKS.map((t) => t.monster).filter((m) => m !== nul
 
 const BY_ID = new Map(TASKS.map((task) => [task.wikiId, task]))
 
-// Whether the panel was left open. UI state, not data, so it gets its own key and
-// stays out of the export -- restoring a backup shouldn't rearrange the furniture.
+// Whether the panel was left open, and whether the summary was left collapsed.
+// UI state, not data, so each gets its own key and stays out of the export --
+// restoring a backup shouldn't rearrange the furniture.
 const PANEL_KEY = 'ca-tracker:tasklist-open:v1'
+const COMPACT_KEY = 'ca-tracker:summary-compact:v1'
 
-function panelInitiallyOpen(): boolean {
-  const stored = readJson(PANEL_KEY)
-  // Open by default: a plan you have to go and find is a plan you stop using.
-  return typeof stored === 'boolean' ? stored : true
+function storedFlag(key: string, fallback: boolean): boolean {
+  const stored = readJson(key)
+  return typeof stored === 'boolean' ? stored : fallback
+}
+
+/**
+ * Whether the summary should start collapsed, for someone who has never said.
+ *
+ * Nothing above the table scrolls away any more, which is the point -- but it
+ * also means the header block is charged to the table's height. On a short or
+ * narrow window the six tier meters would leave a table two rows tall, so the
+ * first impression there is the one-line form. Say otherwise once and that
+ * choice is remembered.
+ */
+function compactByDefault(): boolean {
+  if (typeof window === 'undefined') return false
+  return window.innerWidth < 1024 || window.innerHeight < 900
 }
 
 export default function App() {
@@ -47,8 +70,14 @@ export default function App() {
   const { query, setQuery, clear } = useTaskQuery()
   const taskList = useTaskList()
 
-  const [panelOpen, setPanelOpen] = useState(panelInitiallyOpen)
+  // Open by default: a plan you have to go and find is a plan you stop using.
+  const [panelOpen, setPanelOpen] = useState(() => storedFlag(PANEL_KEY, true))
+  const [compactSummary, setCompactSummary] = useState(() =>
+    storedFlag(COMPACT_KEY, compactByDefault()),
+  )
   const [dragging, setDragging] = useState<number | null>(null)
+  // What the last pivot took out of the search box, so it can be handed back.
+  const [parkedSearch, setParkedSearch] = useState<string | null>(null)
 
   // The summary deliberately ignores the query: it reports progress against the
   // whole game, not against whatever happens to be filtered in right now.
@@ -56,8 +85,8 @@ export default function App() {
 
   const visible = useMemo(() => applyQuery(TASKS, query, completed), [query, completed])
 
-  const monsterSummary = useMemo(
-    () => (query.monster ? summarizeMonster(TASKS, completed, query.monster) : null),
+  const monsterSummaries = useMemo(
+    () => (query.monster ?? []).map((monster) => summarizeMonster(TASKS, completed, monster)),
     [query.monster, completed],
   )
 
@@ -70,19 +99,55 @@ export default function App() {
 
   const pivot = useCallback(
     (monster: string) => {
-      setQuery(pivotToMonster(query, monster))
-      // The pivot swaps the table out from under you; without this you'd be left
-      // scrolled past the end of a list that is now a dozen rows long.
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      // Navigation, so it earns its own history entry rather than being folded
+      // into whatever filtering came just before it.
+      setQuery(pivotToMonster(query, monster), 'push')
+      setParkedSearch(query.q?.trim() || null)
     },
     [query, setQuery],
   )
 
-  const unpivot = useCallback(() => setQuery(clearMonster(query)), [query, setQuery])
+  const addToPivot = useCallback(
+    (monster: string) => {
+      setQuery(addMonster(query, monster), 'push')
+      if (query.q?.trim()) setParkedSearch(query.q.trim())
+    },
+    [query, setQuery],
+  )
+
+  const dropMonster = useCallback(
+    (monster: string) => setQuery(removeMonster(query, monster), 'push'),
+    [query, setQuery],
+  )
+
+  const unpivot = useCallback(() => {
+    setQuery(clearMonster(query), 'push')
+    setParkedSearch(null)
+  }, [query, setQuery])
+
+  const restoreSearch = useCallback(() => {
+    if (parkedSearch) setQuery({ ...query, q: parkedSearch }, 'push')
+    setParkedSearch(null)
+  }, [parkedSearch, query, setQuery])
+
+  const setSort = useCallback(
+    (sort: SortKey) => setQuery({ ...query, sort: sort === DEFAULT_SORT ? undefined : sort }),
+    [query, setQuery],
+  )
+
+  const clearAll = useCallback(() => {
+    clear()
+    setParkedSearch(null)
+  }, [clear])
 
   const togglePanel = useCallback((open: boolean) => {
     setPanelOpen(open)
     writeJson(PANEL_KEY, open)
+  }, [])
+
+  const toggleCompact = useCallback((compact: boolean) => {
+    setCompactSummary(compact)
+    writeJson(COMPACT_KEY, compact)
   }, [])
 
   // Distance-activated, so a press that turns into a click still reaches the
@@ -127,8 +192,12 @@ export default function App() {
       onDragEnd={onDragEnd}
       onDragCancel={() => setDragging(null)}
     >
-      <div className="mx-auto max-w-[100rem] px-6 py-8">
-        <header className="flex flex-wrap items-start justify-between gap-4 border-b pb-5">
+      {/* The app owns the viewport height and hands what's left to the table.
+          Nothing above the table scrolls away, and the table's own scrollbars --
+          including the horizontal one, which used to sit 646 rows below the fold
+          where nobody could reach it -- belong to a box you can see. */}
+      <div className="mx-auto flex h-dvh max-w-[100rem] flex-col overflow-hidden px-6 py-6">
+        <header className="flex shrink-0 flex-wrap items-start justify-between gap-4 border-b pb-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Combat Achievements Tracker</h1>
             {/* The counts live in ProgressHeader now -- one place, and one that
@@ -149,29 +218,57 @@ export default function App() {
         {storageError && (
           <p
             role="alert"
-            className="mt-4 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-300"
+            className="mt-4 shrink-0 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-300"
           >
             {storageError}
           </p>
         )}
 
-        <ProgressHeader summary={summary} />
+        <div className="shrink-0">
+          <ProgressHeader
+            summary={summary}
+            compact={compactSummary}
+            onCompactChange={toggleCompact}
+          />
 
-        <FilterBar
-          query={query}
-          onChange={setQuery}
-          onClear={clear}
-          monsters={MONSTERS}
-          resultCount={visible.length}
-          totalCount={TASKS.length}
-        />
+          <FilterBar
+            query={query}
+            onChange={setQuery}
+            onClear={clearAll}
+            monsters={MONSTERS}
+            resultCount={visible.length}
+            totalCount={TASKS.length}
+          />
 
-        {monsterSummary && <MonsterBreadcrumb summary={monsterSummary} onClear={unpivot} />}
+          {monsterSummaries.length > 0 && (
+            <MonsterBreadcrumb
+              summaries={monsterSummaries}
+              onClear={unpivot}
+              onRemove={dropMonster}
+              parkedSearch={parkedSearch}
+              onRestoreSearch={restoreSearch}
+            />
+          )}
+        </div>
 
-        {/* The split. Stacks below the table under lg, where a 320px column would
-            leave the table unusable. */}
-        <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-start">
-          <main className="min-w-0 flex-1">
+        {/* The split, and the only part allowed to grow: min-h-0 is what lets a
+            flex child be *shorter* than its content so the table can scroll
+            inside it. Stacks under lg, where a 320px column would leave the
+            table unusable -- and the panel goes first there, so it can't end up
+            stranded below a table that owns the rest of the screen. */}
+        <div className="mt-3 flex min-h-0 flex-1 flex-col gap-3 lg:flex-row lg:items-stretch">
+          <div className="shrink-0 lg:order-2 lg:h-full">
+            <TaskListPanel
+              entries={entries}
+              open={panelOpen}
+              onOpenChange={togglePanel}
+              onToggleCompleted={toggle}
+              onRemove={taskList.remove}
+              onClear={taskList.clear}
+            />
+          </div>
+
+          <main className="min-h-0 min-w-0 flex-1 lg:order-1">
             {visible.length === 0 ? (
               <p className="text-muted-foreground rounded-lg border border-dashed py-12 text-center text-sm">
                 No tasks match these filters.
@@ -182,21 +279,15 @@ export default function App() {
                 completed={completed}
                 onToggle={toggle}
                 onPivotToMonster={pivot}
-                activeMonster={query.monster}
+                onAddMonster={addToPivot}
+                activeMonsters={query.monster}
                 onList={listedIds}
                 onToggleListed={taskList.toggle}
+                sort={query.sort ?? DEFAULT_SORT}
+                onSortChange={setSort}
               />
             )}
           </main>
-
-          <TaskListPanel
-            entries={entries}
-            open={panelOpen}
-            onOpenChange={togglePanel}
-            onToggleCompleted={toggle}
-            onRemove={taskList.remove}
-            onClear={taskList.clear}
-          />
         </div>
       </div>
 

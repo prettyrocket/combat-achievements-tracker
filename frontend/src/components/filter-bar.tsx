@@ -1,21 +1,18 @@
-// Search, facet chips, monster picker, completion toggle and sort.
+// Search, facet chips, monster picker and completion toggle.
 //
 // Every control writes through to the same TaskQuery, which is serialised to the
 // URL -- so there is no local state here to drift out of sync with the address
 // bar, and every visible arrangement is a link someone can send.
+//
+// Sort left this bar: the column headers own it now, which is where you were
+// already pointing when you decided to re-sort.
 
-import { Search, X } from 'lucide-react'
-import { DEFAULT_SORT, isEmptyQuery } from '@/lib/task-query'
-import { TIERS, TASK_TYPES, type SortKey, type TaskQuery, type TaskType, type Tier } from '@/lib/types'
+import { useState } from 'react'
+import { Plus, Search, X } from 'lucide-react'
+import { addMonster, isEmptyQuery } from '@/lib/task-query'
+import { TIERS, TASK_TYPES, type TaskQuery, type TaskType, type Tier } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 
 const TIER_LABEL: Record<Tier, string> = {
   EASY: 'Easy',
@@ -33,14 +30,6 @@ const TYPE_LABEL: Record<TaskType, string> = {
   MECHANICAL: 'Mechanical',
   SPEED: 'Speed',
   STAMINA: 'Stamina',
-}
-
-const SORT_LABEL: Record<SortKey, string> = {
-  comp_desc: 'Most completed',
-  comp_asc: 'Rarest first',
-  tier: 'Tier',
-  name: 'Name',
-  monster: 'Monster',
 }
 
 /** Adds or removes one value from a facet, returning undefined when it empties. */
@@ -93,10 +82,24 @@ export function FilterBar({
   resultCount,
   totalCount,
 }: FilterBarProps) {
+  // The only local state in the bar, and it isn't filter state: it's the half-typed
+  // monster name that hasn't been committed to the query yet.
+  const [draft, setDraft] = useState('')
+
   const patch = (partial: Partial<TaskQuery>) => onChange({ ...query, ...partial })
+  const selected = query.monster ?? []
+
+  /** Commit the draft, matching the data's own casing so the chip reads right. */
+  function commitMonster(raw: string) {
+    const value = raw.trim()
+    if (!value) return
+    const known = monsters.find((m) => m.toLowerCase() === value.toLowerCase())
+    onChange(addMonster(query, known ?? value))
+    setDraft('')
+  }
 
   return (
-    <section aria-label="Filters" className="mt-6 space-y-3">
+    <section aria-label="Filters" className="mt-4 space-y-2.5">
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-56 flex-1">
           <Search
@@ -113,39 +116,56 @@ export function FilterBar({
         </div>
 
         {/* A plain datalist rather than a combobox: 89 monsters, and the browser's
-            own autocomplete is keyboard- and screen-reader-correct for free. */}
-        <Input
-          list="monster-options"
-          value={query.monster ?? ''}
-          onChange={(event) => patch({ monster: event.target.value || undefined })}
-          placeholder="Any monster"
-          aria-label="Filter by monster"
-          className="w-48"
-        />
+            own autocomplete is keyboard- and screen-reader-correct for free.
+            Selecting one adds a chip and empties the box, so the next one can be
+            typed straight after. */}
+        <div className="flex items-center gap-1">
+          <Input
+            list="monster-options"
+            value={draft}
+            onChange={(event) => {
+              const value = event.target.value
+              setDraft(value)
+              // Picking from the datalist fires a change with the full value and
+              // no keypress; committing it here saves a redundant Enter.
+              if (monsters.some((m) => m.toLowerCase() === value.toLowerCase())) {
+                commitMonster(value)
+              }
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault()
+                commitMonster(draft)
+              }
+            }}
+            placeholder="Add a monster…"
+            aria-label="Filter by monster"
+            className="w-44"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => commitMonster(draft)}
+            disabled={draft.trim() === ''}
+            aria-label="Add this monster to the filter"
+            className="h-9 px-2"
+          >
+            <Plus className="size-4" aria-hidden />
+          </Button>
+        </div>
         <datalist id="monster-options">
-          {monsters.map((monster) => (
-            <option key={monster} value={monster} />
-          ))}
-        </datalist>
-
-        <Select
-          value={query.sort ?? DEFAULT_SORT}
-          onValueChange={(value) =>
-            patch({ sort: value === DEFAULT_SORT ? undefined : (value as SortKey) })
-          }
-        >
-          <SelectTrigger className="w-44" aria-label="Sort by">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {(Object.keys(SORT_LABEL) as SortKey[]).map((key) => (
-              <SelectItem key={key} value={key}>
-                {SORT_LABEL[key]}
-              </SelectItem>
+          {monsters
+            .filter((m) => !selected.some((s) => s.toLowerCase() === m.toLowerCase()))
+            .map((monster) => (
+              <option key={monster} value={monster} />
             ))}
-          </SelectContent>
-        </Select>
+        </datalist>
       </div>
+
+      {/* The selected monsters are deliberately *not* listed here. The breadcrumb
+          directly below already shows each one with its own progress count and
+          its own ✕, and two rows of the same chips is just noise. This bar adds
+          them; the breadcrumb is where they live. */}
 
       <div className="flex flex-wrap items-center gap-1.5">
         {TIERS.map((tier) => (
@@ -186,20 +206,20 @@ export function FilterBar({
               ? 'Completed only'
               : 'Not completed'}
         </Chip>
-      </div>
 
-      <div className="text-muted-foreground flex items-center gap-3 text-xs">
-        <span className="tabular-nums">
-          {resultCount === totalCount
-            ? `${totalCount} tasks`
-            : `${resultCount} of ${totalCount} tasks`}
+        <span className="text-muted-foreground ml-auto flex items-center gap-3 text-xs">
+          <span className="tabular-nums">
+            {resultCount === totalCount
+              ? `${totalCount} tasks`
+              : `${resultCount} of ${totalCount} tasks`}
+          </span>
+          {!isEmptyQuery(query) && (
+            <Button variant="ghost" size="sm" onClick={onClear} className="h-6 px-2 text-xs">
+              <X className="size-3" aria-hidden />
+              Clear filters
+            </Button>
+          )}
         </span>
-        {!isEmptyQuery(query) && (
-          <Button variant="ghost" size="sm" onClick={onClear} className="h-6 px-2 text-xs">
-            <X className="size-3" aria-hidden />
-            Clear filters
-          </Button>
-        )}
       </div>
     </section>
   )

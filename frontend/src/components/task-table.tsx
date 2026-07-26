@@ -1,19 +1,42 @@
-import { useMemo } from 'react'
+// The table, in its own scroll viewport.
+//
+// Two things drive the shape of this file.
+//
+// First, the viewport: the table scrolls *inside* a fixed-height box rather than
+// making the page 30,000px tall. That keeps the progress header and the task list
+// on screen, and -- the reason it became urgent -- it puts the horizontal
+// scrollbar at the bottom of the *viewport* instead of the bottom of 646 rows,
+// where nobody could reach it.
+//
+// Second, only what's visible is rendered. Toggling one checkbox used to block
+// the main thread for over a second, because every row is a dnd-kit draggable and
+// all 646 of them re-registered on each render. Windowing cuts that to ~20 rows;
+// the column defs no longer close over `completed` (it arrives via table meta),
+// so a tick can't invalidate them and remount every cell either.
+
+import { useCallback, useMemo, useRef } from 'react'
 import {
   flexRender,
   getCoreRowModel,
   useReactTable,
   type ColumnDef,
+  type Header,
 } from '@tanstack/react-table'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { useDraggable } from '@dnd-kit/core'
-import { ListChecks, ListPlus } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronsUpDown, ExternalLink, ListChecks, ListPlus } from 'lucide-react'
 import { dragId } from '@/lib/dnd'
-import type { TaskRow, TaskType } from '@/lib/types'
+import type { SortKey, TaskRow, TaskType } from '@/lib/types'
 import { COMPLETION_TONE_CLASS, completionTone, formatCompletion } from '@/lib/completion'
+import { COLUMN_SORT, sortDirection, type SortDirection } from '@/lib/task-query'
+import { monsterWikiUrl, splitAtColon, taskWikiUrl } from '@/lib/wiki'
 import { TierBadge } from '@/components/tier-badge'
 import { Checkbox } from '@/components/ui/checkbox'
+// Note the missing `Table`: that wrapper brings its own `overflow-x-auto` div,
+// and nesting one inside this viewport puts the horizontal scrollbar back at the
+// bottom of all 646 rows -- the exact thing the viewport exists to fix. The
+// <table> element is written out by hand below; every other part is shadcn's.
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
@@ -30,9 +53,21 @@ const TYPE_LABEL: Record<TaskType, string> = {
   STAMINA: 'Stamina',
 }
 
+/**
+ * Row state that changes constantly, kept out of the column defs.
+ *
+ * Column defs that close over `completed` are rebuilt on every tick, and a new
+ * def array makes TanStack rebuild its columns and remount every cell. Reading
+ * this from meta instead means a tick re-renders cells and nothing more.
+ */
+interface TableMeta {
+  completed: ReadonlySet<number>
+  onList: ReadonlySet<number> | undefined
+  activeMonsters: readonly string[]
+}
+
 export interface TaskTableProps {
   tasks: readonly TaskRow[]
-  /** Ids of tasks marked done. Held in memory for now; #18 moves it to localStorage. */
   completed: ReadonlySet<number>
   onToggle: (wikiId: number) => void
   /**
@@ -41,8 +76,10 @@ export interface TaskTableProps {
    * shipping a control that goes nowhere.
    */
   onPivotToMonster?: (monster: string) => void
-  /** The monster already pivoted to, if any. Its cells render as plain text. */
-  activeMonster?: string
+  /** Adds a monster to the filter alongside whatever's already there (shift-click). */
+  onAddMonster?: (monster: string) => void
+  /** Monsters already filtered to. Their cells render as plain text. */
+  activeMonsters?: readonly string[]
   /** Ids on the plan, so a row can show it's already there. */
   onList?: ReadonlySet<number>
   /**
@@ -51,22 +88,67 @@ export interface TaskTableProps {
    * carefully it's built.
    */
   onToggleListed?: (wikiId: number) => void
+  /** Current sort, for the header arrows. */
+  sort: SortKey
+  onSortChange?: (next: SortKey) => void
+}
+
+/** A wiki link that doesn't take the click meant for the control next to it. */
+function WikiLink({ href, label }: { href: string; label: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer noopener"
+      title={label}
+      aria-label={label}
+      onPointerDown={(event) => event.stopPropagation()}
+      className="text-muted-foreground/40 hover:text-foreground inline-flex shrink-0 transition-colors"
+    >
+      <ExternalLink className="size-3.5" aria-hidden />
+    </a>
+  )
+}
+
+/**
+ * Names split at their colon, so `Chambers of Xeric: CM (5-Scale) Speed-Chaser`
+ * stops setting the width of a column whose other 630 rows are half that long.
+ * Only the handful of names with a colon are affected; everything else renders
+ * as one line exactly as before.
+ */
+function SplitName({ value, className }: { value: string; className?: string }) {
+  const [head, tail] = splitAtColon(value)
+  if (tail === null) return <span className={className}>{value}</span>
+  return (
+    <span className={className}>
+      {head}:<br />
+      <span className="text-muted-foreground">{tail}</span>
+    </span>
+  )
 }
 
 /**
  * Rows are draggable so they can be thrown at the panel. The pointer sensor is
  * distance-activated (see App), which is what keeps this from swallowing clicks
  * on the checkbox and the monster pivot living inside the same row.
+ *
+ * `measureRef` is the virtualiser's: rows wrap to different heights (a long
+ * description is three lines), so each one reports its real height rather than
+ * trusting the estimate.
  */
 function DraggableRow({
   task,
   isCompleted,
   draggable,
+  index,
+  measureRef,
   children,
 }: {
   task: TaskRow
   isCompleted: boolean
   draggable: boolean
+  index: number
+  measureRef: (node: HTMLElement | null) => void
   children: React.ReactNode
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
@@ -74,9 +156,18 @@ function DraggableRow({
     disabled: !draggable,
   })
 
+  const ref = useCallback(
+    (node: HTMLTableRowElement | null) => {
+      setNodeRef(node)
+      measureRef(node)
+    },
+    [setNodeRef, measureRef],
+  )
+
   return (
     <TableRow
-      ref={setNodeRef}
+      ref={ref}
+      data-index={index}
       data-state={isCompleted && 'selected'}
       className={isDragging ? 'opacity-40' : undefined}
       {...(draggable ? attributes : {})}
@@ -92,25 +183,69 @@ function DraggableRow({
   )
 }
 
+const DIRECTION_ICON = { asc: ArrowUp, desc: ArrowDown } as const
+
+/** A header that sorts on click and flips direction on the second click. */
+function SortableHead({
+  header,
+  sort,
+  onSortChange,
+}: {
+  header: Header<TaskRow, unknown>
+  sort: SortKey
+  onSortChange?: (next: SortKey) => void
+}) {
+  // Widened from the per-column tuple: every column has its own literal pair, and
+  // the union of those has no member in common for `includes` to accept.
+  const pair = COLUMN_SORT[header.column.id as keyof typeof COLUMN_SORT] as
+    | readonly [SortKey, SortKey]
+    | undefined
+  const label = flexRender(header.column.columnDef.header, header.getContext())
+
+  if (!pair || !onSortChange) return <>{label}</>
+
+  const active: SortDirection | null = pair.includes(sort) ? sortDirection(sort) : null
+  // Second click flips; arriving from another column starts in this column's
+  // natural direction -- descending for percentages, ascending for names.
+  const next = active === null ? pair[0] : pair[0] === sort ? pair[1] : pair[0]
+  const Icon = active === null ? ChevronsUpDown : DIRECTION_ICON[active]
+
+  return (
+    <button
+      type="button"
+      onClick={() => onSortChange(next)}
+      aria-label={`Sort by ${header.column.id}`}
+      className={`hover:text-foreground -mx-1 inline-flex items-center gap-1 rounded px-1 py-0.5 transition-colors ${
+        active ? 'text-foreground' : 'text-muted-foreground'
+      }`}
+    >
+      {label}
+      <Icon className={`size-3.5 ${active ? '' : 'opacity-40'}`} aria-hidden />
+    </button>
+  )
+}
+
 export function TaskTable({
   tasks,
   completed,
   onToggle,
   onPivotToMonster,
-  activeMonster,
+  onAddMonster,
+  activeMonsters,
   onList,
   onToggleListed,
+  sort,
+  onSortChange,
 }: TaskTableProps) {
-  // Column defs close over the callbacks, so memoise on those rather than rebuilding
-  // (and remounting every cell) on each parent render.
+  // Deliberately does *not* depend on `completed` or `onList` -- see TableMeta.
   const columns = useMemo<ColumnDef<TaskRow>[]>(
     () => [
       {
         id: 'completed',
         header: () => <span className="sr-only">Completed</span>,
-        cell: ({ row }) => {
+        cell: ({ row, table }) => {
           const task = row.original
-          const isDone = completed.has(task.wikiId)
+          const isDone = (table.options.meta as TableMeta).completed.has(task.wikiId)
           return (
             <Checkbox
               checked={isDone}
@@ -125,9 +260,10 @@ export function TaskTable({
             {
               id: 'listed',
               header: () => <span className="sr-only">On my list</span>,
-              cell: ({ row }) => {
+              cell: ({ row, table }) => {
                 const task = row.original
-                const listed = onList?.has(task.wikiId) ?? false
+                const listed =
+                  (table.options.meta as TableMeta).onList?.has(task.wikiId) ?? false
                 const Icon = listed ? ListChecks : ListPlus
                 return (
                   <button
@@ -138,8 +274,10 @@ export function TaskTable({
                     aria-label={
                       listed ? `Remove "${task.name}" from my list` : `Add "${task.name}" to my list`
                     }
-                    className={`hover:bg-muted rounded p-1 transition-colors ${
-                      listed ? 'text-foreground' : 'text-muted-foreground/50 hover:text-foreground'
+                    className={`rounded p-1 transition-colors ${
+                      listed
+                        ? 'text-background bg-foreground'
+                        : 'text-muted-foreground/50 hover:bg-muted hover:text-foreground'
                     }`}
                   >
                     <Icon className="size-4" aria-hidden />
@@ -153,23 +291,35 @@ export function TaskTable({
         id: 'monster',
         header: 'Monster',
         accessorFn: (t) => t.monster,
-        cell: ({ row }) => {
+        cell: ({ row, table }) => {
           const { monster } = row.original
           if (monster === null) {
             return <span className="text-muted-foreground italic">Any</span>
           }
-          // Already pivoted here: clicking would be a no-op, so don't offer it.
-          const isActive = monster.toLowerCase() === activeMonster?.trim().toLowerCase()
-          if (!onPivotToMonster || isActive) return monster
+          const { activeMonsters: active } = table.options.meta as TableMeta
+          // Already filtered to this one: clicking would be a no-op, so don't offer it.
+          const isActive = active.some((m) => m.toLowerCase() === monster.toLowerCase())
           return (
-            <button
-              type="button"
-              onClick={() => onPivotToMonster(monster)}
-              title={`Show only ${monster} tasks`}
-              className="text-left underline decoration-dotted underline-offset-4 hover:text-foreground hover:decoration-solid"
-            >
-              {monster}
-            </button>
+            <span className="flex items-start gap-1.5">
+              {!onPivotToMonster || isActive ? (
+                <SplitName value={monster} />
+              ) : (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    // Shift adds to the filter instead of replacing it, so you can
+                    // hold two bosses side by side without retyping either.
+                    if (event.shiftKey && onAddMonster) onAddMonster(monster)
+                    else onPivotToMonster(monster)
+                  }}
+                  title={`Show only ${monster} tasks — shift-click to add it alongside`}
+                  className="hover:text-foreground text-left underline decoration-dotted underline-offset-4 hover:decoration-solid"
+                >
+                  <SplitName value={monster} />
+                </button>
+              )}
+              <WikiLink href={monsterWikiUrl(monster)} label={`${monster} on the wiki`} />
+            </span>
           )
         },
       },
@@ -177,16 +327,24 @@ export function TaskTable({
         id: 'name',
         header: 'Name',
         accessorFn: (t) => t.name,
-        cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+        cell: ({ row }) => (
+          <span className="flex items-start gap-1.5">
+            <SplitName value={row.original.name} className="font-medium" />
+            <WikiLink
+              href={taskWikiUrl(row.original.name)}
+              label={`"${row.original.name}" on the wiki`}
+            />
+          </span>
+        ),
       },
       {
         id: 'description',
         header: 'Description',
         accessorFn: (t) => t.description,
-        // The only column allowed to wrap -- descriptions are full sentences, and
-        // truncating them hides the actual requirement.
+        // The only column allowed to wrap freely -- descriptions are full
+        // sentences, and truncating them hides the actual requirement.
         cell: ({ row }) => (
-          <span className="block max-w-prose whitespace-normal text-muted-foreground">
+          <span className="text-muted-foreground block max-w-prose whitespace-normal">
             {row.original.description}
           </span>
         ),
@@ -204,6 +362,16 @@ export function TaskTable({
         cell: ({ row }) => <TierBadge tier={row.original.tier} />,
       },
       {
+        id: 'points',
+        header: () => <span className="block text-right">Pts</span>,
+        accessorFn: (t) => t.points,
+        cell: ({ row }) => (
+          <span className="text-muted-foreground block text-right tabular-nums">
+            {row.original.points}
+          </span>
+        ),
+      },
+      {
         id: 'completionPct',
         header: () => <span className="block text-right">Comp%</span>,
         accessorFn: (t) => t.completionPct,
@@ -219,47 +387,99 @@ export function TaskTable({
         },
       },
     ],
-    [completed, onToggle, onPivotToMonster, activeMonster, onList, onToggleListed],
+    [onToggle, onPivotToMonster, onAddMonster, onToggleListed],
   )
 
   const data = useMemo(() => tasks as TaskRow[], [tasks])
 
+  const meta = useMemo<TableMeta>(
+    () => ({ completed, onList, activeMonsters: activeMonsters ?? [] }),
+    [completed, onList, activeMonsters],
+  )
+
   const table = useReactTable({
     data,
     columns,
+    meta,
     getCoreRowModel: getCoreRowModel(),
     getRowId: (task) => String(task.wikiId),
   })
 
+  const rows = table.getRowModel().rows
+  const viewportRef = useRef<HTMLDivElement>(null)
+
+  const virtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => viewportRef.current,
+    // A one-line row; anything taller is measured for real once it mounts.
+    estimateSize: () => 45,
+    // Enough rows above and below to survive a flick of the wheel without a
+    // visible gap, and few enough that a tick stays cheap.
+    overscan: 12,
+  })
+
+  const virtualRows = virtualizer.getVirtualItems()
+  const columnCount = table.getAllLeafColumns().length
+  // Spacer rows rather than absolute positioning: a <tbody> can't have its
+  // children taken out of flow without losing the column widths that make this
+  // a table in the first place.
+  const paddingTop = virtualRows.length > 0 ? virtualRows[0].start : 0
+  const paddingBottom =
+    virtualRows.length > 0
+      ? virtualizer.getTotalSize() - virtualRows[virtualRows.length - 1].end
+      : 0
+
   return (
-    <Table>
-      <TableHeader>
-        {table.getHeaderGroups().map((group) => (
-          <TableRow key={group.id}>
-            {group.headers.map((header) => (
-              <TableHead key={header.id}>
-                {flexRender(header.column.columnDef.header, header.getContext())}
-              </TableHead>
-            ))}
-          </TableRow>
-        ))}
-      </TableHeader>
-      <TableBody>
-        {table.getRowModel().rows.map((row) => (
-          <DraggableRow
-            key={row.id}
-            task={row.original}
-            isCompleted={completed.has(row.original.wikiId)}
-            draggable={onToggleListed !== undefined}
-          >
-            {row.getVisibleCells().map((cell) => (
-              <TableCell key={cell.id}>
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </TableCell>
-            ))}
-          </DraggableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <div
+      ref={viewportRef}
+      // The scroll box. Both scrollbars belong to it, so the horizontal one sits
+      // at the bottom of what you can see rather than 646 rows below it.
+      className="h-full overflow-auto rounded-lg border"
+    >
+      <table className="w-full caption-bottom text-sm">
+        <TableHeader className="bg-background sticky top-0 z-10 [&_tr]:border-b-0">
+          {table.getHeaderGroups().map((group) => (
+            <TableRow key={group.id} className="hover:bg-transparent">
+              {group.headers.map((header) => (
+                <TableHead key={header.id} className="border-b">
+                  <SortableHead header={header} sort={sort} onSortChange={onSortChange} />
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {paddingTop > 0 && (
+            <tr aria-hidden>
+              <td colSpan={columnCount} style={{ height: paddingTop }} />
+            </tr>
+          )}
+          {virtualRows.map((virtualRow) => {
+            const row = rows[virtualRow.index]
+            return (
+              <DraggableRow
+                key={row.id}
+                task={row.original}
+                index={virtualRow.index}
+                measureRef={virtualizer.measureElement}
+                isCompleted={completed.has(row.original.wikiId)}
+                draggable={onToggleListed !== undefined}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </DraggableRow>
+            )
+          })}
+          {paddingBottom > 0 && (
+            <tr aria-hidden>
+              <td colSpan={columnCount} style={{ height: paddingBottom }} />
+            </tr>
+          )}
+        </TableBody>
+      </table>
+    </div>
   )
 }
