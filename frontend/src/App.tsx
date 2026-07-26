@@ -3,15 +3,25 @@ import { TASKS } from '@/data/tasks'
 import { TaskTable } from '@/components/task-table'
 import { ProgressToolbar } from '@/components/progress-toolbar'
 import { ProgressHeader } from '@/components/progress-header'
+import { FilterBar } from '@/components/filter-bar'
 import { summarize } from '@/lib/progress-summary'
+import { applyQuery } from '@/lib/task-query'
 import { useProgress } from '@/lib/use-progress'
+import { useTaskQuery } from '@/lib/use-task-query'
+
+// Every distinct monster, for the filter's autocomplete. Static data, so it's
+// computed once at module load rather than per render.
+const MONSTERS = [...new Set(TASKS.map((t) => t.monster).filter((m) => m !== null))].sort()
 
 export default function App() {
   const { completed, toggle, setMany, mergeMany, reset, storageError } = useProgress()
+  const { query, setQuery, clear } = useTaskQuery()
 
-  // Recomputed whenever progress changes -- 646 rows is a trivial pass, and
-  // caching it against a Set identity is cheaper than reasoning about staleness.
+  // The summary deliberately ignores the query: it reports progress against the
+  // whole game, not against whatever happens to be filtered in right now.
   const summary = useMemo(() => summarize(TASKS, completed), [completed])
+
+  const visible = useMemo(() => applyQuery(TASKS, query, completed), [query, completed])
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8">
@@ -43,8 +53,23 @@ export default function App() {
 
       <ProgressHeader summary={summary} />
 
-      <main className="mt-6">
-        <TaskTable tasks={TASKS} completed={completed} onToggle={toggle} />
+      <FilterBar
+        query={query}
+        onChange={setQuery}
+        onClear={clear}
+        monsters={MONSTERS}
+        resultCount={visible.length}
+        totalCount={TASKS.length}
+      />
+
+      <main className="mt-4">
+        {visible.length === 0 ? (
+          <p className="text-muted-foreground rounded-lg border border-dashed py-12 text-center text-sm">
+            No tasks match these filters.
+          </p>
+        ) : (
+          <TaskTable tasks={visible} completed={completed} onToggle={toggle} />
+        )}
       </main>
     </div>
   )
