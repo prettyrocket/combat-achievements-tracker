@@ -4,7 +4,7 @@ import { ProgressToolbar } from '@/components/progress-toolbar'
 import { useProgress } from '@/lib/use-progress'
 
 export default function App() {
-  const { completed, toggle, reset, storageError } = useProgress()
+  const { completed, toggle, mergeMany, reset, storageError } = useProgress()
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8">
@@ -15,7 +15,12 @@ export default function App() {
             OSRS · {completed.size} / {TASKS.length} tasks complete
           </p>
         </div>
-        <ProgressToolbar completedCount={completed.size} onReset={reset} />
+        <ProgressToolbar
+          completed={completed}
+          completedCount={completed.size}
+          onReset={reset}
+          onMerge={mergeMany}
+        />
       </header>
 
       {storageError && (
