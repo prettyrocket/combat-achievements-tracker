@@ -2,7 +2,14 @@
 // so the header and any future legend agree by construction rather than by two
 // components happening to compute the same thing.
 
-import { TIERS, type ProgressSummary, type TaskRow, type Tier, type TierProgress } from '@/lib/types'
+import {
+  TIERS,
+  type MonsterSummary,
+  type ProgressSummary,
+  type TaskRow,
+  type Tier,
+  type TierProgress,
+} from '@/lib/types'
 
 /**
  * A 0-100 figure safe to drop straight into a CSS width.
@@ -56,4 +63,33 @@ export function summarize(
     // TIERS order, not insertion order: Easy reads before Grandmaster.
     perTier: TIERS.map((tier) => perTierByTier.get(tier)!),
   }
+}
+
+/**
+ * Progress at one boss, for the pivot breadcrumb.
+ *
+ * Matched case-insensitively on the same field `filterTasks` uses, so the count
+ * in the breadcrumb can't disagree with the rows underneath it. Like the overall
+ * summary it ignores the rest of the query: it answers "how far am I at this
+ * boss", not "how far am I within the tier chips I happen to have on".
+ *
+ * `monster` comes back in the data's own casing when anything matched, so a
+ * hand-typed `?monster=zulrah` still renders as "Zulrah".
+ */
+export function summarizeMonster(
+  tasks: readonly TaskRow[],
+  completed: ReadonlySet<number>,
+  monster: string,
+): MonsterSummary {
+  const needle = monster.trim().toLowerCase()
+  const summary: MonsterSummary = { monster: monster.trim(), total: 0, completed: 0 }
+
+  for (const task of tasks) {
+    if (task.monster === null || task.monster.toLowerCase() !== needle) continue
+    if (summary.total === 0) summary.monster = task.monster
+    summary.total++
+    if (completed.has(task.wikiId)) summary.completed++
+  }
+
+  return summary
 }

@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest'
 import {
   DEFAULT_SORT,
   applyQuery,
+  clearMonster,
   filterTasks,
   isEmptyQuery,
   parseQuery,
+  pivotToMonster,
   serializeQuery,
   sortTasks,
 } from '@/lib/task-query'
@@ -291,5 +293,88 @@ describe('isEmptyQuery', () => {
     expect(isEmptyQuery({ q: 'x' })).toBe(false)
     expect(isEmptyQuery({ completed: false })).toBe(false)
     expect(isEmptyQuery({ sort: 'name' })).toBe(false)
+  })
+})
+
+describe('pivotToMonster', () => {
+  it('sets the monster', () => {
+    expect(pivotToMonster({}, 'Zulrah').monster).toBe('Zulrah')
+  })
+
+  // The headline workflow: Comp% desc + not-completed, pivot to the top row's
+  // boss, and still be looking at that boss's easiest remaining tasks.
+  it('keeps sort, completion and facet filters through the pivot', () => {
+    const query: TaskQuery = {
+      sort: 'comp_desc',
+      completed: false,
+      tier: ['EASY', 'MEDIUM'],
+      type: ['KILL_COUNT'],
+    }
+    expect(pivotToMonster(query, 'Vardorvis')).toEqual({ ...query, monster: 'Vardorvis' })
+  })
+
+  // A leftover search term would hide most of the rows the pivot just asked for,
+  // with nothing near the table to explain why.
+  it('drops the free-text search', () => {
+    expect(pivotToMonster({ q: 'vard' }, 'Vardorvis').q).toBeUndefined()
+  })
+
+  it('replaces a monster already pivoted to', () => {
+    expect(pivotToMonster({ monster: 'Zulrah' }, 'Vorkath').monster).toBe('Vorkath')
+  })
+
+  it('does not mutate the query it was given', () => {
+    const query: TaskQuery = { q: 'vard', tier: ['EASY'] }
+    pivotToMonster(query, 'Vardorvis')
+    expect(query).toEqual({ q: 'vard', tier: ['EASY'] })
+  })
+
+  it('round-trips through the URL', () => {
+    const pivoted = pivotToMonster({ sort: 'name' }, 'Kree\'arra')
+    expect(parseQuery(serializeQuery(pivoted))).toEqual(pivoted)
+  })
+})
+
+describe('clearMonster', () => {
+  it('removes the monster and leaves everything else alone', () => {
+    const query: TaskQuery = { monster: 'Zulrah', tier: ['ELITE'], completed: false, sort: 'name' }
+    expect(clearMonster(query)).toEqual({ tier: ['ELITE'], completed: false, sort: 'name' })
+  })
+
+  it('is a no-op when nothing was pivoted to', () => {
+    expect(isEmptyQuery(clearMonster({}))).toBe(true)
+  })
+
+  it('does not mutate the query it was given', () => {
+    const query: TaskQuery = { monster: 'Zulrah' }
+    clearMonster(query)
+    expect(query.monster).toBe('Zulrah')
+  })
+})
+
+describe('pivot: end to end over a task list', () => {
+  it('narrows the table to that monster, keeping the not-completed filter', () => {
+    const tasks = [
+      task({ monster: 'Vardorvis', completionPct: 40 }),
+      task({ monster: 'Vardorvis', completionPct: 9 }),
+      task({ monster: 'Zulrah', completionPct: 80 }),
+    ]
+    const completed = new Set([tasks[0].wikiId])
+    const start: TaskQuery = { sort: 'comp_desc', completed: false }
+
+    const pivoted = pivotToMonster(start, 'Vardorvis')
+    expect(ids(applyQuery(tasks, pivoted, completed))).toEqual([tasks[1].wikiId])
+
+    // ...and backing out of the pivot restores the wider view unchanged.
+    expect(ids(applyQuery(tasks, clearMonster(pivoted), completed))).toEqual([
+      tasks[2].wikiId,
+      tasks[1].wikiId,
+    ])
+  })
+
+  it('matches the monster whatever case the URL carried it in', () => {
+    const tasks = [task({ monster: 'Vardorvis' }), task({ monster: 'Zulrah' })]
+    const result = applyQuery(tasks, parseQuery(new URLSearchParams('monster=vardorvis')), new Set())
+    expect(ids(result)).toEqual([tasks[0].wikiId])
   })
 })

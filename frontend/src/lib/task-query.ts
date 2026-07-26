@@ -100,6 +100,29 @@ export function applyQuery(
   return sortTasks(filterTasks(tasks, query, completed), query.sort ?? DEFAULT_SORT)
 }
 
+// --- pivot ------------------------------------------------------------------
+
+/**
+ * Focus the view on one boss.
+ *
+ * Keeps the facets that say *what you are looking for* -- tier, type, completion,
+ * sort -- so the "easiest remaining" workflow survives the pivot: sort by Comp%,
+ * hide what's done, click the top row's boss, and you land on that boss's
+ * remaining tasks still in easiest-first order.
+ *
+ * Drops the free-text search, which only ever helped you *find* the boss. A
+ * leftover "vardorvis" in the box would hide most of the rows the pivot just
+ * asked for, and the reason would not be visible anywhere near the table.
+ */
+export function pivotToMonster(query: TaskQuery, monster: string): TaskQuery {
+  return { ...query, monster, q: undefined }
+}
+
+/** The breadcrumb's clear: back to every boss, with the rest of the view intact. */
+export function clearMonster(query: TaskQuery): TaskQuery {
+  return { ...query, monster: undefined }
+}
+
 // --- query string -----------------------------------------------------------
 
 export function isEmptyQuery(query: TaskQuery): boolean {

@@ -1,11 +1,12 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { TASKS } from '@/data/tasks'
 import { TaskTable } from '@/components/task-table'
 import { ProgressToolbar } from '@/components/progress-toolbar'
 import { ProgressHeader } from '@/components/progress-header'
 import { FilterBar } from '@/components/filter-bar'
-import { summarize } from '@/lib/progress-summary'
-import { applyQuery } from '@/lib/task-query'
+import { MonsterBreadcrumb } from '@/components/monster-breadcrumb'
+import { summarize, summarizeMonster } from '@/lib/progress-summary'
+import { applyQuery, clearMonster, pivotToMonster } from '@/lib/task-query'
 import { useProgress } from '@/lib/use-progress'
 import { useTaskQuery } from '@/lib/use-task-query'
 
@@ -22,6 +23,23 @@ export default function App() {
   const summary = useMemo(() => summarize(TASKS, completed), [completed])
 
   const visible = useMemo(() => applyQuery(TASKS, query, completed), [query, completed])
+
+  const monsterSummary = useMemo(
+    () => (query.monster ? summarizeMonster(TASKS, completed, query.monster) : null),
+    [query.monster, completed],
+  )
+
+  const pivot = useCallback(
+    (monster: string) => {
+      setQuery(pivotToMonster(query, monster))
+      // The pivot swaps the table out from under you; without this you'd be left
+      // scrolled past the end of a list that is now a dozen rows long.
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    },
+    [query, setQuery],
+  )
+
+  const unpivot = useCallback(() => setQuery(clearMonster(query)), [query, setQuery])
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8">
@@ -62,13 +80,21 @@ export default function App() {
         totalCount={TASKS.length}
       />
 
+      {monsterSummary && <MonsterBreadcrumb summary={monsterSummary} onClear={unpivot} />}
+
       <main className="mt-4">
         {visible.length === 0 ? (
           <p className="text-muted-foreground rounded-lg border border-dashed py-12 text-center text-sm">
             No tasks match these filters.
           </p>
         ) : (
-          <TaskTable tasks={visible} completed={completed} onToggle={toggle} />
+          <TaskTable
+            tasks={visible}
+            completed={completed}
+            onToggle={toggle}
+            onPivotToMonster={pivot}
+            activeMonster={query.monster}
+          />
         )}
       </main>
     </div>

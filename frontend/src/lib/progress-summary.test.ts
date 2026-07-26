@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { percent, summarize } from '@/lib/progress-summary'
+import { percent, summarize, summarizeMonster } from '@/lib/progress-summary'
 import { TIERS, type TaskRow, type Tier } from '@/lib/types'
 
 let nextId = 0
@@ -188,5 +188,44 @@ describe('summarize: against the real bundle', () => {
     expect(summary.pointsEarned).toBe(2671)
     expect(summary.completedTasks).toBe(646)
     expect(summary.perTier.find((t) => t.tier === 'GRANDMASTER')?.pointsEarned).toBe(726)
+  })
+})
+
+describe('summarizeMonster', () => {
+  it('counts only that monster, done and total', () => {
+    const zulrah = [task('EASY'), task('HARD')]
+    const other = task('ELITE', { monster: 'Vorkath' })
+    const summary = summarizeMonster([...zulrah, other], new Set([zulrah[0].wikiId]), 'Zulrah')
+
+    expect(summary).toEqual({ monster: 'Zulrah', total: 2, completed: 1 })
+  })
+
+  it('matches case- and whitespace-insensitively, like the filter does', () => {
+    const tasks = [task('EASY'), task('HARD')]
+    expect(summarizeMonster(tasks, new Set(), '  zULRah ').total).toBe(2)
+  })
+
+  it("reports the data's casing, not the caller's", () => {
+    expect(summarizeMonster([task('EASY')], new Set(), 'zulrah').monster).toBe('Zulrah')
+  })
+
+  it('ignores tasks with no monster', () => {
+    const tasks = [task('EASY', { monster: null }), task('HARD')]
+    expect(summarizeMonster(tasks, new Set(), 'Zulrah').total).toBe(1)
+  })
+
+  // A hand-edited ?monster=. The breadcrumb leans on total === 0 to say so
+  // rather than showing a confident 0/0, and echoes back what was asked for.
+  it('reports an empty summary for a monster that does not exist', () => {
+    expect(summarizeMonster([task('EASY')], new Set(), ' Chinchompa ')).toEqual({
+      monster: 'Chinchompa',
+      total: 0,
+      completed: 0,
+    })
+  })
+
+  it('never counts an id that is completed but not in the list', () => {
+    const summary = summarizeMonster([task('EASY')], new Set([999_999]), 'Zulrah')
+    expect(summary.completed).toBe(0)
   })
 })

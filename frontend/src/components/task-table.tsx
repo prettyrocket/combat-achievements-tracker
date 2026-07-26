@@ -33,14 +33,22 @@ export interface TaskTableProps {
   completed: ReadonlySet<number>
   onToggle: (wikiId: number) => void
   /**
-   * Turns the Monster cell into the pivot control. Left undefined until #10 builds
-   * the pivot view -- the cell renders as plain text rather than shipping a link
-   * that goes nowhere.
+   * Turns the Monster cell into the pivot control. Optional so the table stays
+   * usable on its own: without it the cell renders as plain text rather than
+   * shipping a control that goes nowhere.
    */
   onPivotToMonster?: (monster: string) => void
+  /** The monster already pivoted to, if any. Its cells render as plain text. */
+  activeMonster?: string
 }
 
-export function TaskTable({ tasks, completed, onToggle, onPivotToMonster }: TaskTableProps) {
+export function TaskTable({
+  tasks,
+  completed,
+  onToggle,
+  onPivotToMonster,
+  activeMonster,
+}: TaskTableProps) {
   // Column defs close over the callbacks, so memoise on those rather than rebuilding
   // (and remounting every cell) on each parent render.
   const columns = useMemo<ColumnDef<TaskRow>[]>(
@@ -69,11 +77,14 @@ export function TaskTable({ tasks, completed, onToggle, onPivotToMonster }: Task
           if (monster === null) {
             return <span className="text-muted-foreground italic">Any</span>
           }
-          if (!onPivotToMonster) return monster
+          // Already pivoted here: clicking would be a no-op, so don't offer it.
+          const isActive = monster.toLowerCase() === activeMonster?.trim().toLowerCase()
+          if (!onPivotToMonster || isActive) return monster
           return (
             <button
               type="button"
               onClick={() => onPivotToMonster(monster)}
+              title={`Show only ${monster} tasks`}
               className="text-left underline decoration-dotted underline-offset-4 hover:text-foreground hover:decoration-solid"
             >
               {monster}
@@ -127,7 +138,7 @@ export function TaskTable({ tasks, completed, onToggle, onPivotToMonster }: Task
         },
       },
     ],
-    [completed, onToggle, onPivotToMonster],
+    [completed, onToggle, onPivotToMonster, activeMonster],
   )
 
   const data = useMemo(() => tasks as TaskRow[], [tasks])
