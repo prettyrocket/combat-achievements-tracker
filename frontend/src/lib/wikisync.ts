@@ -14,6 +14,21 @@ import { sanitizeIds } from '@/lib/progress-store'
 /** WikiSync's own "this RSN has never synced" response. */
 const NO_USER_DATA = 'NO_USER_DATA'
 
+/**
+ * The sync URL for a player, or null if there's no usable name yet.
+ *
+ * Built here rather than in the component so the encoding is testable: RSNs
+ * routinely contain spaces, and a hand-typed URL with a raw space in it is the
+ * most likely way this flow fails before it starts. Underscores are equivalent
+ * to spaces in RuneScape names, and runs of whitespace collapse, so "Lynx  Titan",
+ * "Lynx_Titan" and " Lynx Titan " all produce the same URL.
+ */
+export function buildSyncUrl(rsn: string): string | null {
+  const name = rsn.replace(/_/g, ' ').replace(/\s+/g, ' ').trim()
+  if (name === '') return null
+  return `https://sync.runescape.wiki/runelite/player/${encodeURIComponent(name)}/STANDARD`
+}
+
 export interface WikiSyncParse {
   /** Valid, known task ids found in the paste, deduped. */
   ids: number[]

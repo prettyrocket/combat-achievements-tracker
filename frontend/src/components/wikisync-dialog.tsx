@@ -5,10 +5,11 @@
 // Achievements interface in-game, so WikiSync has a profile for them with no CA
 // list in it. Saying that up front costs less than diagnosing it afterwards.
 
-import { useState } from 'react'
-import { ClipboardPaste, ExternalLink } from 'lucide-react'
-import { diffAgainst, parseWikiSync, WikiSyncParseError } from '@/lib/wikisync'
+import { useEffect, useState } from 'react'
+import { Check, ClipboardPaste, Copy, ExternalLink } from 'lucide-react'
+import { buildSyncUrl, diffAgainst, parseWikiSync, WikiSyncParseError } from '@/lib/wikisync'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Dialog,
@@ -29,14 +30,39 @@ export interface WikiSyncDialogProps {
 
 export function WikiSyncDialog({ completed, onApply }: WikiSyncDialogProps) {
   const [open, setOpen] = useState(false)
+  const [rsn, setRsn] = useState('')
+  const [copied, setCopied] = useState(false)
   const [text, setText] = useState('')
   const [diff, setDiff] = useState<WikiSyncDiff | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  const syncUrl = buildSyncUrl(rsn)
+
+  // Revert the "Copied" confirmation on its own, and cancel the timer if the
+  // dialog closes first so it can't fire against an unmounted component.
+  useEffect(() => {
+    if (!copied) return
+    const timer = setTimeout(() => setCopied(false), 2000)
+    return () => clearTimeout(timer)
+  }, [copied])
 
   function resetState() {
     setText('')
     setDiff(null)
     setError(null)
+    setCopied(false)
+  }
+
+  async function handleCopy() {
+    if (syncUrl === null) return
+    try {
+      await navigator.clipboard.writeText(syncUrl)
+      setCopied(true)
+    } catch {
+      // Clipboard access needs a secure context and can be refused outright.
+      // Not worth an error state -- the URL is on screen and selectable.
+      setCopied(false)
+    }
   }
 
   function handlePreview() {
@@ -93,27 +119,62 @@ export function WikiSyncDialog({ completed, onApply }: WikiSyncDialogProps) {
             — that's what populates the list — then log out.
           </li>
           <li>
-            Open{' '}
-            <code className="bg-muted rounded px-1 py-0.5 text-xs">
-              sync.runescape.wiki/runelite/player/&lt;RSN&gt;/STANDARD
-            </code>{' '}
-            in your address bar and copy everything.
-            <a
-              href="https://sync.runescape.wiki/runelite/player/Zezima/STANDARD"
-              target="_blank"
-              rel="noreferrer noopener"
-              className="ml-1 inline-flex items-center gap-1 underline decoration-dotted underline-offset-4"
-            >
-              example
-              <ExternalLink className="size-3" aria-hidden />
-            </a>
+            Enter your name below, open the URL in your address bar, and copy everything.
           </li>
         </ol>
-        <p className="text-muted-foreground text-xs">
-          Spaces in a name become <code className="bg-muted rounded px-1">%20</code>.{' '}
-          <span className="text-foreground">STANDARD</span> is the world type, not the account
-          type — ironman, HCIM and UIM on normal worlds all use it.
-        </p>
+
+        <div className="space-y-2">
+          <Input
+            value={rsn}
+            onChange={(event) => setRsn(event.target.value)}
+            placeholder="Your RuneScape name"
+            aria-label="RuneScape name"
+            maxLength={12}
+            autoComplete="off"
+            spellCheck={false}
+          />
+
+          <div className="flex items-center gap-2">
+            <code
+              className="bg-muted text-muted-foreground min-w-0 flex-1 truncate rounded px-2 py-1.5 text-xs"
+              title={syncUrl ?? undefined}
+            >
+              {syncUrl ?? 'sync.runescape.wiki/runelite/player/…/STANDARD'}
+            </code>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={syncUrl === null}
+              onClick={handleCopy}
+              aria-label="Copy sync URL"
+            >
+              {copied ? <Check className="size-4" aria-hidden /> : <Copy className="size-4" aria-hidden />}
+              {copied ? 'Copied' : 'Copy'}
+            </Button>
+            <Button variant="outline" size="sm" asChild disabled={syncUrl === null}>
+              {/* A normal link, so it's a top-level navigation -- that's what sends no
+                  Origin header and makes this work at all. */}
+              <a
+                href={syncUrl ?? '#'}
+                target="_blank"
+                rel="noreferrer noopener"
+                aria-label="Open sync URL in a new tab"
+                aria-disabled={syncUrl === null}
+                onClick={(event) => {
+                  if (syncUrl === null) event.preventDefault()
+                }}
+              >
+                <ExternalLink className="size-4" aria-hidden />
+                Open
+              </a>
+            </Button>
+          </div>
+
+          <p className="text-muted-foreground text-xs">
+            <span className="text-foreground">STANDARD</span> is the world type, not the account
+            type — ironman, HCIM and UIM on normal worlds all use it. Spaces are encoded for you.
+          </p>
+        </div>
 
         <Textarea
           value={text}
