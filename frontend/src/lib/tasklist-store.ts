@@ -65,6 +65,11 @@ export function add(wikiId: number): void {
   commitSanitized(list.add(current, wikiId))
 }
 
+/** One commit for the whole batch, so a group of 20 is one write and one render. */
+export function addMany(wikiIds: Iterable<number>): void {
+  commitSanitized(list.addMany(current, wikiIds))
+}
+
 export function remove(wikiId: number): void {
   commitSanitized(list.remove(current, wikiId))
 }

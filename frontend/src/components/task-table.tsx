@@ -14,17 +14,27 @@
 // the column defs no longer close over `completed` (it arrives via table meta),
 // so a tick can't invalidate them and remount every cell either.
 
-import { useCallback, useMemo, useRef } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import {
   flexRender,
   getCoreRowModel,
   useReactTable,
   type ColumnDef,
   type Header,
+  type Row,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useDraggable } from '@dnd-kit/core'
-import { ArrowDown, ArrowUp, ChevronsUpDown, ExternalLink, ListChecks, ListPlus } from 'lucide-react'
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronDown,
+  ChevronRight,
+  ChevronsUpDown,
+  ExternalLink,
+  ListChecks,
+  ListPlus,
+} from 'lucide-react'
 import { dragId } from '@/lib/dnd'
 import type { SortKey, TaskRow, TaskType } from '@/lib/types'
 import { COMPLETION_TONE_CLASS, completionTone, formatCompletion } from '@/lib/completion'
@@ -88,6 +98,12 @@ export interface TaskTableProps {
    * carefully it's built.
    */
   onToggleListed?: (wikiId: number) => void
+  /**
+   * Puts a whole monster group on the plan at once, from its banner. Separate
+   * from onToggleListed because this one only ever adds: a toggle over twenty
+   * tasks would take half of them off again depending on what was already there.
+   */
+  onAddManyToList?: (wikiIds: number[]) => void
   /** Current sort, for the header arrows. */
   sort: SortKey
   onSortChange?: (next: SortKey) => void
@@ -183,6 +199,104 @@ function DraggableRow({
   )
 }
 
+/** One monster's banner, and the tasks under it, in one flat virtualised list. */
+interface GroupItem {
+  kind: 'group'
+  monster: string | null
+  /** Every task under this banner, collapsed or not -- what "add all" adds. */
+  wikiIds: number[]
+}
+type RowItem = GroupItem | { kind: 'row'; row: Row<TaskRow> }
+
+/**
+ * `null` is a real value here -- tasks with no monster group under "Any monster"
+ * like everything else -- so the key is prefixed rather than relying on a
+ * sentinel string no monster could be called.
+ */
+function groupKey(monster: string | null): string {
+  return monster === null ? 'any:' : `monster:${monster}`
+}
+
+/**
+ * A monster's banner: collapses its rows, and puts the whole group on the plan
+ * in one click.
+ *
+ * Two buttons rather than one clickable row. The row's job is collapsing, which
+ * is cheap and reversible; adding twenty tasks to a plan is neither, and a strip
+ * that did the safe thing everywhere except one patch is how you end up doing
+ * the expensive thing by accident.
+ */
+function GroupBanner({
+  group,
+  index,
+  columnCount,
+  measureRef,
+  collapsed,
+  onToggleCollapsed,
+  completed,
+  onList,
+  onAddManyToList,
+}: {
+  group: GroupItem
+  index: number
+  columnCount: number
+  measureRef: (node: HTMLElement | null) => void
+  collapsed: boolean
+  onToggleCollapsed: (monster: string | null) => void
+  completed: ReadonlySet<number>
+  onList: ReadonlySet<number> | undefined
+  onAddManyToList?: (wikiIds: number[]) => void
+}) {
+  const name = group.monster ?? 'Any monster'
+  // A plan is what's left to do. Filtered to "All tasks" a group carries the
+  // ones you've already finished, and putting those on the list is the one
+  // thing this button must never quietly do.
+  const toAdd = group.wikiIds.filter((id) => !completed.has(id) && !onList?.has(id))
+  const Chevron = collapsed ? ChevronRight : ChevronDown
+
+  return (
+    <tr data-index={index} ref={measureRef} className="bg-muted/60">
+      <td colSpan={columnCount} className="border-y p-0">
+        {/* Not spread across the full width of the table: these two belong to
+            the group's name, so they sit with it. */}
+        <div className="flex items-center gap-1 px-2 py-1">
+          <button
+            type="button"
+            onClick={() => onToggleCollapsed(group.monster)}
+            aria-expanded={!collapsed}
+            className="hover:text-foreground text-foreground flex min-w-0 items-center gap-1.5 rounded px-1 py-0.5 text-left text-xs font-semibold transition-colors"
+          >
+            <Chevron className="size-3.5 shrink-0 opacity-70" aria-hidden />
+            <span className={`truncate ${group.monster === null ? 'italic' : ''}`}>{name}</span>
+            <span className="text-muted-foreground shrink-0 font-normal tabular-nums">
+              {group.wikiIds.length}
+            </span>
+          </button>
+
+          {onAddManyToList && (
+            <button
+              type="button"
+              onClick={() => onAddManyToList(toAdd)}
+              disabled={toAdd.length === 0}
+              title={
+                toAdd.length === 0
+                  ? `Nothing left to plan for ${name} — every task is done or already on your list`
+                  : `Add ${toAdd.length} unfinished ${name} task${toAdd.length === 1 ? '' : 's'} to my list`
+              }
+              className="text-muted-foreground hover:bg-background hover:text-foreground flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-xs transition-colors disabled:pointer-events-none disabled:opacity-40"
+            >
+              <ListPlus className="size-3.5" aria-hidden />
+              {/* The number is what makes this safe to click: it counts what is
+                  actually about to be added, not how big the group is. */}
+              Add {toAdd.length === 0 ? 'all' : toAdd.length}
+            </button>
+          )}
+        </div>
+      </td>
+    </tr>
+  )
+}
+
 const DIRECTION_ICON = { asc: ArrowUp, desc: ArrowDown } as const
 
 /** A header that sorts on click and flips direction on the second click. */
@@ -234,6 +348,7 @@ export function TaskTable({
   activeMonsters,
   onList,
   onToggleListed,
+  onAddManyToList,
   sort,
   onSortChange,
 }: TaskTableProps) {
@@ -393,7 +508,11 @@ export function TaskTable({
   const data = useMemo(() => tasks as TaskRow[], [tasks])
 
   const meta = useMemo<TableMeta>(
-    () => ({ completed, onList, activeMonsters: activeMonsters ?? [] }),
+    () => ({
+      completed,
+      onList,
+      activeMonsters: activeMonsters ?? [],
+    }),
     [completed, onList, activeMonsters],
   )
 
@@ -408,8 +527,53 @@ export function TaskTable({
   const rows = table.getRowModel().rows
   const viewportRef = useRef<HTMLDivElement>(null)
 
+  // Sorting by monster puts every Vorkath task together, but a flat list of 646
+  // rows doesn't *look* like it did anything -- the runs are only visible if you
+  // read the column. A banner row per monster makes the grouping the shape of
+  // the table rather than a property of one column.
+  //
+  // Flattened into the same list the virtualiser counts, so a banner scrolls,
+  // measures and windows exactly like a row. The alternative -- rendering
+  // banners outside the virtual window -- puts all 89 of them in the DOM at
+  // once, which is most of what windowing was added to avoid.
+  const grouped = sort === 'monster_asc' || sort === 'monster_desc'
+
+  // Keyed by monster rather than by position, so collapsing Vorkath and then
+  // filtering or re-sorting leaves Vorkath collapsed instead of whatever now
+  // happens to sit where it was.
+  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => new Set())
+
+  const toggleCollapsed = useCallback((monster: string | null) => {
+    setCollapsed((current) => {
+      const next = new Set(current)
+      const key = groupKey(monster)
+      if (!next.delete(key)) next.add(key)
+      return next
+    })
+  }, [])
+
+  const items = useMemo<RowItem[]>(() => {
+    if (!grouped) return rows.map((row) => ({ kind: 'row', row }))
+    const out: RowItem[] = []
+    let open: GroupItem | null = null
+    let hidden = false
+    for (const row of rows) {
+      const { monster } = row.original
+      if (open === null || open.monster !== monster) {
+        open = { kind: 'group', monster, wikiIds: [] }
+        hidden = collapsed.has(groupKey(monster))
+        out.push(open)
+      }
+      // Collected either way: a collapsed group still knows what's under it,
+      // which is what lets "add all" work without expanding it first.
+      open.wikiIds.push(row.original.wikiId)
+      if (!hidden) out.push({ kind: 'row', row })
+    }
+    return out
+  }, [rows, grouped, collapsed])
+
   const virtualizer = useVirtualizer({
-    count: rows.length,
+    count: items.length,
     getScrollElement: () => viewportRef.current,
     // A one-line row; anything taller is measured for real once it mounts.
     estimateSize: () => 45,
@@ -455,7 +619,24 @@ export function TaskTable({
             </tr>
           )}
           {virtualRows.map((virtualRow) => {
-            const row = rows[virtualRow.index]
+            const item = items[virtualRow.index]
+            if (item.kind === 'group') {
+              return (
+                <GroupBanner
+                  key={groupKey(item.monster)}
+                  group={item}
+                  index={virtualRow.index}
+                  columnCount={columnCount}
+                  measureRef={virtualizer.measureElement}
+                  collapsed={collapsed.has(groupKey(item.monster))}
+                  onToggleCollapsed={toggleCollapsed}
+                  completed={completed}
+                  onList={onList}
+                  onAddManyToList={onAddManyToList}
+                />
+              )
+            }
+            const { row } = item
             return (
               <DraggableRow
                 key={row.id}

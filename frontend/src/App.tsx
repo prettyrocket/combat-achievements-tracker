@@ -404,6 +404,7 @@ export default function App() {
                 activeMonsters={query.monster}
                 onList={listedIds}
                 onToggleListed={taskList.toggle}
+                onAddManyToList={taskList.addMany}
                 sort={query.sort ?? DEFAULT_SORT}
                 onSortChange={setSort}
               />
