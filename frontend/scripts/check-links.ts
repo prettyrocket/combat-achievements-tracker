@@ -21,7 +21,8 @@
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { monsterWikiUrl, taskWikiUrl } from '../src/lib/wiki.ts'
+import { itemWikiUrl, monsterWikiUrl, taskWikiUrl } from '../src/lib/wiki.ts'
+import { rewardTiers } from '../src/lib/rewards.ts'
 import type { TaskRow } from '../src/lib/types.ts'
 
 const UA =
@@ -31,7 +32,7 @@ const PREFIX = 'https://oldschool.runescape.wiki/w/'
 const API = 'https://oldschool.runescape.wiki/api.php'
 
 interface Link {
-  kind: 'task' | 'monster'
+  kind: 'task' | 'monster' | 'reward'
   source: string
   url: string
 }
@@ -56,6 +57,12 @@ function buildLinks(tasks: readonly TaskRow[]): Link[] {
   }
   for (const monster of new Set(tasks.map((task) => task.monster).filter((m) => m !== null))) {
     links.push({ kind: 'monster', source: monster, url: monsterWikiUrl(monster) })
+  }
+  // Six more, from the reward header. Hand-written names rather than API data,
+  // which is exactly why they're worth checking: nothing else would catch a typo
+  // in "Ghommal's hilt 4", and the apostrophe has to survive encoding.
+  for (const tier of rewardTiers(tasks)) {
+    links.push({ kind: 'reward', source: tier.hilt, url: itemWikiUrl(tier.hilt) })
   }
   return links
 }

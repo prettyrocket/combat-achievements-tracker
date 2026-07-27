@@ -22,6 +22,7 @@ import { TaskListPanel } from '@/components/tasklist-panel'
 import { TASKLIST_DROPPABLE, parseDragId } from '@/lib/dnd'
 import { readJson, writeJson } from '@/lib/local-store'
 import { summarize, summarizeMonster } from '@/lib/progress-summary'
+import { rewardStatus, rewardTiers } from '@/lib/rewards'
 import { resolve } from '@/lib/tasklist'
 import {
   DEFAULT_SORT,
@@ -49,6 +50,10 @@ const MONSTERS = (() => {
 })()
 
 const BY_ID = new Map(TASKS.map((task) => [task.wikiId, task]))
+
+// The point requirements for each reward tier, derived from the bundle -- see
+// rewards.ts for why they aren't constants. Static data, so once at module load.
+const REWARD_TIERS = rewardTiers(TASKS)
 
 // Whether the panel was left open, and whether the summary was left collapsed.
 // UI state, not data, so each gets its own key and stays out of the export --
@@ -105,6 +110,11 @@ export default function App() {
   // The summary deliberately ignores the query: it reports progress against the
   // whole game, not against whatever happens to be filtered in right now.
   const summary = useMemo(() => summarize(TASKS, completed), [completed])
+
+  const rewards = useMemo(
+    () => rewardStatus(REWARD_TIERS, summary.pointsEarned),
+    [summary.pointsEarned],
+  )
 
   const visible = useMemo(() => applyQuery(TASKS, query, completed), [query, completed])
 
@@ -309,6 +319,7 @@ export default function App() {
         <div className="shrink-0">
           <ProgressHeader
             summary={summary}
+            rewards={rewards}
             compact={compactSummary}
             onCompactChange={toggleCompact}
           />
@@ -345,6 +356,8 @@ export default function App() {
           <div className="shrink-0 lg:order-2 lg:h-full">
             <TaskListPanel
               entries={entries}
+              rewardTiers={REWARD_TIERS}
+              pointsEarned={summary.pointsEarned}
               open={panelOpen}
               onOpenChange={togglePanel}
               onToggleCompleted={toggle}

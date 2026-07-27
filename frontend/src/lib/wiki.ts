@@ -26,6 +26,12 @@ export function taskWikiUrl(taskName: string): string {
   return wikiUrl(taskName)
 }
 
+/** For the reward items -- `Ghommal's hilt 4` and the like. Same builder; a
+ *  separate name because check-links reports what kind of link broke. */
+export function itemWikiUrl(item: string): string {
+  return wikiUrl(item)
+}
+
 /**
  * Splits a name at its first colon, or returns `[value, null]` when there isn't
  * one.

@@ -21,6 +21,10 @@ export interface TaskListEntry {
 export interface TaskListSummary {
   total: number
   completed: number
+  /** Points the plan is worth in full, and the part of it already earned. Named
+   *  to match ProgressSummary, since they mean the same thing over a smaller set. */
+  pointsTotal: number
+  pointsEarned: number
 }
 
 // --- ordering primitives ----------------------------------------------------
@@ -32,6 +36,25 @@ export interface TaskListSummary {
  *  arriving tasks must never displace the thing you decided to do next. */
 export function add(list: readonly number[], wikiId: number): number[] {
   return list.includes(wikiId) ? [...list] : [...list, wikiId]
+}
+
+/**
+ * Appends every id that isn't already there, in the order given.
+ *
+ * Not `wikiIds.reduce(add, list)`: that rebuilds the array once per id and does
+ * a linear scan each time, and this is fed whole monsters at once. Already-listed
+ * ids keep their existing position rather than moving to the bottom -- adding a
+ * group you'd partly planned shouldn't reshuffle the part you'd already ordered.
+ */
+export function addMany(list: readonly number[], wikiIds: Iterable<number>): number[] {
+  const seen = new Set(list)
+  const next = [...list]
+  for (const wikiId of wikiIds) {
+    if (seen.has(wikiId)) continue
+    seen.add(wikiId)
+    next.push(wikiId)
+  }
+  return next
 }
 
 export function remove(list: readonly number[], wikiId: number): number[] {
@@ -118,18 +141,34 @@ export function resolve(
 }
 
 /**
- * How far through the plan you are.
+ * How far through the plan you are, in tasks and in points.
  *
  * Counts completed entries in place rather than removing them: the list keeps
  * what you've finished, struck through, because watching the plan fill in is the
  * point. A list that empties itself as you go can only ever show you what's left.
+ *
+ * Points are the reason to plan a session in the first place -- a queue of six
+ * Grandmasters and a queue of six Easies are the same "0 / 6" and nothing like
+ * the same evening -- so the panel counts them alongside the tasks.
  *
  * Takes resolved entries, not raw ids, so the "3 / 8" in the header is counted
  * over exactly the rows underneath it -- an id the data dropped can't leave the
  * panel claiming a denominator it never renders.
  */
 export function summarize(entries: readonly TaskListEntry[]): TaskListSummary {
-  let done = 0
-  for (const entry of entries) if (entry.completed) done++
-  return { total: entries.length, completed: done }
+  const summary: TaskListSummary = {
+    total: entries.length,
+    completed: 0,
+    pointsTotal: 0,
+    pointsEarned: 0,
+  }
+
+  for (const entry of entries) {
+    summary.pointsTotal += entry.task.points
+    if (!entry.completed) continue
+    summary.completed++
+    summary.pointsEarned += entry.task.points
+  }
+
+  return summary
 }

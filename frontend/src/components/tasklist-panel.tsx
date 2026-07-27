@@ -9,9 +9,10 @@
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { ChevronLeft, ChevronRight, GripVertical, ListChecks, ListPlus, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, GripVertical, ListChecks, ListPlus, Swords, X } from 'lucide-react'
 import { TASKLIST_DROPPABLE, dragId } from '@/lib/dnd'
 import { percent } from '@/lib/progress-summary'
+import { projectRewards, type RewardTier } from '@/lib/rewards'
 import { summarize, type TaskListEntry } from '@/lib/tasklist'
 import { TierBadge } from '@/components/tier-badge'
 import { Button } from '@/components/ui/button'
@@ -97,8 +98,67 @@ function Entry({
   )
 }
 
+/**
+ * What the plan is worth in rewards -- the line that turns "34 points" into a
+ * reason to do it. Only ever about the *outstanding* points: entries already
+ * ticked are counted in the overall total and mustn't be promised twice.
+ */
+function PlanReward({
+  rewardTiers,
+  pointsEarned,
+  outstanding,
+}: {
+  rewardTiers: readonly RewardTier[]
+  pointsEarned: number
+  outstanding: number
+}) {
+  // Nothing outstanding is nothing to project: an empty or all-done list has
+  // already had its say in the header.
+  if (outstanding === 0) return null
+
+  const { status, unlocks } = projectRewards(rewardTiers, pointsEarned, outstanding)
+
+  const body = unlocks.length > 0
+    ? (
+        <>
+          Finishing this list unlocks{' '}
+          <span className="text-foreground font-medium">
+            {unlocks.map((tier) => tier.hilt).join(' and ')}
+          </span>
+        </>
+      )
+    : status.next
+      ? (
+          <>
+            Leaves you{' '}
+            <span className="text-foreground font-medium tabular-nums">
+              {status.pointsToNext}
+            </span>{' '}
+            short of{' '}
+            <span className="text-foreground font-medium">{status.next.hilt}</span>
+          </>
+        )
+      : null
+
+  if (!body) return null
+
+  return (
+    <p
+      className="text-muted-foreground flex shrink-0 items-start gap-1.5 border-b px-3 py-1.5 text-xs"
+      title={`These ${outstanding} outstanding points would take you to ${pointsEarned + outstanding}.`}
+    >
+      <Swords className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+      <span>{body}</span>
+    </p>
+  )
+}
+
 export interface TaskListPanelProps {
   entries: readonly TaskListEntry[]
+  /** The reward thresholds, and the points already banked against them, so the
+   *  panel can say what the plan is worth on top of what it costs. */
+  rewardTiers: readonly RewardTier[]
+  pointsEarned: number
   open: boolean
   onOpenChange: (open: boolean) => void
   onToggleCompleted: (wikiId: number) => void
@@ -108,6 +168,8 @@ export interface TaskListPanelProps {
 
 export function TaskListPanel({
   entries,
+  rewardTiers,
+  pointsEarned,
   open,
   onOpenChange,
   onToggleCompleted,
@@ -134,13 +196,25 @@ export function TaskListPanel({
           type="button"
           onClick={() => onOpenChange(true)}
           aria-expanded={false}
-          title={isOver ? 'Drop to add' : `My list — ${summary.completed}/${summary.total} done`}
+          title={
+            isOver
+              ? 'Drop to add'
+              : `My list — ${summary.completed}/${summary.total} done, ${summary.pointsEarned}/${summary.pointsTotal} points`
+          }
           className={`hover:bg-muted flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2 transition-colors lg:h-full lg:flex-col lg:justify-start lg:px-0 lg:py-3 ${
             isOver ? 'border-foreground bg-muted' : ''
           }`}
         >
           <ListChecks className="size-4 shrink-0" aria-hidden />
           <span className="text-xs font-medium tabular-nums">{summary.total}</span>
+          {/* What the queue is worth, kept even on the 48px rail: it's the figure
+              that decides whether the list is a session or a fortnight, and it
+              fits at this size where a second fraction wouldn't. */}
+          {summary.total > 0 && (
+            <span className="text-muted-foreground text-[11px] tabular-nums">
+              {summary.pointsTotal} pts
+            </span>
+          )}
           <span className="text-muted-foreground text-xs lg:hidden">
             {isOver ? 'Drop to add' : 'My list'}
           </span>
@@ -161,11 +235,17 @@ export function TaskListPanel({
         }`}
       >
         <div className="flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2">
-          <h2 className="flex items-center gap-2 text-sm font-semibold">
-            <ListChecks className="size-4" aria-hidden />
+          <h2 className="flex min-w-0 items-center gap-2 text-sm font-semibold">
+            <ListChecks className="size-4 shrink-0" aria-hidden />
             My list
-            <span className="text-muted-foreground font-normal tabular-nums">
-              {summary.completed}/{summary.total} done
+            {/* Two figures, one line: tasks left to do, and what they're worth.
+                Points are the half that survives when the panel is narrow, so
+                they read as "of 34 pts" rather than a bare second fraction. */}
+            <span className="text-muted-foreground truncate font-normal tabular-nums">
+              {summary.completed}/{summary.total} done ·{' '}
+              <span className="whitespace-nowrap">
+                {summary.pointsEarned}/{summary.pointsTotal} pts
+              </span>
             </span>
           </h2>
           <button
@@ -187,6 +267,12 @@ export function TaskListPanel({
             />
           </div>
         )}
+
+        <PlanReward
+          rewardTiers={rewardTiers}
+          pointsEarned={pointsEarned}
+          outstanding={summary.pointsTotal - summary.pointsEarned}
+        />
 
         {entries.length === 0 ? (
           <p className="text-muted-foreground px-3 py-8 text-center text-sm">

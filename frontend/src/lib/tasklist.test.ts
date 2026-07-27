@@ -2,7 +2,17 @@
 // Everything here is pure: no store, no React, no DOM.
 
 import { describe, expect, it } from 'vitest'
-import { add, insertAt, move, moveId, remove, resolve, summarize, toggle } from '@/lib/tasklist'
+import {
+  add,
+  addMany,
+  insertAt,
+  move,
+  moveId,
+  remove,
+  resolve,
+  summarize,
+  toggle,
+} from '@/lib/tasklist'
 import type { TaskRow, Tier } from '@/lib/types'
 
 let nextId = 0
@@ -22,6 +32,32 @@ function task(over: Partial<TaskRow> = {}): TaskRow {
     points: over.points ?? points,
   }
 }
+
+describe('addMany', () => {
+  it('appends a batch in the order given', () => {
+    expect(addMany([1], [2, 3, 4])).toEqual([1, 2, 3, 4])
+  })
+
+  // Adding a monster group you had partly planned already shouldn't reshuffle
+  // the part you had ordered.
+  it('leaves ids already on the list where they are', () => {
+    expect(addMany([3, 1], [1, 2, 3])).toEqual([3, 1, 2])
+  })
+
+  it('drops duplicates within the batch itself', () => {
+    expect(addMany([], [5, 5, 6, 5])).toEqual([5, 6])
+  })
+
+  it('is a no-op when everything is already there', () => {
+    expect(addMany([1, 2], [2, 1])).toEqual([1, 2])
+  })
+
+  it('does not mutate the input', () => {
+    const list = [1, 2]
+    addMany(list, [3])
+    expect(list).toEqual([1, 2])
+  })
+})
 
 describe('add', () => {
   it('appends to the end', () => {
@@ -190,11 +226,11 @@ describe('summarize', () => {
     const b = task()
     const c = task()
     const entries = resolve([a.wikiId, b.wikiId, c.wikiId], [a, b, c], new Set([a.wikiId]))
-    expect(summarize(entries)).toEqual({ total: 3, completed: 1 })
+    expect(summarize(entries)).toMatchObject({ total: 3, completed: 1 })
   })
 
   it('is zeroes for an empty list', () => {
-    expect(summarize([])).toEqual({ total: 0, completed: 0 })
+    expect(summarize([])).toEqual({ total: 0, completed: 0, pointsTotal: 0, pointsEarned: 0 })
   })
 
   // Completed entries stay on the list -- the count is what shows the plan
@@ -202,7 +238,7 @@ describe('summarize', () => {
   it('keeps completed entries in the total', () => {
     const a = task()
     const entries = resolve([a.wikiId], [a], new Set([a.wikiId]))
-    expect(summarize(entries)).toEqual({ total: 1, completed: 1 })
+    expect(summarize(entries)).toMatchObject({ total: 1, completed: 1 })
   })
 
   // The denominator is counted over the rendered rows, so a dropped id can't
@@ -211,5 +247,38 @@ describe('summarize', () => {
     const a = task()
     const entries = resolve([a.wikiId, 999999], [a], new Set())
     expect(summarize(entries).total).toBe(1)
+  })
+
+  it('totals the points on the list, whatever the tiers', () => {
+    const a = task({ tier: 'EASY' })
+    const b = task({ tier: 'HARD' })
+    const c = task({ tier: 'GRANDMASTER' })
+    const entries = resolve([a.wikiId, b.wikiId, c.wikiId], [a, b, c], new Set())
+    expect(summarize(entries).pointsTotal).toBe(1 + 3 + 6)
+  })
+
+  // Points earned is *not* the task count scaled: finishing the one Grandmaster
+  // out of six moves it far more than finishing an Easy would.
+  it('earns only the points of the entries actually completed', () => {
+    const easy = task({ tier: 'EASY' })
+    const gm = task({ tier: 'GRANDMASTER' })
+    const entries = resolve([easy.wikiId, gm.wikiId], [easy, gm], new Set([gm.wikiId]))
+    expect(summarize(entries)).toMatchObject({ completed: 1, pointsEarned: 6, pointsTotal: 7 })
+  })
+
+  it('earns the full total once everything is done', () => {
+    const a = task({ tier: 'ELITE' })
+    const b = task({ tier: 'MASTER' })
+    const entries = resolve([a.wikiId, b.wikiId], [a, b], new Set([a.wikiId, b.wikiId]))
+    const summary = summarize(entries)
+    expect(summary.pointsEarned).toBe(summary.pointsTotal)
+  })
+
+  // Same reasoning as the task denominator: a row the panel never renders must
+  // not contribute points the player can't see.
+  it('leaves out the points of ids the data dropped', () => {
+    const a = task({ tier: 'HARD' })
+    const entries = resolve([a.wikiId, 999999], [a], new Set())
+    expect(summarize(entries).pointsTotal).toBe(3)
   })
 })
