@@ -5,7 +5,7 @@
 // menu the player finds after losing their data.
 
 import { useRef, useState } from 'react'
-import { Download, Upload, RotateCcw } from 'lucide-react'
+import { Download, Undo2, Upload, RotateCcw } from 'lucide-react'
 import { buildBackup, importBackup } from '@/lib/backup'
 import { WikiSyncDialog } from '@/components/wikisync-dialog'
 import { Button } from '@/components/ui/button'
@@ -43,6 +43,9 @@ export interface ProgressToolbarProps {
   lastRsn: string | null
   onReset: () => void
   onWikiSyncApply: (wikiIds: number[], rsn: string, clearList: boolean) => void
+  onUndo: () => void
+  /** False when nothing has changed yet this session. */
+  canUndo: boolean
 }
 
 export function ProgressToolbar({
@@ -52,6 +55,8 @@ export function ProgressToolbar({
   lastRsn,
   onReset,
   onWikiSyncApply,
+  onUndo,
+  canUndo,
 }: ProgressToolbarProps) {
   const fileInput = useRef<HTMLInputElement>(null)
   const [notice, setNotice] = useState<Notice | null>(null)
@@ -101,6 +106,19 @@ export function ProgressToolbar({
           onApply={onWikiSyncApply}
         />
 
+        {/* First in the row because it's the one you reach for in a hurry, and
+            because it undoes every other button here as well as a stray tick. */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onUndo}
+          disabled={!canUndo}
+          title="Undo the last change to your progress (Ctrl+Z)"
+        >
+          <Undo2 className="size-4" aria-hidden />
+          Undo
+        </Button>
+
         <Button variant="outline" size="sm" onClick={handleExport}>
           <Download className="size-4" aria-hidden />
           Export
@@ -134,8 +152,9 @@ export function ProgressToolbar({
             <AlertDialogHeader>
               <AlertDialogTitle>Reset all progress?</AlertDialogTitle>
               <AlertDialogDescription>
-                This clears all {completedCount} completed tasks from this browser. There's no
-                undo, and no copy on a server — export first if you might want it back.
+                This clears all {completedCount} completed tasks from this browser. Undo can
+                bring it back until you reload the page, but there's no copy on a server —
+                export first if you might want it back.
                 {listCount > 0 &&
                   ` Your list of ${listCount} planned tasks is left alone; clear that from the panel.`}
               </AlertDialogDescription>

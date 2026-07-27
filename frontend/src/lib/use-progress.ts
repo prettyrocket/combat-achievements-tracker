@@ -6,6 +6,7 @@
 
 import { useCallback, useEffect, useSyncExternalStore } from 'react'
 import {
+  canUndo,
   getCompleted,
   getStorageError,
   refreshFromStorage,
@@ -13,6 +14,7 @@ import {
   setMany,
   subscribe,
   toggle,
+  undo,
 } from '@/lib/progress-store'
 
 export interface UseProgress {
@@ -20,6 +22,10 @@ export interface UseProgress {
   toggle: (wikiId: number) => void
   setMany: (wikiIds: Iterable<number>) => void
   reset: () => void
+  /** Steps back one change to progress. */
+  undo: () => void
+  /** Whether there is anything to step back to, this session. */
+  canUndo: boolean
   /** Non-null when progress is memory-only and will not survive the tab. */
   storageError: string | null
 }
@@ -44,6 +50,10 @@ export function useProgress(): UseProgress {
     toggle: useCallback((wikiId: number) => toggle(wikiId), []),
     setMany: useCallback((wikiIds: Iterable<number>) => setMany(wikiIds), []),
     reset: useCallback(() => reset(), []),
+    undo: useCallback(() => void undo(), []),
+    // Read during render rather than kept in state: every change to the stack
+    // is also a change to `completed`, which has already re-rendered us.
+    canUndo: canUndo(),
     storageError: getStorageError(),
   }
 }

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -87,7 +87,7 @@ function compactByDefault(): boolean {
 }
 
 export default function App() {
-  const { completed, toggle, setMany, reset, storageError } = useProgress()
+  const { completed, toggle, setMany, reset, undo, canUndo, storageError } = useProgress()
   const { query, setQuery, clear } = useTaskQuery()
   const taskList = useTaskList()
 
@@ -106,6 +106,27 @@ export default function App() {
     const stored = readJson(RSN_KEY)
     return typeof stored === 'string' && stored.trim() !== '' ? stored : null
   })
+
+  // Ctrl+Z / ⌘Z anywhere that isn't a text field. Ticking a task is a one-click
+  // change to the thing this app is for, so the reflex that follows a misclick
+  // should work without going to find a button first.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'z' || !(event.ctrlKey || event.metaKey) || event.shiftKey) return
+      const target = event.target as HTMLElement | null
+      if (
+        target?.isContentEditable ||
+        target?.tagName === 'INPUT' ||
+        target?.tagName === 'TEXTAREA'
+      ) {
+        return
+      }
+      event.preventDefault()
+      undo()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [undo])
 
   // The summary deliberately ignores the query: it reports progress against the
   // whole game, not against whatever happens to be filtered in right now.
@@ -281,6 +302,8 @@ export default function App() {
             lastRsn={lastRsn}
             onReset={reset}
             onWikiSyncApply={applyWikiSync}
+            onUndo={undo}
+            canUndo={canUndo}
           />
         </header>
 

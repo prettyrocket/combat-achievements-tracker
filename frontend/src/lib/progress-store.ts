@@ -79,7 +79,40 @@ function load(): ReadonlySet<number> {
 let current: ReadonlySet<number> = load()
 const listeners = new Set<() => void>()
 
-function commit(next: ReadonlySet<number>): void {
+// --- undo -------------------------------------------------------------------
+//
+// Whole snapshots rather than a log of operations. A set of at most 646 small
+// integers is cheap enough that storing the state before each change costs less
+// than describing the change and inverting it -- and it means an import, a
+// reset and a stray click all undo by exactly the same mechanism.
+//
+// Deliberately memory-only: this exists to catch the checkbox you hit by
+// accident thirty seconds ago, not to be a second copy of your progress.
+// Export is what survives a reload, and it says so where it matters.
+
+const UNDO_LIMIT = 50
+let undoStack: ReadonlySet<number>[] = []
+
+/** The state before the most recent change, if there is one to go back to. */
+export function canUndo(): boolean {
+  return undoStack.length > 0
+}
+
+/** Steps back one change. Returns false when there's nothing to step back to. */
+export function undo(): boolean {
+  const previous = undoStack.pop()
+  if (previous === undefined) return false
+  // Not itself undoable -- otherwise undo would push the state it just left and
+  // the next undo would walk straight back into it.
+  commit(previous, false)
+  return true
+}
+
+function commit(next: ReadonlySet<number>, undoable = true): void {
+  if (undoable) {
+    undoStack.push(current)
+    if (undoStack.length > UNDO_LIMIT) undoStack.shift()
+  }
   current = next
   const payload: ProgressExport = {
     app: EXPORT_APP,
@@ -131,6 +164,9 @@ export function refreshFromStorage(): void {
   const next = load()
   if (next.size === current.size && [...next].every((id) => current.has(id))) return
   current = next
+  // Another tab is the authority now. Undoing here would write this tab's older
+  // idea of the truth back over what that tab just did, so the history goes.
+  undoStack = []
   for (const listener of listeners) listener()
 }
 

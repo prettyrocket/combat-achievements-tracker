@@ -240,6 +240,86 @@ describe('export and import', () => {
   })
 })
 
+describe('undo', () => {
+  it('has nothing to undo until something changes', async () => {
+    const { store } = await loadStore()
+    expect(store.canUndo()).toBe(false)
+    expect(store.undo()).toBe(false)
+  })
+
+  it('steps back one tick at a time, in order', async () => {
+    const { store } = await loadStore()
+    store.toggle(18)
+    store.toggle(315)
+    expect(store.getCompleted().size).toBe(2)
+
+    store.undo()
+    expect([...store.getCompleted()]).toEqual([18])
+    store.undo()
+    expect(store.getCompleted().size).toBe(0)
+    expect(store.canUndo()).toBe(false)
+  })
+
+  it('undoes an accidental un-tick, not just a tick', async () => {
+    const { store } = await loadStore()
+    store.toggle(18)
+    store.toggle(18)
+    expect(store.getCompleted().has(18)).toBe(false)
+
+    store.undo()
+    expect(store.getCompleted().has(18)).toBe(true)
+  })
+
+  it('persists the step back, so a reload agrees with the screen', async () => {
+    const { store, storage } = await loadStore()
+    store.toggle(18)
+    store.undo()
+    expect(JSON.parse(storage.map.get(KEY)!).completed).toEqual([])
+  })
+
+  // The reason undo is whole snapshots: one mechanism covers the bulk writes
+  // too, and they're the ones worth being able to take back.
+  it('takes back a reset and a WikiSync-style replace', async () => {
+    const { store } = await loadStore()
+    store.setMany([18, 315, 42])
+    store.reset()
+    expect(store.getCompleted().size).toBe(0)
+
+    store.undo()
+    expect([...store.getCompleted()].sort((a, b) => a - b)).toEqual([18, 42, 315])
+    store.undo()
+    expect(store.getCompleted().size).toBe(0)
+  })
+
+  it('does not walk back into the state it just left', async () => {
+    const { store } = await loadStore()
+    store.toggle(18)
+    store.undo()
+    expect(store.canUndo()).toBe(false)
+    expect(store.getCompleted().size).toBe(0)
+  })
+
+  it('drops its history when another tab becomes the authority', async () => {
+    const { store, storage } = await loadStore()
+    store.toggle(18)
+    expect(store.canUndo()).toBe(true)
+
+    storage.map.set(KEY, JSON.stringify({ completed: [315] }))
+    store.refreshFromStorage()
+    expect(store.canUndo()).toBe(false)
+    expect([...store.getCompleted()]).toEqual([315])
+  })
+
+  it('keeps only the most recent changes', async () => {
+    const { store } = await loadStore()
+    // One more than the limit, so the oldest step is gone but the rest hold.
+    for (let i = 0; i < 60; i++) store.toggle(i)
+    let steps = 0
+    while (store.undo()) steps++
+    expect(steps).toBe(50)
+  })
+})
+
 describe('sanitizeIds', () => {
   it('keeps known ids, drops everything else, and dedupes', async () => {
     const { store } = await loadStore()
