@@ -22,6 +22,7 @@ import { TaskListPanel } from '@/components/tasklist-panel'
 import { TASKLIST_DROPPABLE, parseDragId } from '@/lib/dnd'
 import { readJson, writeJson } from '@/lib/local-store'
 import { summarize, summarizeMonster } from '@/lib/progress-summary'
+import { checkAll, type PlayerProfile } from '@/lib/requirements'
 import { rewardStatus, rewardTiers } from '@/lib/rewards'
 import { resolve } from '@/lib/tasklist'
 import {
@@ -32,6 +33,7 @@ import {
   removeMonster,
   applyQuery,
 } from '@/lib/task-query'
+import { useProfile } from '@/lib/use-profile'
 import { useProgress } from '@/lib/use-progress'
 import { useTaskList } from '@/lib/use-tasklist'
 import { useTaskQuery } from '@/lib/use-task-query'
@@ -90,6 +92,15 @@ export default function App() {
   const { completed, toggle, setMany, reset, undo, canUndo, storageError } = useProgress()
   const { query, setQuery, clear } = useTaskQuery()
   const taskList = useTaskList()
+  const profile = useProfile()
+  // Pulled out because it's the one part of `profile` that is stable across
+  // renders, which is what the import callback below wants to depend on.
+  const { setProfile } = profile
+
+  // Lifted out of the dialog because the requirement filter opens it: with no
+  // levels entered there is nothing to filter on, and sending you to find the
+  // button yourself is worse than taking you there.
+  const [profileOpen, setProfileOpen] = useState(false)
 
   // Open by default: a plan you have to go and find is a plan you stop using.
   const [panelOpen, setPanelOpen] = useState(() => storedFlag(PANEL_KEY, true))
@@ -137,7 +148,14 @@ export default function App() {
     [summary.pointsEarned],
   )
 
-  const visible = useMemo(() => applyQuery(TASKS, query, completed), [query, completed])
+  const visible = useMemo(
+    () => applyQuery(TASKS, query, completed, profile.profile),
+    [query, completed, profile.profile],
+  )
+
+  // One verdict per monster, not per task: 646 rows share 89 answers, and the
+  // table reads this on every row it draws.
+  const gates = useMemo(() => checkAll(TASKS, profile.profile), [profile.profile])
 
   const monsterSummaries = useMemo(
     () => (query.monster ?? []).map((monster) => summarizeMonster(TASKS, completed, monster)),
@@ -227,16 +245,19 @@ export default function App() {
    * survives unless the import is for a different player and you say so.
    */
   const applyWikiSync = useCallback(
-    (ids: number[], rsn: string, clearList: boolean) => {
+    (ids: number[], rsn: string, clearList: boolean, imported: PlayerProfile | null) => {
       setMany(ids)
       if (clearList) taskList.clear()
+      // Only when the paste actually carried levels. A payload without them
+      // must not wipe a profile the player typed in by hand.
+      if (imported) setProfile(imported, 'wikisync')
       const name = rsn.replace(/_/g, ' ').replace(/\s+/g, ' ').trim()
       if (name) {
         setLastRsn(name)
         writeJson(RSN_KEY, name)
       }
     },
-    [setMany, taskList],
+    [setMany, taskList, setProfile],
   )
 
   // Distance-activated, so a press that turns into a click still reaches the
@@ -304,6 +325,14 @@ export default function App() {
             onWikiSyncApply={applyWikiSync}
             onUndo={undo}
             canUndo={canUndo}
+            profile={profile.profile}
+            profileIsEmpty={profile.isEmpty}
+            profileSource={profile.source}
+            profileOpen={profileOpen}
+            onProfileOpenChange={setProfileOpen}
+            onSetLevel={profile.setLevel}
+            onSetQuest={profile.setQuest}
+            onClearProfile={profile.clear}
           />
         </header>
 
@@ -355,6 +384,8 @@ export default function App() {
             onToggleMonster={toggleMonster}
             resultCount={visible.length}
             totalCount={TASKS.length}
+            profileIsEmpty={profile.isEmpty}
+            onEditProfile={() => setProfileOpen(true)}
           />
 
           {monsterSummaries.length > 0 && (
@@ -405,6 +436,7 @@ export default function App() {
                 onList={listedIds}
                 onToggleListed={taskList.toggle}
                 onAddManyToList={taskList.addMany}
+                gates={gates}
                 sort={query.sort ?? DEFAULT_SORT}
                 onSortChange={setSort}
               />

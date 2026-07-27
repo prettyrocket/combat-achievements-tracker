@@ -13,6 +13,7 @@ import {
   sortDirection,
   sortTasks,
 } from '@/lib/task-query'
+import type { PlayerProfile } from '@/lib/requirements'
 import type { TaskQuery, TaskRow, TaskType, Tier } from '@/lib/types'
 
 let nextId = 0
@@ -165,6 +166,54 @@ describe('filterTasks: completion', () => {
   })
 })
 
+describe('filterTasks: requirements', () => {
+  // Zulrah is behind Regicide; Scurrius is behind nothing. Both are real entries
+  // in the gate table, so this exercises the join the app actually makes rather
+  // than a fixture that agrees with itself.
+  const locked = task({ monster: 'Zulrah' })
+  const open = task({ monster: 'Scurrius' })
+  const anyMonster = task({ monster: null })
+  const tasks = [locked, open, anyMonster]
+
+  const done: PlayerProfile = { levels: { Slayer: 99 }, quests: ['Regicide'] }
+  const fresh: PlayerProfile = { levels: { Slayer: 1 }, quests: [] }
+
+  it('keeps what you can face', () => {
+    expect(ids(filterTasks(tasks, { reqs: 'met' }, new Set(), fresh))).toEqual([
+      open.wikiId,
+      anyMonster.wikiId,
+    ])
+  })
+
+  it('keeps what you cannot face yet', () => {
+    expect(ids(filterTasks(tasks, { reqs: 'unmet' }, new Set(), fresh))).toEqual([locked.wikiId])
+  })
+
+  it('lets everything through once the requirement is met', () => {
+    expect(filterTasks(tasks, { reqs: 'met' }, new Set(), done)).toHaveLength(3)
+    expect(filterTasks(tasks, { reqs: 'unmet' }, new Set(), done)).toHaveLength(0)
+  })
+
+  // A shared link carrying reqs= lands on people who have never entered a level.
+  // Filtering there would show them an empty table and look like a broken link.
+  it('is inert without a profile', () => {
+    expect(filterTasks(tasks, { reqs: 'met' }, new Set(), null)).toHaveLength(3)
+    expect(filterTasks(tasks, { reqs: 'unmet' }, new Set(), null)).toHaveLength(3)
+    expect(filterTasks(tasks, { reqs: 'unmet' }, new Set(), { levels: {}, quests: [] })).toHaveLength(3)
+  })
+
+  it('keeps everything when unset', () => {
+    expect(filterTasks(tasks, {}, new Set(), fresh)).toHaveLength(3)
+  })
+
+  it('combines with the other facets rather than replacing them', () => {
+    const query: TaskQuery = { reqs: 'unmet', tier: ['HARD'] }
+    expect(ids(filterTasks([...tasks, task({ monster: 'Zulrah', tier: 'EASY' })], query, new Set(), fresh))).toEqual(
+      [locked.wikiId],
+    )
+  })
+})
+
 describe('sortDirection', () => {
   it('reads the direction off the key', () => {
     expect(sortDirection('comp_desc')).toBe('desc')
@@ -302,6 +351,8 @@ describe('serializeQuery / parseQuery', () => {
     ['a search', { q: 'graardor' }],
     ['completed true', { completed: true }],
     ['completed false', { completed: false }],
+    ['requirements met', { reqs: 'met' as const }],
+    ['requirements unmet', { reqs: 'unmet' as const }],
     ['a sort', { sort: 'tier_asc' as const }],
     ['everything at once', {
       tier: ['ELITE'] as Tier[],
@@ -345,6 +396,16 @@ describe('serializeQuery / parseQuery', () => {
 
   it('treats any non-true/false completed value as unset', () => {
     expect(parseQuery(new URLSearchParams('completed=maybe')).completed).toBeUndefined()
+  })
+
+  it('drops an unknown requirement filter', () => {
+    expect(parseQuery(new URLSearchParams('reqs=someday')).reqs).toBeUndefined()
+  })
+
+  // Written even though it does nothing without a profile: the link describes a
+  // view, and whoever opens it may well have their own levels entered.
+  it('writes reqs even though it can be inert on the other end', () => {
+    expect(serializeQuery({ reqs: 'met' }).get('reqs')).toBe('met')
   })
 
   it('parses an empty query string to an empty query', () => {

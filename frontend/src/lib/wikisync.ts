@@ -10,6 +10,7 @@
 // decides what to do about it.
 
 import { sanitizeIds } from '@/lib/progress-store'
+import type { PlayerProfile } from '@/lib/requirements'
 
 /** WikiSync's own "this RSN has never synced" response. */
 const NO_USER_DATA = 'NO_USER_DATA'
@@ -24,9 +25,17 @@ const NO_USER_DATA = 'NO_USER_DATA'
  * "Lynx_Titan" and " Lynx Titan " all produce the same URL.
  */
 export function buildSyncUrl(rsn: string): string | null {
-  const name = rsn.replace(/_/g, ' ').replace(/\s+/g, ' ').trim()
+  const name = displayRsn(rsn)
   if (name === '') return null
   return `https://sync.runescape.wiki/runelite/player/${encodeURIComponent(name)}/STANDARD`
+}
+
+/**
+ * A typed name tidied for display, keeping the player's own capitalisation --
+ * unlike normalizeRsn, which lowercases because it only ever compares.
+ */
+export function displayRsn(rsn: string): string {
+  return rsn.replace(/_/g, ' ').replace(/\s+/g, ' ').trim()
 }
 
 export interface WikiSyncParse {
@@ -34,12 +43,43 @@ export interface WikiSyncParse {
   ids: number[]
   /** Entries that weren't ids of tasks we know about. */
   dropped: number
+  /**
+   * Skill levels and finished quests, when the paste carried them.
+   *
+   * Null for a bare array of ids, and for a profile with neither field. The CA
+   * list is what the import is *for*, so this half never fails the parse: a
+   * payload whose `levels` is nonsense imports the achievements and says nothing
+   * about requirements, rather than rejecting a paste that was mostly good.
+   */
+  profile: PlayerProfile | null
 }
 
-export class WikiSyncParseError extends Error {}
+/**
+ * Why a paste was rejected. The dialog needs more than the text: an empty CA
+ * list isn't really a failure, it's a player who hasn't done any yet, and it
+ * gets a different tone and a different button.
+ */
+export type WikiSyncErrorCode =
+  | 'EMPTY_PASTE'
+  | 'NOT_JSON'
+  | 'NOT_WIKISYNC'
+  | 'NO_USER'
+  | 'NO_CA_LIST'
+  | 'EMPTY_LIST'
 
-function fail(message: string): never {
-  throw new WikiSyncParseError(message)
+export class WikiSyncParseError extends Error {
+  // Assigned in the body rather than as a parameter property: the build runs
+  // with `erasableSyntaxOnly`, which rules those out.
+  readonly code: WikiSyncErrorCode
+
+  constructor(message: string, code: WikiSyncErrorCode) {
+    super(message)
+    this.code = code
+  }
+}
+
+function fail(message: string, code: WikiSyncErrorCode): never {
+  throw new WikiSyncParseError(message, code)
 }
 
 /**
@@ -52,58 +92,106 @@ function fail(message: string): never {
  */
 export function parseWikiSync(text: string): WikiSyncParse {
   const trimmed = text.trim()
-  if (trimmed === '') fail('Paste the JSON from your WikiSync URL first.')
+  if (trimmed === '') fail('Paste the JSON from your sync URL first.', 'EMPTY_PASTE')
 
   let parsed: unknown
   try {
     parsed = JSON.parse(trimmed)
   } catch {
-    fail(
-      "That doesn't look like JSON. Copy the entire page contents from the sync URL, " +
-        'starting with {.',
-    )
+    fail('Invalid JSON. Try again.', 'NOT_JSON')
   }
 
   if (Array.isArray(parsed)) {
-    return toResult(parsed)
+    // A bare list of ids, from someone who pulled it out themselves. Nothing
+    // else to read, so no profile.
+    return toResult(parsed, null)
   }
 
   if (parsed === null || typeof parsed !== 'object') {
-    fail('That JSON is not a WikiSync response.')
+    fail('Invalid WikiSync response. Try again.', 'NOT_WIKISYNC')
   }
 
   const body = parsed as Record<string, unknown>
 
   if (body.code === NO_USER_DATA) {
-    fail(
-      'WikiSync has no data for that name. Check the spelling, then log in with the ' +
-        'WikiSync plugin installed and open the Combat Achievements interface in-game ' +
-        'at least once before logging out.',
-    )
+    fail('Invalid username. Try again.', 'NO_USER')
   }
+
+  const profile = readProfile(body)
 
   const list = body.combat_achievements
   if (list === undefined) {
     // A valid profile with no CA list means the interface was never opened --
-    // the plugin only captures the list once the player has viewed it.
-    fail(
-      'That response has no `combat_achievements` list. Open the Combat Achievements ' +
-        'interface in-game at least once, log out, then reload the sync URL.',
-    )
+    // the plugin only captures the list once the player has viewed it. The
+    // dialog phrases this one, because it phrases it as good news.
+    fail('No achievements to load.', 'NO_CA_LIST')
   }
   if (!Array.isArray(list)) {
-    fail('That response has a `combat_achievements` field, but it is not a list.')
+    fail('Invalid WikiSync response. Try again.', 'NOT_WIKISYNC')
   }
 
-  return toResult(list)
+  return toResult(list, profile)
 }
 
-function toResult(list: unknown[]): WikiSyncParse {
+function toResult(list: unknown[], profile: PlayerProfile | null): WikiSyncParse {
   const { ids, dropped } = sanitizeIds(list)
   if (ids.length === 0 && dropped === 0) {
-    fail('That response lists no completed Combat Achievements.')
+    // Same situation as NO_CA_LIST from where the player is standing: the
+    // account has no Combat Achievements to bring over yet.
+    fail('No achievements to load.', 'EMPTY_LIST')
   }
-  return { ids, dropped }
+  return { ids, dropped, profile }
+}
+
+// --- the requirements half --------------------------------------------------
+//
+// The same payload that carries `combat_achievements` also carries `levels` and
+// `quests`, which is every input the requirement filter needs. Reading them here
+// means a player who already uses WikiSync never types a level in by hand.
+
+/**
+ * RuneLite's QuestState ordinal: NOT_STARTED 0, IN_PROGRESS 1, FINISHED 2.
+ *
+ * Written to accept more than that on purpose. This is the one field in the
+ * payload whose encoding we are inferring rather than reading from a spec -- the
+ * API is the wiki's own and undocumented for third parties -- so a future
+ * boolean or "FINISHED" string reads correctly instead of silently marking every
+ * quest unfinished. Anything unrecognised means not done, which errs towards
+ * showing a row rather than hiding it.
+ */
+function questIsFinished(value: unknown): boolean {
+  if (typeof value === 'number') return value >= 2
+  if (typeof value === 'boolean') return value
+  if (typeof value === 'string') return value.trim().toUpperCase() === 'FINISHED'
+  return false
+}
+
+function readLevels(value: unknown): Record<string, number> {
+  const out: Record<string, number> = {}
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return out
+  for (const [skill, level] of Object.entries(value as Record<string, unknown>)) {
+    if (typeof level === 'number' && Number.isFinite(level) && level >= 1) {
+      out[skill] = Math.floor(level)
+    }
+  }
+  return out
+}
+
+function readQuests(value: unknown): string[] {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return []
+  return Object.entries(value as Record<string, unknown>)
+    .filter(([, state]) => questIsFinished(state))
+    .map(([quest]) => quest)
+}
+
+function readProfile(body: Record<string, unknown>): PlayerProfile | null {
+  const levels = readLevels(body.levels)
+  const quests = readQuests(body.quests)
+  // Neither half present means this payload has nothing to say about
+  // requirements -- distinct from an account with a genuinely empty profile,
+  // which can't happen (every account has levels).
+  if (Object.keys(levels).length === 0 && quests.length === 0) return null
+  return { levels, quests }
 }
 
 export interface WikiSyncDiff {

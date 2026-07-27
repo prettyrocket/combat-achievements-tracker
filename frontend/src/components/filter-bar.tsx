@@ -7,11 +7,12 @@
 // Sort left this bar: the column headers own it now, which is where you were
 // already pointing when you decided to re-sort.
 
-import { Search, X } from 'lucide-react'
+import { Lock, Search, X } from 'lucide-react'
 import { isEmptyQuery } from '@/lib/task-query'
 import {
   TIERS,
   TASK_TYPES,
+  type RequirementFilter,
   type TaskQuery,
   type TaskType,
   type Tier,
@@ -55,6 +56,26 @@ function nextCompleted(current: boolean | undefined) {
 }
 
 /**
+ * The requirement filter's three states. Same cycle-in-place shape as the
+ * completion toggle above, and for the same reason: three states is one control
+ * that says where it is, not a list to open.
+ *
+ * "Can't face yet" is not dead weight opposite "Can face" -- it is the training
+ * plan. Sorted by Comp% it answers "what is one level away from being worth
+ * training for".
+ */
+const REQUIREMENT_STATES = [
+  { value: undefined, label: 'Any monster' },
+  { value: 'met', label: 'Can face' },
+  { value: 'unmet', label: "Can't face yet" },
+] as const satisfies readonly { value: RequirementFilter | undefined; label: string }[]
+
+function nextRequirement(current: RequirementFilter | undefined) {
+  const at = REQUIREMENT_STATES.findIndex((state) => state.value === current)
+  return REQUIREMENT_STATES[(at + 1) % REQUIREMENT_STATES.length].value
+}
+
+/**
  * All labels stacked in one grid cell, with the inactive ones hidden.
  * The button is then always as wide as its longest state and never resizes
  * under the cursor -- and it stays that way if the wording changes, which a
@@ -90,6 +111,10 @@ export interface FilterBarProps {
   onToggleMonster: (monster: string) => void
   resultCount: number
   totalCount: number
+  /** True while there are no levels or quests to check requirements against. */
+  profileIsEmpty: boolean
+  /** Opens the levels dialog, for the state where there's nothing to filter on. */
+  onEditProfile: () => void
 }
 
 export function FilterBar({
@@ -100,6 +125,8 @@ export function FilterBar({
   onToggleMonster,
   resultCount,
   totalCount,
+  profileIsEmpty,
+  onEditProfile,
 }: FilterBarProps) {
   const patch = (partial: Partial<TaskQuery>) => onChange({ ...query, ...partial })
   const selected = query.monster ?? []
@@ -167,6 +194,32 @@ export function FilterBar({
           onClick={() => patch({ completed: nextCompleted(query.completed) })}
         >
           <CycleLabel states={COMPLETED_STATES} current={query.completed} />
+        </Button>
+
+        {/* Same control, one question later: not "have I done it" but "could I".
+            With nothing to check against it opens the levels dialog instead of
+            cycling -- a disabled button here would be a filter that looks broken
+            rather than one that needs a number first. */}
+        <Button
+          variant={query.reqs === undefined || profileIsEmpty ? 'outline' : 'default'}
+          size="sm"
+          className="h-9"
+          aria-pressed={!profileIsEmpty && query.reqs !== undefined}
+          title={
+            profileIsEmpty
+              ? 'Enter your levels and quests to filter by what you can face'
+              : 'Filter by whether you meet the requirements to fight the monster'
+          }
+          onClick={() =>
+            profileIsEmpty ? onEditProfile() : patch({ reqs: nextRequirement(query.reqs) })
+          }
+        >
+          <Lock className="size-3.5 opacity-60" aria-hidden />
+          {profileIsEmpty ? (
+            'Requirements'
+          ) : (
+            <CycleLabel states={REQUIREMENT_STATES} current={query.reqs} />
+          )}
         </Button>
 
         {/* Trails the controls rather than being pushed to the far edge --

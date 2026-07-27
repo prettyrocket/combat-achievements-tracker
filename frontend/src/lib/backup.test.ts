@@ -21,6 +21,7 @@ async function load() {
     backup: await import('@/lib/backup'),
     progress: await import('@/lib/progress-store'),
     list: await import('@/lib/tasklist-store'),
+    profile: await import('@/lib/profile-store'),
   }
 }
 
@@ -64,7 +65,13 @@ describe('importBackup', () => {
     list.clear()
 
     const result = backup.importBackup(file)
-    expect(result).toEqual({ imported: 2, dropped: 0, listImported: 3, listDropped: 0 })
+    expect(result).toEqual({
+      imported: 2,
+      dropped: 0,
+      listImported: 3,
+      listDropped: 0,
+      profileImported: false,
+    })
     expect([...progress.getCompleted()].sort((a, b) => a - b)).toEqual([5, 9])
     expect(list.getList()).toEqual([9, 5, 12])
   })
@@ -97,6 +104,42 @@ describe('importBackup', () => {
     expect(result.listImported).toBe(0)
     // Absent is not the same as damaged: nothing was dropped, so nothing is reported.
     expect(result.listDropped).toBe(0)
+  })
+
+  // Unlike progress and the list, an absent profile is *not* an instruction to
+  // clear one -- a file exported before this existed must not wipe your levels.
+  it('leaves an existing profile alone when the file has none', async () => {
+    const { backup, profile } = await load()
+    profile.setProfile({ levels: { Slayer: 92 }, quests: ['Regicide'] })
+
+    const result = backup.importBackup(
+      JSON.stringify({ app: 'combat-achievements-tracker', completed: [1] }),
+    )
+    expect(profile.getProfile().levels).toEqual({ Slayer: 92 })
+    expect(result.profileImported).toBe(false)
+  })
+
+  it('restores a profile when the file carries one', async () => {
+    const { backup, profile } = await load()
+    const result = backup.importBackup(
+      JSON.stringify({
+        app: 'combat-achievements-tracker',
+        completed: [1],
+        profile: { levels: { Slayer: 92 }, quests: ['Regicide'] },
+      }),
+    )
+    expect(profile.getProfile()).toEqual({ levels: { Slayer: 92 }, quests: ['Regicide'] })
+    expect(result.profileImported).toBe(true)
+  })
+
+  it('treats a malformed profile as no profile rather than clearing yours', async () => {
+    const { backup, profile } = await load()
+    profile.setProfile({ levels: { Slayer: 92 }, quests: [] })
+    const result = backup.importBackup(
+      JSON.stringify({ app: 'combat-achievements-tracker', completed: [1], profile: 'nope' }),
+    )
+    expect(profile.getProfile().levels).toEqual({ Slayer: 92 })
+    expect(result.profileImported).toBe(false)
   })
 
   it('drops list ids no task has, and counts them', async () => {

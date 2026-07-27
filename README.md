@@ -70,6 +70,45 @@ tracked activities, not even as a points total.
    Achievements interface in-game at least once** while it's running, then log out — that's
    what populates the CA list.
 
+   The same payload also carries `levels` and `quests`, which is where the requirement
+   filter below gets its answers. Both are read from the paste; neither is required.
+
+## Filtering by what you can actually fight
+
+The **Requirements** filter cycles *Any monster → Can face → Can't face yet*, and every
+row whose monster is out of reach carries a lock with the reason ("92 Slayer (you have
+78) · Priest in Peril"). It needs to know your levels and quests, which come either from
+a WikiSync paste or from **My levels**, where you can also type a hypothetical — "what
+opens up at 92 Slayer" is the same question.
+
+Three kinds of gate are modelled: **Slayer level**, **other skill levels that gate the
+route** (70 Ranged for the grapple into Armadyl's Eyrie, 50 Firemaking for Wintertodt),
+and **quest completion**. Consumable keys, kill counts, and Callisto's "medium Wilderness
+diary *or* a boss task" are deliberately left out — treating those as requirements would
+hide rows you can go and do tonight. 56 of the 89 monsters are gated; the rest are open to
+everyone.
+
+### Why that table is hand-written
+
+`src/lib/requirements.ts` is the one data set in the app nobody generated, because the
+wiki has no machine-readable answer to "what do I need to fight this". `bucket('quest')`
+has a `requirements` field and it is free-form wikitext; nothing anywhere maps a monster
+to the quest that unlocks the door in front of it.
+
+So it's curated — and then checked, on both halves that *can* be checked:
+
+```bash
+npm run check-requirements   # exits 1 on a disagreement
+```
+
+`bucket('infobox_monster')` does carry `slayer_level`, so every Slayer number is verified
+against it in both directions: one we claim that the wiki disagrees with, and one the wiki
+gates on that we've missed (which is what a new release looks like). Every quest name is
+verified to be a real quest spelled the way the game spells it — that one matters because
+the strings are joined against a WikiSync paste, and a near miss like `Desert Treasure II`
+instead of `Desert Treasure II - The Fallen Empire` would read as "not done" forever
+rather than as an error.
+
 ## Prerequisites
 
 - **Node 20+**
@@ -94,6 +133,8 @@ npm run check-links   # 735 links, 15 batched API calls; exits 1 on a dead one
 
 A new CA release reaches the Bucket API before the wiki necessarily has an article for
 every new task, and a link built from a name that has no page yet would ship silently.
+Run `npm run check-requirements` at the same time, for the same reason: a release that
+adds a boss adds a gate nobody has written down yet.
 
 On Windows, `/dev` (see `.claude/skills/dev/`) wraps `scripts/dev.ps1` to open a Windows
 Terminal window with git + Vite tabs.

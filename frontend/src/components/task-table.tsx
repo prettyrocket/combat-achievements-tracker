@@ -34,8 +34,10 @@ import {
   ExternalLink,
   ListChecks,
   ListPlus,
+  Lock,
 } from 'lucide-react'
 import { dragId } from '@/lib/dnd'
+import { describeMissing, type GateCheck } from '@/lib/requirements'
 import type { SortKey, TaskRow, TaskType } from '@/lib/types'
 import { COMPLETION_TONE_CLASS, completionTone, formatCompletion } from '@/lib/completion'
 import { COLUMN_SORT, sortDirection, type SortDirection } from '@/lib/task-query'
@@ -74,6 +76,7 @@ interface TableMeta {
   completed: ReadonlySet<number>
   onList: ReadonlySet<number> | undefined
   activeMonsters: readonly string[]
+  gates: ReadonlyMap<string, GateCheck>
 }
 
 export interface TaskTableProps {
@@ -104,9 +107,41 @@ export interface TaskTableProps {
    * tasks would take half of them off again depending on what was already there.
    */
   onAddManyToList?: (wikiIds: number[]) => void
+  /**
+   * Per-monster requirement verdicts, for the lock marker. Optional so the table
+   * stays usable on its own; an absent map simply means no locks.
+   */
+  gates?: ReadonlyMap<string, GateCheck>
   /** Current sort, for the header arrows. */
   sort: SortKey
   onSortChange?: (next: SortKey) => void
+}
+
+const NO_GATES: ReadonlyMap<string, GateCheck> = new Map()
+
+/**
+ * The lock on a monster you can't face yet.
+ *
+ * Shown whether or not the requirement filter is on, which is the point: with
+ * the filter off you learn *why* Vorkath is out of reach instead of wondering,
+ * and with it set to "Can't face yet" every row carries its own reason. Nothing
+ * is greyed out -- the row is still tickable, because the app is not the
+ * authority on what you have done, you are.
+ */
+function GateLock({ gate }: { gate: GateCheck }) {
+  if (gate.status !== 'blocked') return null
+  return (
+    <span
+      title={`Needs ${describeMissing(gate.missing)}`}
+      className="mt-0.5 inline-flex shrink-0 text-amber-500/70"
+      // The title carries the detail for a pointer; this carries it for everyone
+      // else, and reads as a sentence rather than as a list of fragments.
+      aria-label={`You do not meet the requirements: needs ${describeMissing(gate.missing)}`}
+      role="img"
+    >
+      <Lock className="size-3.5" aria-hidden />
+    </span>
+  )
 }
 
 /** A wiki link that doesn't take the click meant for the control next to it. */
@@ -349,6 +384,7 @@ export function TaskTable({
   onList,
   onToggleListed,
   onAddManyToList,
+  gates,
   sort,
   onSortChange,
 }: TaskTableProps) {
@@ -411,11 +447,13 @@ export function TaskTable({
           if (monster === null) {
             return <span className="text-muted-foreground italic">Any</span>
           }
-          const { activeMonsters: active } = table.options.meta as TableMeta
+          const { activeMonsters: active, gates } = table.options.meta as TableMeta
           // Already filtered to this one: clicking would be a no-op, so don't offer it.
           const isActive = active.some((m) => m.toLowerCase() === monster.toLowerCase())
+          const gate = gates.get(monster)
           return (
             <span className="flex items-start gap-1.5">
+              {gate && <GateLock gate={gate} />}
               {!onPivotToMonster || isActive ? (
                 <SplitName value={monster} />
               ) : (
@@ -512,8 +550,9 @@ export function TaskTable({
       completed,
       onList,
       activeMonsters: activeMonsters ?? [],
+      gates: gates ?? NO_GATES,
     }),
-    [completed, onList, activeMonsters],
+    [completed, onList, activeMonsters, gates],
   )
 
   const table = useReactTable({

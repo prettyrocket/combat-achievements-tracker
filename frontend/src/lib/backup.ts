@@ -9,10 +9,13 @@
 // there is still exactly one place that decides what a valid file looks like.
 
 import { buildExport, importProgress, sanitizeIds, type ProgressExport } from '@/lib/progress-store'
+import { getProfile, sanitizeProfile, setProfile } from '@/lib/profile-store'
 import { getList, setList } from '@/lib/tasklist-store'
+import { profileIsEmpty, type PlayerProfile } from '@/lib/requirements'
 
 /**
- * `list` is optional, and the version deliberately does *not* move for it.
+ * `list` and `profile` are optional, and the version deliberately does *not*
+ * move for either.
  *
  * Adding a field that old readers ignore and new readers treat as empty is a
  * compatible change: a v1 file (exported before the list existed) restores
@@ -21,10 +24,18 @@ import { getList, setList } from '@/lib/tasklist-store'
  */
 export interface Backup extends ProgressExport {
   list?: number[]
+  profile?: PlayerProfile
 }
 
 export function buildBackup(): Backup {
-  return { ...buildExport(), list: [...getList()] }
+  const profile = getProfile()
+  return {
+    ...buildExport(),
+    list: [...getList()],
+    // Omitted rather than written empty, so a file from someone who never
+    // entered their levels doesn't carry a field that means nothing.
+    ...(profileIsEmpty(profile) ? {} : { profile }),
+  }
 }
 
 export interface BackupImportResult {
@@ -32,6 +43,8 @@ export interface BackupImportResult {
   dropped: number
   listImported: number
   listDropped: number
+  /** Whether the file carried levels and quests to restore. */
+  profileImported: boolean
 }
 
 /**
@@ -53,24 +66,41 @@ export function importBackup(text: string): BackupImportResult {
   // pass over a file measured in kilobytes.
   let list: number[] = []
   let listDropped = 0
+  let profile: PlayerProfile | null = null
   try {
-    const parsed = JSON.parse(text) as { list?: unknown } | null
+    const parsed = JSON.parse(text) as { list?: unknown; profile?: unknown } | null
     const sanitized = sanitizeIds(parsed?.list)
     list = sanitized.ids
     // Only count drops when there was something list-shaped to begin with --
     // a v1 file has no `list` at all, and that isn't data loss to report.
     listDropped = Array.isArray(parsed?.list) ? sanitized.dropped : 0
+
+    if (parsed?.profile !== undefined) {
+      const read = sanitizeProfile(parsed.profile)
+      // An empty result means the field was there but unreadable. Restoring it
+      // would clear levels the player still has; leaving it alone is the
+      // conservative half of a restore that has already succeeded.
+      if (!profileIsEmpty(read)) profile = read
+    }
   } catch {
     // Unreachable: importProgress already parsed this successfully. Belt and
     // braces, because the alternative is losing a restore to a stray throw.
   }
 
   setList(list)
+  // Unlike progress and the list, a missing profile is *not* an instruction to
+  // clear one. Your levels aren't part of what a backup is a snapshot of in the
+  // same way -- a file exported before this existed shouldn't wipe them.
+  // 'manual' rather than remembering where the exporting browser got it: from
+  // here it is a file you restored, and the only thing the source changes is one
+  // sentence about which of the two ways to edit it wins.
+  if (profile) setProfile(profile, 'manual')
 
   return {
     imported: progress.imported,
     dropped: progress.dropped,
     listImported: list.length,
     listDropped,
+    profileImported: profile !== null,
   }
 }

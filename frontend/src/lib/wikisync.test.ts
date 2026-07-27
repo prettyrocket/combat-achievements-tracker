@@ -50,19 +50,40 @@ describe('buildSyncUrl', () => {
 
 describe('parseWikiSync', () => {
   it('reads the documented payload', () => {
-    expect(parse([0, 16, 27, 28])).toEqual({ ids: [0, 16, 27, 28], dropped: 0 })
+    expect(parse([0, 16, 27, 28])).toEqual({ ids: [0, 16, 27, 28], dropped: 0, profile: null })
   })
 
-  it('ignores the rest of a real profile', () => {
+  it('reads levels and finished quests out of a real profile', () => {
     const full = JSON.stringify({
       username: 'Zezima',
       timestamp: 1,
-      quests: { "Cook's Assistant": 2 },
-      levels: { Attack: 99 },
+      quests: { "Cook's Assistant": 2, 'Dragon Slayer II': 2, Regicide: 1 },
+      levels: { Attack: 99, Slayer: 92 },
       achievement_diaries: {},
       combat_achievements: [1, 2, 3],
     })
-    expect(parseWikiSync(full).ids).toEqual([1, 2, 3])
+    const result = parseWikiSync(full)
+    expect(result.ids).toEqual([1, 2, 3])
+    expect(result.profile?.levels).toEqual({ Attack: 99, Slayer: 92 })
+    // Regicide is state 1 -- started, not finished -- so it doesn't come across.
+    expect(result.profile?.quests).toEqual(["Cook's Assistant", 'Dragon Slayer II'])
+  })
+
+  it('leaves the profile null when the payload has no levels or quests', () => {
+    expect(parse([1]).profile).toBeNull()
+    expect(parseWikiSync('[5, 6, 7]').profile).toBeNull()
+  })
+
+  it('reads a finished quest however the state is spelled', () => {
+    const quests = { A: 2, B: true, C: 'FINISHED', D: 1, E: false, F: 'IN_PROGRESS' }
+    const full = JSON.stringify({ quests, combat_achievements: [1] })
+    expect(parseWikiSync(full).profile?.quests).toEqual(['A', 'B', 'C'])
+  })
+
+  it('drops junk levels rather than failing the whole paste', () => {
+    const levels = { Slayer: 92, Attack: 'nine', Magic: 0, Ranged: null }
+    const full = JSON.stringify({ levels, combat_achievements: [1] })
+    expect(parseWikiSync(full).profile?.levels).toEqual({ Slayer: 92 })
   })
 
   it('accepts a bare id array, for anyone who pulled the list out themselves', () => {
@@ -70,7 +91,11 @@ describe('parseWikiSync', () => {
   })
 
   it('dedupes and counts what it dropped', () => {
-    expect(parse([1, 1, 2, 99999, 'x', null])).toEqual({ ids: [1, 2], dropped: 3 })
+    expect(parse([1, 1, 2, 99999, 'x', null])).toEqual({
+      ids: [1, 2],
+      dropped: 3,
+      profile: null,
+    })
   })
 
   it('tolerates whitespace around the paste', () => {
@@ -88,18 +113,32 @@ describe('parseWikiSync', () => {
     expect(() => parseWikiSync(input)).toThrow(WikiSyncParseError)
   })
 
-  // The two failure modes a player will actually hit get messages that name the
-  // fix, because "invalid input" would send them looking in the wrong place.
-  it('explains NO_USER_DATA in terms of the in-game interface', () => {
-    expect(() => parseWikiSync(JSON.stringify({ code: 'NO_USER_DATA' }))).toThrow(
-      /Combat Achievements interface/i,
-    )
+  // Codes rather than message text: the wording belongs to the dialog, which
+  // rephrases some of these entirely, but what went wrong has to stay stable.
+  it.each([
+    ['an empty paste', '   ', 'EMPTY_PASTE'],
+    ['something that is not JSON', 'not json', 'NOT_JSON'],
+    ['a bare number', '42', 'NOT_WIKISYNC'],
+    ['a non-array combat_achievements', JSON.stringify({ combat_achievements: 1 }), 'NOT_WIKISYNC'],
+    ['an unsynced name', JSON.stringify({ code: 'NO_USER_DATA' }), 'NO_USER'],
+    ['a profile with no list', JSON.stringify({ username: 'x', levels: {} }), 'NO_CA_LIST'],
+    ['an empty list', payload([]), 'EMPTY_LIST'],
+  ])('codes %s', (_label, input, code) => {
+    expect(() => parseWikiSync(input)).toThrow(expect.objectContaining({ code }))
   })
 
-  it('explains a profile that has no achievement list yet', () => {
-    expect(() => parseWikiSync(JSON.stringify({ username: 'x', levels: {} }))).toThrow(
-      /Combat Achievements interface/i,
-    )
+  // The two a player will actually hit are the same situation from their side --
+  // no achievements to bring over -- and the dialog treats them as one state.
+  it('separates "never opened the interface" from "opened it, none done"', () => {
+    const never = (() => {
+      try {
+        parseWikiSync(JSON.stringify({ username: 'x', levels: {} }))
+      } catch (err) {
+        return err
+      }
+    })()
+    expect(never).toBeInstanceOf(WikiSyncParseError)
+    expect((never as WikiSyncParseError).code).toBe('NO_CA_LIST')
   })
 })
 

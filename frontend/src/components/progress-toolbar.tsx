@@ -7,6 +7,9 @@
 import { useRef, useState } from 'react'
 import { Download, Undo2, Upload, RotateCcw } from 'lucide-react'
 import { buildBackup, importBackup } from '@/lib/backup'
+import type { PlayerProfile } from '@/lib/requirements'
+import type { ProfileSource } from '@/lib/profile-store'
+import { ProfileDialog } from '@/components/profile-dialog'
 import { WikiSyncDialog } from '@/components/wikisync-dialog'
 import { Button } from '@/components/ui/button'
 import {
@@ -42,10 +45,24 @@ export interface ProgressToolbarProps {
   /** The account the last WikiSync import came from, if any. */
   lastRsn: string | null
   onReset: () => void
-  onWikiSyncApply: (wikiIds: number[], rsn: string, clearList: boolean) => void
+  onWikiSyncApply: (
+    wikiIds: number[],
+    rsn: string,
+    clearList: boolean,
+    profile: PlayerProfile | null,
+  ) => void
   onUndo: () => void
   /** False when nothing has changed yet this session. */
   canUndo: boolean
+  /** The levels and quests behind the requirement filter, and its editor. */
+  profile: PlayerProfile
+  profileIsEmpty: boolean
+  profileSource: ProfileSource
+  profileOpen: boolean
+  onProfileOpenChange: (open: boolean) => void
+  onSetLevel: (skill: string, level: number) => void
+  onSetQuest: (quest: string, finished: boolean) => void
+  onClearProfile: () => void
 }
 
 export function ProgressToolbar({
@@ -57,6 +74,14 @@ export function ProgressToolbar({
   onWikiSyncApply,
   onUndo,
   canUndo,
+  profile,
+  profileIsEmpty,
+  profileSource,
+  profileOpen,
+  onProfileOpenChange,
+  onSetLevel,
+  onSetQuest,
+  onClearProfile,
 }: ProgressToolbarProps) {
   const fileInput = useRef<HTMLInputElement>(null)
   const [notice, setNotice] = useState<Notice | null>(null)
@@ -87,6 +112,7 @@ export function ProgressToolbar({
         message:
           `Imported ${result.imported} completed tasks` +
           (result.listImported > 0 ? ` and ${result.listImported} on your list.` : '.') +
+          (result.profileImported ? ' Your levels and quests came with it.' : '') +
           (result.dropped + result.listDropped > 0
             ? ` Ignored ${result.dropped + result.listDropped} unrecognised entries.`
             : ''),
@@ -99,6 +125,20 @@ export function ProgressToolbar({
   return (
     <div className="flex flex-col items-end gap-2">
       <div className="flex items-center gap-2">
+        {/* Beside WikiSync rather than in the filter bar: this is a fact about
+            the account, like your progress, not a view of the table. WikiSync
+            fills it in, so the two belong next to each other. */}
+        <ProfileDialog
+          profile={profile}
+          isEmpty={profileIsEmpty}
+          source={profileSource}
+          open={profileOpen}
+          onOpenChange={onProfileOpenChange}
+          onSetLevel={onSetLevel}
+          onSetQuest={onSetQuest}
+          onClear={onClearProfile}
+        />
+
         <WikiSyncDialog
           completed={completed}
           listCount={listCount}

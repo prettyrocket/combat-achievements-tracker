@@ -5,15 +5,18 @@
 // out of sync with the address bar.
 
 import {
+  REQUIREMENT_FILTERS,
   SORT_KEYS,
   TIERS,
   TASK_TYPES,
+  type RequirementFilter,
   type SortKey,
   type TaskQuery,
   type TaskRow,
   type TaskType,
   type Tier,
 } from '@/lib/types'
+import { checkGate, profileIsEmpty, type PlayerProfile } from '@/lib/requirements'
 
 /** Most-completed first: the "what can I actually go and do" view. */
 export const DEFAULT_SORT: SortKey = 'comp_desc'
@@ -46,6 +49,7 @@ export function filterTasks(
   tasks: readonly TaskRow[],
   query: TaskQuery,
   completed: ReadonlySet<number>,
+  profile: PlayerProfile | null = null,
 ): TaskRow[] {
   // An empty list means "no filter on this facet", not "match nothing" -- that's
   // the state you're in the moment you deselect the last chip.
@@ -54,6 +58,12 @@ export function filterTasks(
   const monsters = normalizeMonsters(query.monster)
   const monsterSet = monsters.length ? new Set(monsters) : null
   const needle = query.q?.trim().toLowerCase() || null
+  // Inert without a profile, rather than matching nothing. A shared link
+  // carrying `reqs=met` lands on someone who has never entered their levels, and
+  // showing them an empty table would look like the link was broken -- the
+  // honest answer there is "we don't know", and the honest response is to show
+  // the tasks and let the control explain itself.
+  const reqs = profileIsEmpty(profile) ? null : (query.reqs ?? null)
 
   return tasks.filter((task) => {
     if (tiers && !tiers.has(task.tier)) return false
@@ -65,6 +75,13 @@ export function filterTasks(
     }
     if (needle !== null && !matchesSearch(task, needle)) return false
     if (query.completed !== undefined && completed.has(task.wikiId) !== query.completed) return false
+    if (reqs !== null) {
+      // `unknown` can't reach here -- it only happens without a profile, and
+      // `reqs` is null in that case -- so the two states left are the two the
+      // filter names.
+      const open = checkGate(task.monster, profile).status === 'open'
+      if (open !== (reqs === 'met')) return false
+    }
     return true
   })
 }
@@ -147,8 +164,9 @@ export function applyQuery(
   tasks: readonly TaskRow[],
   query: TaskQuery,
   completed: ReadonlySet<number>,
+  profile: PlayerProfile | null = null,
 ): TaskRow[] {
-  return sortTasks(filterTasks(tasks, query, completed), query.sort ?? DEFAULT_SORT)
+  return sortTasks(filterTasks(tasks, query, completed, profile), query.sort ?? DEFAULT_SORT)
 }
 
 // --- pivot ------------------------------------------------------------------
@@ -208,6 +226,9 @@ export function serializeQuery(query: TaskQuery): URLSearchParams {
   }
   if (query.q?.trim()) params.set('q', query.q.trim())
   if (query.completed !== undefined) params.set('completed', String(query.completed))
+  // Written even though it's inert without a profile: the link is a description
+  // of a view, and the recipient may well have their own levels entered.
+  if (query.reqs !== undefined) params.set('reqs', query.reqs)
   if (query.sort && query.sort !== DEFAULT_SORT) params.set('sort', query.sort)
   return params
 }
@@ -249,6 +270,11 @@ export function parseQuery(params: URLSearchParams): TaskQuery {
   const completed = params.get('completed')
   if (completed === 'true') query.completed = true
   else if (completed === 'false') query.completed = false
+
+  const reqs = params.get('reqs')
+  if (reqs !== null && REQUIREMENT_FILTERS.includes(reqs as RequirementFilter)) {
+    query.reqs = reqs as RequirementFilter
+  }
 
   const raw = params.get('sort')
   const sort = raw ? (LEGACY_SORT[raw] ?? (SORT_KEYS.includes(raw as SortKey) ? raw : null)) : null

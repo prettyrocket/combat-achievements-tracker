@@ -85,6 +85,17 @@ export const SORT_KEYS = [
 ] as const
 export type SortKey = (typeof SORT_KEYS)[number]
 
+/**
+ * The requirement filter: monsters you can stand in front of, or the ones you
+ * can't yet. Absent means don't filter on it at all.
+ *
+ * Two values rather than a boolean, matching `completed`'s three states -- "what
+ * can't I do yet" is a real question (it's the training plan), not just the
+ * inverse of the useful one.
+ */
+export const REQUIREMENT_FILTERS = ['met', 'unmet'] as const
+export type RequirementFilter = (typeof REQUIREMENT_FILTERS)[number]
+
 // Client-side filter/sort state (was a query string to the API; now it just
 // drives filtering over the in-memory task list, and serialises to the URL).
 export interface TaskQuery {
@@ -94,5 +105,7 @@ export interface TaskQuery {
   monster?: string[]
   q?: string
   completed?: boolean
+  /** Inert without a player profile -- see filterTasks. */
+  reqs?: RequirementFilter
   sort?: SortKey
 }
