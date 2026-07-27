@@ -1,4 +1,4 @@
-// Search, facet chips, monster picker and completion toggle.
+// Search, facet pickers, monster picker and completion toggle.
 //
 // Every control writes through to the same TaskQuery, which is serialised to the
 // URL -- so there is no local state here to drift out of sync with the address
@@ -9,19 +9,18 @@
 
 import { Search, X } from 'lucide-react'
 import { isEmptyQuery } from '@/lib/task-query'
-import { TIERS, TASK_TYPES, type TaskQuery, type TaskType, type Tier } from '@/lib/types'
+import {
+  TIERS,
+  TASK_TYPES,
+  type TaskQuery,
+  type TaskType,
+  type Tier,
+} from '@/lib/types'
+import { FacetPicker } from '@/components/facet-picker'
 import { MonsterPicker } from '@/components/monster-picker'
+import { TierBadge } from '@/components/tier-badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-
-const TIER_LABEL: Record<Tier, string> = {
-  EASY: 'Easy',
-  MEDIUM: 'Medium',
-  HARD: 'Hard',
-  ELITE: 'Elite',
-  MASTER: 'Master',
-  GRANDMASTER: 'Grandmaster',
-}
 
 const TYPE_LABEL: Record<TaskType, string> = {
   KILL_COUNT: 'Kill Count',
@@ -40,28 +39,45 @@ function toggleFacet<T>(current: T[] | undefined, value: T): T[] | undefined {
   return next.length ? next : undefined
 }
 
-function Chip({
-  active,
-  onClick,
-  children,
+/**
+ * The completion filter's three states, in the order you actually want them:
+ * all -> only what's left to do -> only what's done.
+ */
+const COMPLETED_STATES = [
+  { value: undefined, label: 'All tasks' },
+  { value: false, label: 'Not completed' },
+  { value: true, label: 'Completed only' },
+] as const
+
+function nextCompleted(current: boolean | undefined) {
+  const at = COMPLETED_STATES.findIndex((state) => state.value === current)
+  return COMPLETED_STATES[(at + 1) % COMPLETED_STATES.length].value
+}
+
+/**
+ * All labels stacked in one grid cell, with the inactive ones hidden.
+ * The button is then always as wide as its longest state and never resizes
+ * under the cursor -- and it stays that way if the wording changes, which a
+ * hard-coded width would not.
+ */
+function CycleLabel<T>({
+  states,
+  current,
 }: {
-  active: boolean
-  onClick: () => void
-  children: React.ReactNode
+  states: readonly { readonly value: T; readonly label: string }[]
+  current: T
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={`rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
-        active
-          ? 'bg-foreground text-background border-transparent'
-          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-      }`}
-    >
-      {children}
-    </button>
+    <span className="grid">
+      {states.map((state) => (
+        <span
+          key={state.label}
+          className={`col-start-1 row-start-1 ${state.value === current ? '' : 'invisible'}`}
+        >
+          {state.label}
+        </span>
+      ))}
+    </span>
   )
 }
 
@@ -91,7 +107,9 @@ export function FilterBar({
   return (
     <section aria-label="Filters" className="mt-4 space-y-2.5">
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative min-w-56 flex-1">
+        {/* Capped, not greedy: an uncapped flex-1 ate every spare pixel, which
+            left the readout at the end jammed against the last filter. */}
+        <div className="relative min-w-56 max-w-md flex-1">
           <Search
             className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2"
             aria-hidden
@@ -116,67 +134,80 @@ export function FilterBar({
           label="Monsters"
           className="h-9"
         />
+
+        {/* Beside the monster picker rather than on their own row: all three
+            answer "which tasks", and they now share one shape, so they belong
+            in one place. */}
+        <FacetPicker
+          label="Tiers"
+          options={TIERS}
+          selected={query.tier ?? []}
+          onToggle={(tier) => patch({ tier: toggleFacet(query.tier, tier) })}
+          renderOption={(tier: Tier) => <TierBadge tier={tier} />}
+          className="h-9"
+        />
+
+        <FacetPicker
+          label="Types"
+          options={TASK_TYPES}
+          selected={query.type ?? []}
+          onToggle={(type) => patch({ type: toggleFacet(query.type, type) })}
+          renderOption={(type: TaskType) => TYPE_LABEL[type]}
+          className="h-9"
+        />
+
+        {/* Not a picker -- one control cycling three states, so it says its
+            current state rather than opening a list. Filled when it is doing
+            something, outlined when it is letting everything through. */}
+        <Button
+          variant={query.completed === undefined ? 'outline' : 'default'}
+          size="sm"
+          className="h-9"
+          aria-pressed={query.completed !== undefined}
+          onClick={() => patch({ completed: nextCompleted(query.completed) })}
+        >
+          <CycleLabel states={COMPLETED_STATES} current={query.completed} />
+        </Button>
+
+        {/* Trails the controls rather than being pushed to the far edge --
+            stranded against the right margin it read as a separate widget. The
+            padding is the only separation it needs: this is the bar's readout,
+            not another thing to press. */}
+        <span className="text-muted-foreground flex items-center gap-2 pl-4 text-xs">
+          {/* Sized by the widest thing it can ever say, held invisibly in the
+              same grid cell. "646 tasks" becoming "12 of 646 tasks" the moment
+              you filter was dragging the Clear button along with it. Tabular
+              figures do the rest: every digit is the same width, so the reserve
+              holds for any count. */}
+          <span className="grid justify-items-start tabular-nums">
+            <span className="invisible col-start-1 row-start-1" aria-hidden>
+              {`${totalCount} of ${totalCount} tasks`}
+            </span>
+            <span className="col-start-1 row-start-1">
+              {resultCount === totalCount
+                ? `${totalCount} tasks`
+                : `${resultCount} of ${totalCount} tasks`}
+            </span>
+          </span>
+          {/* Held rather than removed when there's nothing to clear: hidden
+              this way it keeps its space but takes no focus and is invisible
+              to a screen reader, so the count never slides sideways. */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClear}
+            className={`h-9 px-2 text-xs ${isEmptyQuery(query) ? 'invisible' : ''}`}
+          >
+            <X className="size-3" aria-hidden />
+            Clear filters
+          </Button>
+        </span>
       </div>
 
       {/* The selected monsters are deliberately *not* listed here. The breadcrumb
           directly below already shows each one with its own progress count and
           its own ✕, and two rows of the same chips is just noise. This bar adds
           them; the breadcrumb is where they live. */}
-
-      <div className="flex flex-wrap items-center gap-1.5">
-        {TIERS.map((tier) => (
-          <Chip
-            key={tier}
-            active={query.tier?.includes(tier) ?? false}
-            onClick={() => patch({ tier: toggleFacet(query.tier, tier) })}
-          >
-            {TIER_LABEL[tier]}
-          </Chip>
-        ))}
-        <span className="bg-border mx-1 h-4 w-px" aria-hidden />
-        {TASK_TYPES.map((type) => (
-          <Chip
-            key={type}
-            active={query.type?.includes(type) ?? false}
-            onClick={() => patch({ type: toggleFacet(query.type, type) })}
-          >
-            {TYPE_LABEL[type]}
-          </Chip>
-        ))}
-        <span className="bg-border mx-1 h-4 w-px" aria-hidden />
-
-        {/* Three states, cycled in the order you actually want them: all -> only
-            what's left to do -> only what's done. */}
-        <Chip
-          active={query.completed !== undefined}
-          onClick={() =>
-            patch({
-              completed:
-                query.completed === undefined ? false : query.completed === false ? true : undefined,
-            })
-          }
-        >
-          {query.completed === undefined
-            ? 'All tasks'
-            : query.completed
-              ? 'Completed only'
-              : 'Not completed'}
-        </Chip>
-
-        <span className="text-muted-foreground ml-auto flex items-center gap-3 text-xs">
-          <span className="tabular-nums">
-            {resultCount === totalCount
-              ? `${totalCount} tasks`
-              : `${resultCount} of ${totalCount} tasks`}
-          </span>
-          {!isEmptyQuery(query) && (
-            <Button variant="ghost" size="sm" onClick={onClear} className="h-6 px-2 text-xs">
-              <X className="size-3" aria-hidden />
-              Clear filters
-            </Button>
-          )}
-        </span>
-      </div>
     </section>
   )
 }

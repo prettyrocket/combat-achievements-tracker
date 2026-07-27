@@ -62,8 +62,12 @@ export function MonsterPicker({
         <Button variant="outline" size="sm" className={className}>
           <Plus className="size-3.5" aria-hidden />
           {label}
-          {showCount && selected.length > 0 && (
-            <span className="text-muted-foreground tabular-nums">{selected.length}</span>
+          {/* Reserved whether or not there's a number in it, so picking a
+              monster doesn't nudge everything downstream of this button. */}
+          {showCount && (
+            <span className="text-muted-foreground min-w-4 text-right tabular-nums">
+              {selected.length > 0 ? selected.length : ''}
+            </span>
           )}
         </Button>
       </PopoverTrigger>
