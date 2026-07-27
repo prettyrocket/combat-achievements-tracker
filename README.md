@@ -82,7 +82,18 @@ npm install
 npm run dev      # http://localhost:5173
 npm run build    # static output in dist/
 npm run lint
+npm run test
 ```
+
+Every task row links out to the wiki — to the task's own article and to its monster's
+page. Both are built from names, so after `npm run refresh-data` run:
+
+```bash
+npm run check-links   # 735 links, 15 batched API calls; exits 1 on a dead one
+```
+
+A new CA release reaches the Bucket API before the wiki necessarily has an article for
+every new task, and a link built from a name that has no page yet would ship silently.
 
 On Windows, `/dev` (see `.claude/skills/dev/`) wraps `scripts/dev.ps1` to open a Windows
 Terminal window with git + Vite tabs.
