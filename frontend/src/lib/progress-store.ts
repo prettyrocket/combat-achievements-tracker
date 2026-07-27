@@ -116,20 +116,11 @@ export function setMany(wikiIds: Iterable<number>): void {
   commit(new Set(sanitizeIds([...wikiIds]).ids))
 }
 
-/**
- * Union with what's already there, rather than replacing it.
- *
- * The counterpart to importProgress: restoring a backup replaces, but a WikiSync
- * paste (#12) is "here is what I have actually completed" and must not silently
- * un-tick anything the player ticked by hand for a task WikiSync doesn't know
- * about yet.
- */
-export function mergeMany(wikiIds: Iterable<number>): void {
-  const next = new Set(current)
-  for (const id of sanitizeIds([...wikiIds]).ids) next.add(id)
-  if (next.size === current.size) return
-  commit(next)
-}
+// There used to be a `mergeMany` here, the union counterpart to setMany, for the
+// WikiSync dialog's merge mode. That mode is gone -- an import now always makes
+// this browser match the account, because the account is the authority on what's
+// done and a union can only ever leave stale ticks behind. Nothing unions any
+// more, so nothing here does either.
 
 export function reset(): void {
   commit(new Set())

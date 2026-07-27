@@ -106,39 +106,33 @@ function toResult(list: unknown[]): WikiSyncParse {
   return { ids, dropped }
 }
 
-/**
- * How a paste combines with existing progress.
- *
- * `merge` is the default because it cannot lose anything: WikiSync only knows
- * what it has seen, so a task ticked by hand for content it hasn't captured
- * should survive. `replace` exists for the case merge can't express -- making
- * this browser match the account exactly, including un-ticking things.
- */
-export type ImportMode = 'merge' | 'replace'
-
 export interface WikiSyncDiff {
   /** Not currently ticked, and will be after applying. */
   newlyCompleted: number[]
   /** Already ticked; the paste agrees. */
   alreadyCompleted: number[]
-  /** Currently ticked but absent from the paste. Only ever non-empty in `replace`. */
+  /** Currently ticked but absent from the paste, so about to be un-ticked. */
   removed: number[]
   /** Unrecognised entries, ignored rather than failing the whole import. */
   dropped: number
-  mode: ImportMode
 }
 
 /**
  * What applying this paste would actually change. Shown before anything is
  * written -- a paste can carry hundreds of tasks and the user should see the
- * size of it first, and in `replace` mode the number that matters is what
- * disappears, not what arrives.
+ * size of it first, and the number that matters is what disappears, not what
+ * arrives.
+ *
+ * This always *replaces*: the account is the authority on which Combat
+ * Achievements are done, so a paste is "here is the truth", not "here is some
+ * more". There used to be a merge mode, on the theory that a hand-ticked task
+ * deserved protection from a WikiSync that hadn't seen it -- but once the CA
+ * interface has been opened in-game the plugin has the whole list, and a mode
+ * that can only ever leave stale ticks behind is a mode that makes the number
+ * at the top wrong. The planned list is a different matter and is never touched
+ * by an import; it is yours, not the account's.
  */
-export function diffAgainst(
-  parse: WikiSyncParse,
-  completed: ReadonlySet<number>,
-  mode: ImportMode = 'merge',
-): WikiSyncDiff {
+export function diffAgainst(parse: WikiSyncParse, completed: ReadonlySet<number>): WikiSyncDiff {
   const newlyCompleted: number[] = []
   const alreadyCompleted: number[] = []
   for (const id of parse.ids) {
@@ -146,19 +140,34 @@ export function diffAgainst(
     else newlyCompleted.push(id)
   }
 
+  const incoming = new Set(parse.ids)
   const removed: number[] = []
-  if (mode === 'replace') {
-    const incoming = new Set(parse.ids)
-    for (const id of completed) {
-      if (!incoming.has(id)) removed.push(id)
-    }
-    removed.sort((a, b) => a - b)
+  for (const id of completed) {
+    if (!incoming.has(id)) removed.push(id)
   }
+  removed.sort((a, b) => a - b)
 
-  return { newlyCompleted, alreadyCompleted, removed, dropped: parse.dropped, mode }
+  return { newlyCompleted, alreadyCompleted, removed, dropped: parse.dropped }
 }
 
 /** Whether applying this diff would change anything at all. */
 export function diffIsNoop(diff: WikiSyncDiff): boolean {
   return diff.newlyCompleted.length === 0 && diff.removed.length === 0
+}
+
+/**
+ * The name of the last account imported from, so a later import can tell
+ * whether the planned list it's about to sit beside was built for this account
+ * or a different one.
+ *
+ * Normalised the same way buildSyncUrl normalises: "Lynx_Titan" and "lynx titan"
+ * are the same player, and prompting about a changed account because someone
+ * typed an underscore would be noise.
+ */
+export function normalizeRsn(rsn: string): string {
+  return rsn.replace(/_/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase()
+}
+
+export function sameAccount(a: string, b: string): boolean {
+  return normalizeRsn(a) === normalizeRsn(b)
 }

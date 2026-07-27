@@ -10,7 +10,9 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core'
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
+import { Info } from 'lucide-react'
 import { TASKS } from '@/data/tasks'
+import { Button } from '@/components/ui/button'
 import { TaskTable } from '@/components/task-table'
 import { ProgressToolbar } from '@/components/progress-toolbar'
 import { ProgressHeader } from '@/components/progress-header'
@@ -53,6 +55,12 @@ const BY_ID = new Map(TASKS.map((task) => [task.wikiId, task]))
 // restoring a backup shouldn't rearrange the furniture.
 const PANEL_KEY = 'ca-tracker:tasklist-open:v1'
 const COMPACT_KEY = 'ca-tracker:summary-compact:v1'
+// Whether the "this lives in your browser only" notice has been read. Its own
+// key for the same reason: it's furniture, not data.
+const LOCAL_NOTICE_KEY = 'ca-tracker:local-notice-dismissed:v1'
+// The account the last WikiSync import came from, so a later import can tell
+// whether the planned list beside it was built for this account or another.
+const RSN_KEY = 'ca-tracker:last-rsn:v1'
 
 function storedFlag(key: string, fallback: boolean): boolean {
   const stored = readJson(key)
@@ -74,7 +82,7 @@ function compactByDefault(): boolean {
 }
 
 export default function App() {
-  const { completed, toggle, setMany, mergeMany, reset, storageError } = useProgress()
+  const { completed, toggle, setMany, reset, storageError } = useProgress()
   const { query, setQuery, clear } = useTaskQuery()
   const taskList = useTaskList()
 
@@ -86,6 +94,13 @@ export default function App() {
   const [dragging, setDragging] = useState<number | null>(null)
   // What the last pivot took out of the search box, so it can be handed back.
   const [parkedSearch, setParkedSearch] = useState<string | null>(null)
+  const [localNoticeSeen, setLocalNoticeSeen] = useState(() =>
+    storedFlag(LOCAL_NOTICE_KEY, false),
+  )
+  const [lastRsn, setLastRsn] = useState<string | null>(() => {
+    const stored = readJson(RSN_KEY)
+    return typeof stored === 'string' && stored.trim() !== '' ? stored : null
+  })
 
   // The summary deliberately ignores the query: it reports progress against the
   // whole game, not against whatever happens to be filtered in right now.
@@ -170,6 +185,29 @@ export default function App() {
     writeJson(COMPACT_KEY, compact)
   }, [])
 
+  const dismissLocalNotice = useCallback(() => {
+    setLocalNoticeSeen(true)
+    writeJson(LOCAL_NOTICE_KEY, true)
+  }, [])
+
+  /**
+   * A WikiSync paste replaces progress outright -- the account is the authority
+   * on what's done. The planned list is not the account's to overwrite, so it
+   * survives unless the import is for a different player and you say so.
+   */
+  const applyWikiSync = useCallback(
+    (ids: number[], rsn: string, clearList: boolean) => {
+      setMany(ids)
+      if (clearList) taskList.clear()
+      const name = rsn.replace(/_/g, ' ').replace(/\s+/g, ' ').trim()
+      if (name) {
+        setLastRsn(name)
+        writeJson(RSN_KEY, name)
+      }
+    },
+    [setMany, taskList],
+  )
+
   // Distance-activated, so a press that turns into a click still reaches the
   // checkbox and the monster pivot inside the row rather than starting a drag.
   const sensors = useSensors(
@@ -230,10 +268,34 @@ export default function App() {
             completed={completed}
             completedCount={completed.size}
             listCount={taskList.list.length}
+            lastRsn={lastRsn}
             onReset={reset}
-            onWikiSyncApply={(ids, mode) => (mode === 'replace' ? setMany(ids) : mergeMany(ids))}
+            onWikiSyncApply={applyWikiSync}
           />
         </header>
+
+        {/* Said once, plainly, on the first visit. The honest version of this
+            app's biggest caveat is not a tooltip on an Export button: clearing
+            site data takes everything, and there is no copy anywhere else. */}
+        {!localNoticeSeen && (
+          <p className="text-muted-foreground mt-3 flex shrink-0 flex-wrap items-center gap-x-2 gap-y-1 rounded-md border border-dashed px-3 py-2 text-sm">
+            <Info className="size-4 shrink-0" aria-hidden />
+            <span>
+              Your progress is saved <span className="text-foreground">in this browser only</span>
+              {' '}— there's no account and no server copy. Clearing site data erases it, so use
+              {' '}<span className="text-foreground">Export</span> to keep a backup or move to
+              another device.
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={dismissLocalNotice}
+              className="ml-auto h-6 px-2 text-xs"
+            >
+              Got it
+            </Button>
+          </p>
+        )}
 
         {storageError && (
           <p

@@ -8,7 +8,6 @@ import { useRef, useState } from 'react'
 import { Download, Upload, RotateCcw } from 'lucide-react'
 import { buildBackup, importBackup } from '@/lib/backup'
 import { WikiSyncDialog } from '@/components/wikisync-dialog'
-import type { ImportMode } from '@/lib/wikisync'
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,
@@ -38,16 +37,19 @@ function exportFilename(): string {
 export interface ProgressToolbarProps {
   completed: ReadonlySet<number>
   completedCount: number
-  /** Entries on the plan, for the export message. */
+  /** Entries on the plan, for the export message and the import warning. */
   listCount: number
+  /** The account the last WikiSync import came from, if any. */
+  lastRsn: string | null
   onReset: () => void
-  onWikiSyncApply: (wikiIds: number[], mode: ImportMode) => void
+  onWikiSyncApply: (wikiIds: number[], rsn: string, clearList: boolean) => void
 }
 
 export function ProgressToolbar({
   completed,
   completedCount,
   listCount,
+  lastRsn,
   onReset,
   onWikiSyncApply,
 }: ProgressToolbarProps) {
@@ -92,7 +94,12 @@ export function ProgressToolbar({
   return (
     <div className="flex flex-col items-end gap-2">
       <div className="flex items-center gap-2">
-        <WikiSyncDialog completed={completed} onApply={onWikiSyncApply} />
+        <WikiSyncDialog
+          completed={completed}
+          listCount={listCount}
+          lastRsn={lastRsn}
+          onApply={onWikiSyncApply}
+        />
 
         <Button variant="outline" size="sm" onClick={handleExport}>
           <Download className="size-4" aria-hidden />

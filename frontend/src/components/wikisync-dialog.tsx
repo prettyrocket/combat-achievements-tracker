@@ -12,12 +12,12 @@ import {
   diffAgainst,
   diffIsNoop,
   parseWikiSync,
+  sameAccount,
   WikiSyncParseError,
-  type ImportMode,
 } from '@/lib/wikisync'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Dialog,
@@ -33,19 +33,33 @@ import type { WikiSyncDiff } from '@/lib/wikisync'
 
 export interface WikiSyncDialogProps {
   completed: ReadonlySet<number>
-  onApply: (ids: number[], mode: ImportMode) => void
+  /** Entries on the planned list, which an import never touches by itself. */
+  listCount: number
+  /** The account the last import came from, if there was one. */
+  lastRsn: string | null
+  onApply: (ids: number[], rsn: string, clearList: boolean) => void
 }
 
-export function WikiSyncDialog({ completed, onApply }: WikiSyncDialogProps) {
+export function WikiSyncDialog({
+  completed,
+  listCount,
+  lastRsn,
+  onApply,
+}: WikiSyncDialogProps) {
   const [open, setOpen] = useState(false)
-  const [mode, setMode] = useState<ImportMode>('merge')
   const [rsn, setRsn] = useState('')
   const [copied, setCopied] = useState(false)
   const [text, setText] = useState('')
   const [diff, setDiff] = useState<WikiSyncDiff | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [clearList, setClearList] = useState(false)
 
   const syncUrl = buildSyncUrl(rsn)
+
+  // Only worth mentioning when there is actually a plan to lose track of, and
+  // when the name in the box is a different player from the one it was built for.
+  const differentAccount =
+    lastRsn !== null && rsn.trim() !== '' && !sameAccount(rsn, lastRsn) && listCount > 0
 
   // Revert the "Copied" confirmation on its own, and cancel the timer if the
   // dialog closes first so it can't fire against an unmounted component.
@@ -60,9 +74,9 @@ export function WikiSyncDialog({ completed, onApply }: WikiSyncDialogProps) {
     setDiff(null)
     setError(null)
     setCopied(false)
-    // Back to the mode that can't lose anything. Replace is a per-import choice,
-    // not a preference to inherit next time the dialog opens.
-    setMode('merge')
+    // Never inherited: throwing away a plan is a decision made once, about one
+    // import, not a preference the dialog remembers on your behalf.
+    setClearList(false)
   }
 
   async function handleCopy() {
@@ -77,28 +91,23 @@ export function WikiSyncDialog({ completed, onApply }: WikiSyncDialogProps) {
     }
   }
 
-  function handlePreview(nextMode: ImportMode = mode) {
+  function handlePreview() {
     setError(null)
     try {
-      setDiff(diffAgainst(parseWikiSync(text), completed, nextMode))
+      setDiff(diffAgainst(parseWikiSync(text), completed))
     } catch (err) {
       setDiff(null)
       setError(err instanceof WikiSyncParseError ? err.message : 'Could not read that paste.')
     }
   }
 
-  function handleModeChange(next: string) {
-    const nextMode = next as ImportMode
-    setMode(nextMode)
-    // Recompute rather than clear: switching mode with a preview on screen is
-    // usually the user asking "what would the other one do?", and the answer
-    // should be immediate.
-    if (diff) handlePreview(nextMode)
-  }
-
   function handleApply() {
     if (!diff) return
-    onApply([...diff.newlyCompleted, ...diff.alreadyCompleted], diff.mode)
+    onApply(
+      [...diff.newlyCompleted, ...diff.alreadyCompleted],
+      rsn,
+      differentAccount && clearList,
+    )
     setOpen(false)
     resetState()
   }
@@ -209,26 +218,35 @@ export function WikiSyncDialog({ completed, onApply }: WikiSyncDialogProps) {
           aria-label="WikiSync JSON"
         />
 
-        <RadioGroup value={mode} onValueChange={handleModeChange} className="gap-2">
-          <div className="flex items-start gap-2.5">
-            <RadioGroupItem value="merge" id="mode-merge" className="mt-0.5" />
-            <label htmlFor="mode-merge" className="cursor-pointer text-sm leading-tight">
-              <span className="font-medium">Merge</span>
-              <span className="text-muted-foreground block text-xs">
-                Add these to what's already ticked. Nothing is lost.
+        {/* No merge/replace choice any more. The account is the authority on
+            which CAs are done, so an import makes this browser match it -- and
+            your planned list, which the account knows nothing about, is left
+            alone unless you say otherwise below. */}
+        <p className="text-muted-foreground text-xs">
+          This makes your ticked tasks match the account exactly, including un-ticking
+          anything the paste doesn't list.
+          {listCount > 0 && ' Your planned list is left alone.'}
+        </p>
+
+        {differentAccount && (
+          <label className="flex cursor-pointer items-start gap-2.5 rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm">
+            <Checkbox
+              checked={clearList}
+              onCheckedChange={(next) => setClearList(next === true)}
+              className="mt-0.5"
+            />
+            <span className="leading-tight">
+              <span className="font-medium text-amber-300">
+                This is a different account from your last import.
               </span>
-            </label>
-          </div>
-          <div className="flex items-start gap-2.5">
-            <RadioGroupItem value="replace" id="mode-replace" className="mt-0.5" />
-            <label htmlFor="mode-replace" className="cursor-pointer text-sm leading-tight">
-              <span className="font-medium">Replace</span>
               <span className="text-muted-foreground block text-xs">
-                Make this browser match the paste exactly, un-ticking anything missing from it.
+                Your {listCount} planned task{listCount === 1 ? ' was' : 's were'} added while
+                you were syncing <span className="text-foreground">{lastRsn}</span>. Tick to
+                clear the list too; leave it to keep it.
               </span>
-            </label>
-          </div>
-        </RadioGroup>
+            </span>
+          </label>
+        )}
 
         {error && (
           <p role="alert" className="text-sm text-red-400">
@@ -244,9 +262,9 @@ export function WikiSyncDialog({ completed, onApply }: WikiSyncDialogProps) {
                 : 'bg-muted/40'
             }`}
           >
-            {/* Removals lead. In replace mode the destructive number is the one
-                worth reading, and burying it under the additions is how someone
-                clears progress they meant to keep. */}
+            {/* Removals lead. The destructive number is the one worth reading,
+                and burying it under the additions is how someone clears progress
+                they meant to keep. */}
             {diff.removed.length > 0 && (
               <p className="font-medium text-amber-300">
                 {diff.removed.length} completed task
@@ -279,12 +297,16 @@ export function WikiSyncDialog({ completed, onApply }: WikiSyncDialogProps) {
           {diff ? (
             <Button
               onClick={handleApply}
-              disabled={diffIsNoop(diff)}
-              variant={diff.removed.length > 0 ? 'destructive' : 'default'}
+              // A paste that changes no progress can still have work to do, if
+              // it's also being used to clear a plan built for another account.
+              disabled={diffIsNoop(diff) && !(differentAccount && clearList)}
+              variant={diff.removed.length > 0 || clearList ? 'destructive' : 'default'}
             >
               {diff.removed.length > 0
                 ? `Replace — un-tick ${diff.removed.length}`
-                : `Mark ${diff.newlyCompleted.length} complete`}
+                : diffIsNoop(diff)
+                  ? 'Clear my list'
+                  : `Mark ${diff.newlyCompleted.length} complete`}
             </Button>
           ) : (
             <Button onClick={() => handlePreview()} disabled={text.trim() === ''}>

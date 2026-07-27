@@ -8,7 +8,6 @@ import { useCallback, useEffect, useSyncExternalStore } from 'react'
 import {
   getCompleted,
   getStorageError,
-  mergeMany,
   refreshFromStorage,
   reset,
   setMany,
@@ -20,8 +19,6 @@ export interface UseProgress {
   completed: ReadonlySet<number>
   toggle: (wikiId: number) => void
   setMany: (wikiIds: Iterable<number>) => void
-  /** Union rather than replace — for the WikiSync paste (#12). */
-  mergeMany: (wikiIds: Iterable<number>) => void
   reset: () => void
   /** Non-null when progress is memory-only and will not survive the tab. */
   storageError: string | null
@@ -46,7 +43,6 @@ export function useProgress(): UseProgress {
     completed,
     toggle: useCallback((wikiId: number) => toggle(wikiId), []),
     setMany: useCallback((wikiIds: Iterable<number>) => setMany(wikiIds), []),
-    mergeMany: useCallback((wikiIds: Iterable<number>) => mergeMany(wikiIds), []),
     reset: useCallback(() => reset(), []),
     storageError: getStorageError(),
   }

@@ -4,6 +4,7 @@ import {
   diffAgainst,
   diffIsNoop,
   parseWikiSync,
+  sameAccount,
   WikiSyncParseError,
 } from '@/lib/wikisync'
 
@@ -103,27 +104,22 @@ describe('parseWikiSync', () => {
 })
 
 describe('diffAgainst', () => {
-  it('defaults to merge, the mode that cannot lose anything', () => {
-    const diff = diffAgainst(parse([1]), new Set([100]))
-    expect(diff.mode).toBe('merge')
-    expect(diff.removed).toEqual([])
-  })
-
   it('splits incoming ids into new and already-complete', () => {
-    const diff = diffAgainst(parse([1, 2, 3]), new Set([3, 100, 101]), 'merge')
+    const diff = diffAgainst(parse([1, 2, 3]), new Set([3]))
     expect(diff.newlyCompleted).toEqual([1, 2])
     expect(diff.alreadyCompleted).toEqual([3])
-    expect(diff.removed).toEqual([])
   })
 
-  it('reports what replace would un-tick, sorted', () => {
-    const diff = diffAgainst(parse([1, 2, 3]), new Set([101, 3, 100]), 'replace')
+  // An import always replaces: the account is the authority on what's done, so
+  // a tick this paste doesn't list is a tick that shouldn't be there.
+  it('reports what will be un-ticked, sorted', () => {
+    const diff = diffAgainst(parse([1, 2, 3]), new Set([101, 3, 100]))
     expect(diff.removed).toEqual([100, 101])
     expect(diff.newlyCompleted).toEqual([1, 2])
   })
 
   it('never removes on account of an id it did not recognise', () => {
-    const diff = diffAgainst(parseWikiSync(payload([1, 999999])), new Set([1]), 'replace')
+    const diff = diffAgainst(parseWikiSync(payload([1, 999999])), new Set([1]))
     expect(diff.removed).toEqual([])
     expect(diff.dropped).toBe(1)
   })
@@ -131,19 +127,28 @@ describe('diffAgainst', () => {
 
 describe('diffIsNoop', () => {
   it('is true when the paste matches current progress exactly', () => {
-    expect(diffIsNoop(diffAgainst(parse([1, 2]), new Set([1, 2]), 'replace'))).toBe(true)
+    expect(diffIsNoop(diffAgainst(parse([1, 2]), new Set([1, 2])))).toBe(true)
   })
 
-  it('is true for a merge that adds nothing', () => {
-    expect(diffIsNoop(diffAgainst(parse([1]), new Set([1, 2]), 'merge'))).toBe(true)
-  })
-
-  // The case the old "no new tasks" check got wrong: a replace that only removes
+  // The case the old "no new tasks" check got wrong: an import that only removes
   // is a real action, and treating it as a no-op disables the apply button on it.
-  it('is false for a replace that only removes', () => {
-    const diff = diffAgainst(parse([1]), new Set([1, 2, 3]), 'replace')
+  it('is false when it only removes', () => {
+    const diff = diffAgainst(parse([1]), new Set([1, 2, 3]))
     expect(diff.newlyCompleted).toEqual([])
     expect(diff.removed).toEqual([2, 3])
     expect(diffIsNoop(diff)).toBe(false)
+  })
+})
+
+describe('sameAccount', () => {
+  // Underscores and spaces are the same character in a RuneScape name, so a
+  // typed underscore must not read as "you've switched accounts".
+  it('treats underscores, case and stray spaces as the same player', () => {
+    expect(sameAccount('Lynx Titan', 'lynx_titan')).toBe(true)
+    expect(sameAccount('  Lynx  Titan ', 'Lynx Titan')).toBe(true)
+  })
+
+  it('tells two different players apart', () => {
+    expect(sameAccount('Lynx Titan', 'Zezima')).toBe(false)
   })
 })

@@ -161,17 +161,19 @@ describe('subscribe', () => {
   })
 })
 
-describe('mergeMany vs importProgress', () => {
-  // These are deliberately opposite and one line apart at the call site, which is
-  // exactly why they get asserted against each other rather than in isolation.
-  it('mergeMany unions with what is already there', async () => {
+// Every way in replaces now. `mergeMany` -- the union counterpart to setMany --
+// existed only for the WikiSync dialog's merge mode, and went with it: an import
+// makes this browser match the account, because a union can only ever leave a
+// stale tick behind and make the number at the top wrong.
+describe('every path in replaces rather than unions', () => {
+  it('setMany replaces what was there', async () => {
     const { store } = await loadStore()
     store.setMany([100, 101])
-    store.mergeMany([1, 2, 3])
-    expect([...store.getCompleted()].sort((a, b) => a - b)).toEqual([1, 2, 3, 100, 101])
+    store.setMany([1, 2, 3])
+    expect([...store.getCompleted()].sort((a, b) => a - b)).toEqual([1, 2, 3])
   })
 
-  it('importProgress replaces instead', async () => {
+  it('importProgress replaces too', async () => {
     const { store } = await loadStore()
     store.setMany([100, 101])
     store.importProgress(
@@ -180,23 +182,9 @@ describe('mergeMany vs importProgress', () => {
     expect([...store.getCompleted()]).toEqual([1])
   })
 
-  it('mergeMany stays silent when nothing is new', async () => {
+  it('setMany validates ids like every other path in', async () => {
     const { store } = await loadStore()
-    store.setMany([1, 2])
-    let notified = 0
-    const unsubscribe = store.subscribe(() => notified++)
-
-    store.mergeMany([1])
-    expect(notified).toBe(0)
-
-    store.mergeMany([5])
-    expect(notified).toBe(1)
-    unsubscribe()
-  })
-
-  it('mergeMany validates ids like every other path in', async () => {
-    const { store } = await loadStore()
-    store.mergeMany([1, 999999, 2])
+    store.setMany([1, 999999, 2])
     expect(store.getCompleted().size).toBe(2)
   })
 })
