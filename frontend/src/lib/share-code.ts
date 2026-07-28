@@ -95,6 +95,12 @@ const SKILL_WIRE_ORDER = [
   'Runecraft',
   'Hunter',
   'Construction',
+  // Appended, not inserted -- the whole point of this list. Verified against
+  // RuneLite's Skill enum, which is where these strings come from: WikiSync
+  // writes `Skill.getName()` for every value, so the payload carries whatever
+  // that enum holds. `Runecraft` above is from the same source, and `Overall`
+  // is deprecated to null there, so it never appears.
+  'Sailing',
 ] as const
 
 /** gatedQuests() as it stood when this format was frozen. Append below, never sort. */

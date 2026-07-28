@@ -215,22 +215,22 @@ describe('the profile', () => {
     bytes[82] = 0
     bytes[83] = 25
     bytes[83 + 1 + 18] = 92 // Slayer, position 18, known
-    bytes[83 + 1 + 23] = 70 // appended skill, unknown
+    bytes[83 + 1 + 23] = 70 // Sailing, position 23, known
     bytes[83 + 1 + 24] = 55 // appended skill, unknown
     bytes[83 + 1 + 25] = 5
     bytes[83 + 1 + 25 + 1] = 0b1000_0000 // quest 7: Priest in Peril
     bytes[83 + 1 + 25 + 1 + 4] = 0b0000_0001 // quest 32: past the end
     const out = decodeShareCode(asCode(bytes))
-    expect(out.profile.levels).toEqual({ Slayer: 92 })
+    expect(out.profile.levels).toEqual({ Slayer: 92, Sailing: 70 })
     expect(out.profile.quests).toEqual(['Priest in Peril'])
-    expect(out.profileDropped).toEqual({ levels: 2, quests: 1 })
+    expect(out.profileDropped).toEqual({ levels: 1, quests: 1 })
   })
 })
 
 describe('what cannot travel in a link', () => {
   it('counts the quests no link can carry, before one is made', () => {
     const loss = profileWireLoss({
-      levels: { Slayer: 92, Sailing: 30 },
+      levels: { Slayer: 92, Sandwichmaking: 30 },
       quests: ['Priest in Peril', 'Cook’s Assistant', 'Dragon Slayer I'],
     })
     expect(loss).toEqual({ levels: 1, quests: 2 })
@@ -249,7 +249,7 @@ describe('what cannot travel in a link', () => {
 
   it('agrees with what the codec actually drops', () => {
     const profile = {
-      levels: { Slayer: 92, Sailing: 30 },
+      levels: { Slayer: 92, Sandwichmaking: 30 },
       quests: ['Priest in Peril', 'Dragon Slayer I'],
     }
     const out = decodeShareCode(encodeShareCode({ completed: [], list: [], profile }))
@@ -295,8 +295,8 @@ describe('size and shape', () => {
       },
     })
     expect(one.length).toBe(full.length)
-    expect(full.length - bare.length).toBe(37)
-    expect(full).toHaveLength(148)
+    expect(full.length - bare.length).toBe(39)
+    expect(full).toHaveLength(150)
   })
 
   it('fits a whole account in a URL people can paste into a message', () => {
