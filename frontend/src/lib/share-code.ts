@@ -187,3 +187,43 @@ export function decodeShareCode(code: string): ShareCodeResult {
     dropped: completed.dropped + list.dropped,
   }
 }
+
+// --- the URL ----------------------------------------------------------------
+//
+// The fragment, not the query string. Two reasons, and the first is the one
+// that matters: a fragment is never sent in the HTTP request, so a link to
+// someone's account progress stays out of server logs, proxy logs and Referer
+// headers on a host we don't control. The second is that use-task-query owns
+// the search half and preserves the hash, so the two never fight.
+
+const SHARE_KEY = 's'
+
+/**
+ * The link, deliberately without the current filters.
+ *
+ * A share code is about what you've done, not what you were looking at when you
+ * copied it -- carrying the query string too would mean the recipient opens your
+ * progress filtered to whatever boss you happened to be reading about.
+ */
+export function buildShareUrl(shareable: Shareable, location: Location): string {
+  return `${location.origin}${location.pathname}#${SHARE_KEY}=${encodeShareCode(shareable)}`
+}
+
+/** The share code in a URL fragment, or null when there isn't one. */
+export function readShareCode(hash: string): string | null {
+  if (!hash.startsWith('#')) return null
+  return new URLSearchParams(hash.slice(1)).get(SHARE_KEY)
+}
+
+/**
+ * Drops the code from the address bar without adding a history entry.
+ *
+ * Called once the code has been dealt with, accepted or not: leaving it there
+ * means a reload re-asks a question already answered, and -- worse -- that a
+ * later reload could offer to overwrite progress made since.
+ */
+export function clearShareCode(): void {
+  if (typeof window === 'undefined') return
+  const { pathname, search } = window.location
+  window.history.replaceState(null, '', `${pathname}${search}`)
+}

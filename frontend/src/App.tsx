@@ -13,6 +13,16 @@ import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { Info } from 'lucide-react'
 import { TASKS } from '@/data/tasks'
 import { Button } from '@/components/ui/button'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { TaskTable } from '@/components/task-table'
 import { ProgressToolbar } from '@/components/progress-toolbar'
 import { ProgressHeader } from '@/components/progress-header'
@@ -24,6 +34,12 @@ import { readJson, writeJson } from '@/lib/local-store'
 import { summarize, summarizeMonster } from '@/lib/progress-summary'
 import { checkAll, type PlayerProfile } from '@/lib/requirements'
 import { rewardStatus, rewardTiers } from '@/lib/rewards'
+import {
+  clearShareCode,
+  decodeShareCode,
+  readShareCode,
+  type ShareCodeResult,
+} from '@/lib/share-code'
 import { resolve } from '@/lib/tasklist'
 import {
   DEFAULT_SORT,
@@ -102,6 +118,12 @@ export default function App() {
   // button yourself is worse than taking you there.
   const [profileOpen, setProfileOpen] = useState(false)
 
+  // A share code in the address bar, waiting on a yes or no. Never applied on
+  // arrival: following a link is not consent to replace what this browser
+  // already holds, and the person clicking it may not know it carries anything.
+  const [incoming, setIncoming] = useState<ShareCodeResult | null>(null)
+  const [incomingError, setIncomingError] = useState<string | null>(null)
+
   // Open by default: a plan you have to go and find is a plan you stop using.
   const [panelOpen, setPanelOpen] = useState(() => storedFlag(PANEL_KEY, true))
   const [compactSummary, setCompactSummary] = useState(() =>
@@ -138,6 +160,25 @@ export default function App() {
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [undo])
+
+  // Read once, on arrival. A malformed code is reported rather than ignored:
+  // silently dropping it would look exactly like a link that did nothing.
+  useEffect(() => {
+    const code = readShareCode(window.location.hash)
+    if (code === null) return
+    try {
+      setIncoming(decodeShareCode(code))
+    } catch (err) {
+      setIncomingError(err instanceof Error ? err.message : 'That share code could not be read.')
+      clearShareCode()
+    }
+  }, [])
+
+  const dismissShareCode = useCallback(() => {
+    setIncoming(null)
+    setIncomingError(null)
+    clearShareCode()
+  }, [])
 
   // The summary deliberately ignores the query: it reports progress against the
   // whole game, not against whatever happens to be filtered in right now.
@@ -319,6 +360,7 @@ export default function App() {
           <ProgressToolbar
             completed={completed}
             completedCount={completed.size}
+            list={taskList.list}
             listCount={taskList.list.length}
             lastRsn={lastRsn}
             onReset={reset}
@@ -444,6 +486,55 @@ export default function App() {
           </main>
         </div>
       </div>
+
+      {/* Opening a link is a replace, exactly like an import, so it asks first
+          and says what it would cost. Undo covers it afterwards, but only until
+          the next reload, which is not long enough to be the whole answer. */}
+      <AlertDialog
+        open={incoming !== null || incomingError !== null}
+        onOpenChange={(open) => {
+          if (!open) dismissShareCode()
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {incomingError ? "That link didn't carry readable progress" : 'Open shared progress?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {incomingError ??
+                (incoming
+                  ? `This link holds ${incoming.completed.length} completed tasks` +
+                    (incoming.list.length > 0
+                      ? ` and a plan of ${incoming.list.length}.`
+                      : ' and no plan.') +
+                    ` Opening it replaces the ${completed.size} completed tasks in this browser` +
+                    (taskList.list.length > 0
+                      ? ` and your plan of ${taskList.list.length}.`
+                      : '.') +
+                    (incoming.dropped > 0
+                      ? ` ${incoming.dropped} entries weren't recognised and will be ignored.`
+                      : '') +
+                    ' Your levels and quests are left alone.'
+                  : '')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{incomingError ? 'Close' : 'Keep what I have'}</AlertDialogCancel>
+            {incoming && (
+              <AlertDialogAction
+                onClick={() => {
+                  setMany(incoming.completed)
+                  taskList.replace(incoming.list)
+                  dismissShareCode()
+                }}
+              >
+                Replace with the link
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Follows the cursor across the gap between table and panel -- without it
           the row stays put and the drag has nothing to show for itself. */}

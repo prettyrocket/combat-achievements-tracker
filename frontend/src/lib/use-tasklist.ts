@@ -13,6 +13,7 @@ import {
   insertAt,
   refreshFromStorage,
   remove,
+  setList,
   subscribe,
   toggle,
 } from '@/lib/tasklist-store'
@@ -27,6 +28,8 @@ export interface UseTaskList {
   toggle: (wikiId: number) => void
   /** Drop or reorder: move `wikiId` to `index`, adding it if it's new. */
   insertAt: (wikiId: number, index: number) => void
+  /** Replaces the whole list, for a restore. Unlike addMany, this can shorten it. */
+  replace: (wikiIds: readonly number[]) => void
   clear: () => void
 }
 
@@ -50,6 +53,7 @@ export function useTaskList(): UseTaskList {
     remove: useCallback((wikiId: number) => remove(wikiId), []),
     toggle: useCallback((wikiId: number) => toggle(wikiId), []),
     insertAt: useCallback((wikiId: number, index: number) => insertAt(wikiId, index), []),
+    replace: useCallback((wikiIds: readonly number[]) => setList(wikiIds), []),
     clear: useCallback(() => clear(), []),
   }
 }

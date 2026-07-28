@@ -5,8 +5,9 @@
 // menu the player finds after losing their data.
 
 import { useRef, useState } from 'react'
-import { Download, Undo2, Upload, RotateCcw } from 'lucide-react'
+import { Download, Link2, Undo2, Upload, RotateCcw } from 'lucide-react'
 import { buildBackup, importBackup } from '@/lib/backup'
+import { buildShareUrl } from '@/lib/share-code'
 import type { PlayerProfile } from '@/lib/requirements'
 import type { ProfileSource } from '@/lib/profile-store'
 import { ProfileDialog } from '@/components/profile-dialog'
@@ -40,6 +41,8 @@ function exportFilename(): string {
 export interface ProgressToolbarProps {
   completed: ReadonlySet<number>
   completedCount: number
+  /** The plan itself, in order -- the share link carries it, not just its size. */
+  list: readonly number[]
   /** Entries on the plan, for the export message and the import warning. */
   listCount: number
   /** The account the last WikiSync import came from, if any. */
@@ -68,6 +71,7 @@ export interface ProgressToolbarProps {
 export function ProgressToolbar({
   completed,
   completedCount,
+  list,
   listCount,
   lastRsn,
   onReset,
@@ -102,6 +106,25 @@ export function ProgressToolbar({
         `Exported ${completedCount} completed tasks` +
         (listCount > 0 ? ` and ${listCount} on your list.` : '.'),
     })
+  }
+
+  async function handleCopyLink() {
+    const url = buildShareUrl({ completed, list }, window.location)
+    try {
+      await navigator.clipboard.writeText(url)
+      setNotice({
+        tone: 'ok',
+        message:
+          `Link copied — ${completedCount} completed tasks` +
+          (listCount > 0 ? ` and ${listCount} on your list.` : '.') +
+          ' Opening it replaces whatever that browser holds.',
+      })
+    } catch {
+      // Denied permission, or an insecure origin. The link is the useful thing,
+      // not the copying, so hand it over rather than reporting a failure the
+      // player can do nothing about.
+      setNotice({ tone: 'error', message: `Couldn't reach the clipboard. The link is: ${url}` })
+    }
   }
 
   async function handleImportFile(file: File) {
@@ -157,6 +180,19 @@ export function ProgressToolbar({
         >
           <Undo2 className="size-4" aria-hidden />
           Undo
+        </Button>
+
+        {/* Next to Export because it answers the same question with a different
+            trade: the file is the durable copy, the link is the one that fits in
+            a message. Neither is a server, and both say so. */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => void handleCopyLink()}
+          title="Copy a link that carries your progress and plan to another browser"
+        >
+          <Link2 className="size-4" aria-hidden />
+          Copy link
         </Button>
 
         <Button variant="outline" size="sm" onClick={handleExport}>

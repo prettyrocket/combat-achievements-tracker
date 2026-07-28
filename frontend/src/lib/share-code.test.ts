@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { TASKS } from '@/data/tasks'
-import { decodeShareCode, encodeShareCode } from '@/lib/share-code'
+import { buildShareUrl, decodeShareCode, encodeShareCode, readShareCode } from '@/lib/share-code'
 
 const ALL_IDS = TASKS.map((t) => t.wikiId).sort((a, b) => a - b)
 
@@ -136,6 +136,46 @@ describe('hostile and malformed input', () => {
   it('truncates a task list too long to state its own length', () => {
     const long = Array.from({ length: 300 }, (_, i) => i)
     expect(decodeShareCode(encodeShareCode({ completed: [], list: long })).list).toHaveLength(255)
+  })
+})
+
+describe('the URL', () => {
+  const location = {
+    origin: 'https://ca.example',
+    pathname: '/tracker/',
+    search: '?tier=MASTER&q=vardorvis',
+  } as Location
+
+  it('puts the code in the fragment, where no server sees it', () => {
+    const url = buildShareUrl({ completed: [1, 2, 3], list: [] }, location)
+    expect(url.startsWith('https://ca.example/tracker/#s=')).toBe(true)
+  })
+
+  it('drops the current filters rather than sharing what you were looking at', () => {
+    const url = buildShareUrl({ completed: [1], list: [] }, location)
+    expect(url).not.toContain('vardorvis')
+    expect(url).not.toContain('?')
+  })
+
+  it('round-trips through the address bar', () => {
+    const completed = [3, 30, 300]
+    const list = [300, 3]
+    const url = buildShareUrl({ completed, list }, location)
+    const code = readShareCode(url.slice(url.indexOf('#')))
+    expect(code).not.toBeNull()
+    const out = decodeShareCode(code!)
+    expect(out.completed).toEqual(completed)
+    expect(out.list).toEqual(list)
+  })
+
+  it.each(['', '#', '#other=1', '?s=abc'])('finds no code in %o', (hash) => {
+    expect(readShareCode(hash)).toBeNull()
+  })
+
+  it('ignores a code sitting in the query string, which would leak to logs', () => {
+    // Belt and braces: buildShareUrl never emits this, but a hand-edited URL
+    // must not be honoured from the half that reaches the server.
+    expect(readShareCode('?s=AUmS')).toBeNull()
   })
 })
 
