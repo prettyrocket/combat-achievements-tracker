@@ -5,6 +5,11 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Deployed as a GitHub Pages *project* site, so everything is served from
+  // /combat-achievements-tracker/ rather than the domain root. Vite rewrites the
+  // asset URLs in index.html to match. Share links stay intact: they only vary by
+  // query string and hash on whatever pathname the app is already sitting on.
+  base: '/combat-achievements-tracker/',
   // Tailwind v4 is wired as a Vite plugin — no tailwind.config.js / postcss.config.js
   // needed. A single `@import "tailwindcss"` in index.css is the whole setup.
   plugins: [react(), tailwindcss()],
