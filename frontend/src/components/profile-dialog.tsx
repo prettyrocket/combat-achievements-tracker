@@ -106,9 +106,10 @@ export function ProfileDialog({
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <SlidersHorizontal className="size-4" aria-hidden />
-          {/* Says whether it has anything in it, because that's the difference
-              between the requirement filter working and being greyed out. */}
-          {isEmpty ? 'My levels' : `My levels · ${profile.levels.Slayer ?? 1} Slayer`}
+          {/* Just the name. What's in the profile is the dialog's business, and
+              the requirement filter already says whether it has enough to run
+              on -- a button that changes shape as you type is noise. */}
+          My levels
         </Button>
       </DialogTrigger>
 
