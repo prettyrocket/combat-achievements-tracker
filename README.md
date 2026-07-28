@@ -76,10 +76,10 @@ tracked activities, not even as a points total.
 ## Filtering by what you can actually fight
 
 The **Requirements** filter cycles *Any monster → Can face → Can't face yet*, and every
-row whose monster is out of reach carries a lock with the reason ("92 Slayer (you have
-78) · Priest in Peril"). It needs to know your levels and quests, which come either from
-a WikiSync paste or from **My levels**, where you can also type a hypothetical — "what
-opens up at 92 Slayer" is the same question.
+row whose monster is out of reach carries a lock. Hover or focus it and it says what the
+gate asks for — "Requires 92 Slayer and the quest Priest in Peril". It needs to know your
+levels and quests, which come either from a WikiSync paste or from **My levels**, where
+you can also type a hypothetical — "what opens up at 92 Slayer" is the same question.
 
 Three kinds of gate are modelled: **Slayer level**, **other skill levels that gate the
 route** (70 Ranged for the grapple into Armadyl's Eyrie, 50 Firemaking for Wintertodt),

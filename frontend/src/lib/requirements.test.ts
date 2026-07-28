@@ -178,12 +178,30 @@ describe('checkAll', () => {
 })
 
 describe('describeMissing', () => {
-  it('says what you have where that is the useful part', () => {
+  it('names what the gate asks for, not how far off you are', () => {
     expect(
       describeMissing([
         { kind: 'skill', label: '92 Slayer', have: 78 },
         { kind: 'quest', label: 'Priest in Peril' },
       ]),
-    ).toBe('92 Slayer (you have 78) · Priest in Peril')
+    ).toBe('92 Slayer and the quest Priest in Peril')
+  })
+
+  it('names a quest as a quest, so it does not read as a place', () => {
+    expect(describeMissing([{ kind: 'quest', label: 'Regicide' }])).toBe('the quest Regicide')
+  })
+
+  it('reads as a sentence at three, not as a list of fragments', () => {
+    expect(
+      describeMissing([
+        { kind: 'skill', label: '70 Ranged', have: 61 },
+        { kind: 'skill', label: '50 Firemaking' },
+        { kind: 'quest', label: 'Song of the Elves' },
+      ]),
+    ).toBe('70 Ranged, 50 Firemaking and the quest Song of the Elves')
+  })
+
+  it('is empty when nothing is missing, rather than a stray conjunction', () => {
+    expect(describeMissing([])).toBe('')
   })
 })

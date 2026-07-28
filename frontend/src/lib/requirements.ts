@@ -337,11 +337,15 @@ export function checkAll(
 
 /** A one-line summary for the tooltip on a locked row. */
 export function describeMissing(missing: readonly Shortfall[]): string {
-  return missing
-    .map((item) =>
-      item.kind === 'skill' && item.have !== undefined
-        ? `${item.label} (you have ${item.have})`
-        : item.label,
-    )
-    .join(' · ')
+  const parts = missing.map((item) =>
+    // "Priest in Peril" alone reads as a place or a person. Naming it as a quest
+    // is the difference between a requirement you understand and one you have to
+    // go and look up.
+    item.kind === 'quest' ? `the quest ${item.label}` : item.label,
+  )
+  // Joined as a sentence, not with a separator. This is read aloud by a screen
+  // reader, where "·" is either silence or the word "middot" -- neither of which
+  // is what a list of two requirements sounds like.
+  if (parts.length <= 1) return parts[0] ?? ''
+  return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`
 }

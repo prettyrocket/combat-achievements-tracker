@@ -44,6 +44,7 @@ import { COLUMN_SORT, sortDirection, type SortDirection } from '@/lib/task-query
 import { monsterWikiUrl, splitAtColon, taskWikiUrl } from '@/lib/wiki'
 import { TierBadge } from '@/components/tier-badge'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 // Note the missing `Table`: that wrapper brings its own `overflow-x-auto` div,
 // and nesting one inside this viewport puts the horizontal scrollbar back at the
 // bottom of all 646 rows -- the exact thing the viewport exists to fix. The
@@ -130,17 +131,29 @@ const NO_GATES: ReadonlyMap<string, GateCheck> = new Map()
  */
 function GateLock({ gate }: { gate: GateCheck }) {
   if (gate.status !== 'blocked') return null
+  const requires = `Requires ${describeMissing(gate.missing)}`
   return (
-    <span
-      title={`Needs ${describeMissing(gate.missing)}`}
-      className="mt-0.5 inline-flex shrink-0 text-amber-500/70"
-      // The title carries the detail for a pointer; this carries it for everyone
-      // else, and reads as a sentence rather than as a list of fragments.
-      aria-label={`You do not meet the requirements: needs ${describeMissing(gate.missing)}`}
-      role="img"
-    >
-      <Lock className="size-3.5" aria-hidden />
-    </span>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        {/* A button, not a decorated span: `title` never appears on keyboard
+            focus, so the reason was reachable by pointer only. This is the one
+            control here that exists purely to be read. */}
+        <button
+          type="button"
+          // Nothing to do on click -- the tooltip opens on hover and on focus.
+          // Blocking it stops a stray tap from doing anything at all.
+          onClick={(event) => event.preventDefault()}
+          aria-label={requires}
+          className="mt-0.5 inline-flex shrink-0 cursor-help rounded-sm text-amber-500/70 hover:text-amber-500"
+        >
+          <Lock className="size-3.5" aria-hidden />
+        </button>
+      </TooltipTrigger>
+      {/* One line, and the same line the screen reader gets. What you're short
+          of is a number you already know; what the gate asks for is the thing
+          you came to the lock to find out. */}
+      <TooltipContent>{requires}</TooltipContent>
+    </Tooltip>
   )
 }
 
