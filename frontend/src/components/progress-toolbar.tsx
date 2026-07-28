@@ -1,11 +1,24 @@
-// Export / Import / Reset.
+// Load / Share / Reset.
 //
 // Export is what makes localStorage an acceptable system of record rather than a
-// trap, so it's a first-class control here, not something buried in a settings
-// menu the player finds after losing their data.
+// trap, so it stays one click from the top level -- inside a menu, but never
+// behind a settings screen the player finds only after losing their data.
+//
+// The two menus are grouped by direction rather than by mechanism: Load is
+// everything that writes your progress from somewhere else, Share is everything
+// that takes it out. Which of them is a file and which is a URL is the second
+// question, and it's answered inside the menu.
 
 import { useRef, useState } from 'react'
-import { Download, Link2, Undo2, Upload, RotateCcw } from 'lucide-react'
+import {
+  ChevronDown,
+  ClipboardPaste,
+  Download,
+  Link2,
+  Upload,
+  RotateCcw,
+  Share2,
+} from 'lucide-react'
 import { buildBackup, importBackup } from '@/lib/backup'
 import { buildShareUrl, profileWireLoss } from '@/lib/share-code'
 import type { PlayerProfile } from '@/lib/requirements'
@@ -13,6 +26,13 @@ import type { ProfileSource } from '@/lib/profile-store'
 import { ProfileDialog } from '@/components/profile-dialog'
 import { WikiSyncDialog } from '@/components/wikisync-dialog'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +46,54 @@ import {
 } from '@/components/ui/alert-dialog'
 
 type Notice = { tone: 'ok' | 'error'; message: string }
+
+/** What Reset is allowed to clear, ticked one by one. */
+interface ResetTargets {
+  completed: boolean
+  list: boolean
+  profile: boolean
+}
+
+// Progress only, because that's what Reset has always meant and it's the one
+// with an undo. Levels and the list are opt-in every time.
+const DEFAULT_RESET_TARGETS: ResetTargets = { completed: true, list: false, profile: false }
+
+/** "a", "a and b", "a, b and c" -- for a sentence, not a table. */
+function formatList(parts: readonly string[]): string {
+  if (parts.length <= 1) return parts[0] ?? ''
+  return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`
+}
+
+/** One tickable thing Reset can clear, with how much of it there is. */
+function ResetOption({
+  label,
+  detail,
+  checked,
+  disabled,
+  onChange,
+}: {
+  label: string
+  detail: string
+  checked: boolean
+  disabled: boolean
+  onChange: (checked: boolean) => void
+}) {
+  return (
+    <label
+      className={`flex items-center gap-2.5 rounded px-1.5 py-1.5 text-sm ${
+        disabled ? 'opacity-50' : 'hover:bg-muted cursor-pointer transition-colors'
+      }`}
+    >
+      <Checkbox
+        checked={checked && !disabled}
+        disabled={disabled}
+        onCheckedChange={(next) => onChange(next === true)}
+      />
+      <span className="flex-1">{label}</span>
+      <span className="text-muted-foreground text-xs tabular-nums">{detail}</span>
+    </label>
+  )
+}
 
 function exportFilename(): string {
   // Local date, not ISO: this filename is for a human sorting their own backups.
@@ -47,16 +115,15 @@ export interface ProgressToolbarProps {
   listCount: number
   /** The account the last WikiSync import came from, if any. */
   lastRsn: string | null
+  /** Clears completed tasks. Reset picks which of these three it calls. */
   onReset: () => void
+  onClearList: () => void
   onWikiSyncApply: (
     wikiIds: number[],
     rsn: string,
     clearList: boolean,
     profile: PlayerProfile | null,
   ) => void
-  onUndo: () => void
-  /** False when nothing has changed yet this session. */
-  canUndo: boolean
   /** The levels and quests behind the requirement filter, and its editor. */
   profile: PlayerProfile
   profileIsEmpty: boolean
@@ -75,9 +142,8 @@ export function ProgressToolbar({
   listCount,
   lastRsn,
   onReset,
+  onClearList,
   onWikiSyncApply,
-  onUndo,
-  canUndo,
   profile,
   profileIsEmpty,
   profileSource,
@@ -89,6 +155,37 @@ export function ProgressToolbar({
 }: ProgressToolbarProps) {
   const fileInput = useRef<HTMLInputElement>(null)
   const [notice, setNotice] = useState<Notice | null>(null)
+  // Owned here rather than by the dialog, because its only way in is now a menu
+  // item, and the menu closes before the dialog opens.
+  const [wikiSyncOpen, setWikiSyncOpen] = useState(false)
+
+  // Reset asks what to reset. Three separate stores, three separate answers --
+  // wiping your levels because you wanted to re-tick your tasks was never
+  // something anyone asked for, and the levels are the slowest to type back in.
+  const [resetOpen, setResetOpen] = useState(false)
+  const [resetTargets, setResetTargets] = useState<ResetTargets>(DEFAULT_RESET_TARGETS)
+  const nothingToReset = completedCount === 0 && listCount === 0 && profileIsEmpty
+  const willReset =
+    (resetTargets.completed && completedCount > 0) ||
+    (resetTargets.list && listCount > 0) ||
+    (resetTargets.profile && !profileIsEmpty)
+
+  function handleReset() {
+    const done: string[] = []
+    if (resetTargets.completed && completedCount > 0) {
+      onReset()
+      done.push(`${completedCount} completed tasks`)
+    }
+    if (resetTargets.list && listCount > 0) {
+      onClearList()
+      done.push(`your list of ${listCount}`)
+    }
+    if (resetTargets.profile && !profileIsEmpty) {
+      onClearProfile()
+      done.push('your levels and quests')
+    }
+    setNotice({ tone: 'ok', message: `Cleared ${formatList(done)}.` })
+  }
 
   function handleExport() {
     const blob = new Blob([JSON.stringify(buildBackup(), null, 2)], {
@@ -161,9 +258,9 @@ export function ProgressToolbar({
   return (
     <div className="flex flex-col items-end gap-2">
       <div className="flex items-center gap-2">
-        {/* Beside WikiSync rather than in the filter bar: this is a fact about
-            the account, like your progress, not a view of the table. WikiSync
-            fills it in, so the two belong next to each other. */}
+        {/* Beside Load rather than in the filter bar: this is a fact about the
+            account, like your progress, not a view of the table. A WikiSync
+            paste fills it in, so the two belong next to each other. */}
         <ProfileDialog
           profile={profile}
           isEmpty={profileIsEmpty}
@@ -175,48 +272,52 @@ export function ProgressToolbar({
           onClear={onClearProfile}
         />
 
-        <WikiSyncDialog
-          completed={completed}
-          listCount={listCount}
-          lastRsn={lastRsn}
-          onApply={onWikiSyncApply}
-        />
+        {/* Both ways in, in one place. WikiSync is first because it's the one
+            that fills everything in from the game; a file is what you reach for
+            when it can't. */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm">
+              <Upload className="size-4" aria-hidden />
+              Load
+              <ChevronDown className="size-3.5 opacity-60" aria-hidden />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onSelect={() => setWikiSyncOpen(true)}>
+              <ClipboardPaste aria-hidden />
+              Paste from WikiSync
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => fileInput.current?.click()}>
+              <Upload aria-hidden />
+              Import a file
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-        {/* First in the row because it's the one you reach for in a hurry, and
-            because it undoes every other button here as well as a stray tick. */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onUndo}
-          disabled={!canUndo}
-          title="Undo the last change to your progress (Ctrl+Z)"
-        >
-          <Undo2 className="size-4" aria-hidden />
-          Undo
-        </Button>
+        {/* Two answers to the same question with a different trade: the file is
+            the durable copy, the link is the one that fits in a message. Neither
+            is a server, and both say so when used. */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm">
+              <Share2 className="size-4" aria-hidden />
+              Share
+              <ChevronDown className="size-3.5 opacity-60" aria-hidden />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onSelect={() => void handleCopyLink()}>
+              <Link2 aria-hidden />
+              Copy link
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={handleExport}>
+              <Download aria-hidden />
+              Export a file
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-        {/* Next to Export because it answers the same question with a different
-            trade: the file is the durable copy, the link is the one that fits in
-            a message. Neither is a server, and both say so. */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => void handleCopyLink()}
-          title="Copy a link that carries your progress and plan to another browser"
-        >
-          <Link2 className="size-4" aria-hidden />
-          Copy link
-        </Button>
-
-        <Button variant="outline" size="sm" onClick={handleExport}>
-          <Download className="size-4" aria-hidden />
-          Export
-        </Button>
-
-        <Button variant="outline" size="sm" onClick={() => fileInput.current?.click()}>
-          <Upload className="size-4" aria-hidden />
-          Import
-        </Button>
         <input
           ref={fileInput}
           type="file"
@@ -230,38 +331,82 @@ export function ProgressToolbar({
           }}
         />
 
-        <AlertDialog>
+        <AlertDialog
+          open={resetOpen}
+          onOpenChange={(next) => {
+            setResetOpen(next)
+            // Back to defaults on the way in, not on the way out: a dialog that
+            // reopens still holding "and my levels" from last time is how you
+            // clear something you didn't mean to.
+            if (next) setResetTargets(DEFAULT_RESET_TARGETS)
+          }}
+        >
           <AlertDialogTrigger asChild>
-            <Button variant="outline" size="sm" disabled={completedCount === 0}>
+            <Button variant="outline" size="sm" disabled={nothingToReset}>
               <RotateCcw className="size-4" aria-hidden />
               Reset
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Reset all progress?</AlertDialogTitle>
+              <AlertDialogTitle>Reset what?</AlertDialogTitle>
               <AlertDialogDescription>
-                This clears all {completedCount} completed tasks from this browser. Undo can
-                bring it back until you reload the page, but there's no copy on a server —
-                export first if you might want it back.
-                {listCount > 0 &&
-                  ` Your list of ${listCount} planned tasks is left alone; clear that from the panel.`}
+                Nothing here is kept on a server, so nothing comes back from one — export
+                first if you might want it. Ctrl+Z can bring completed tasks back until you
+                reload the page; your levels and your list can't be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
+
+            {/* Each row disabled when there's nothing behind it, so the dialog
+                says what you actually have as well as what it will do. */}
+            <div className="space-y-1">
+              <ResetOption
+                label="Completed tasks"
+                detail={completedCount === 0 ? 'none ticked' : `${completedCount} ticked`}
+                checked={resetTargets.completed}
+                disabled={completedCount === 0}
+                onChange={(next) =>
+                  setResetTargets((targets) => ({ ...targets, completed: next }))
+                }
+              />
+              <ResetOption
+                label="My list"
+                detail={listCount === 0 ? 'empty' : `${listCount} planned`}
+                checked={resetTargets.list}
+                disabled={listCount === 0}
+                onChange={(next) => setResetTargets((targets) => ({ ...targets, list: next }))}
+              />
+              <ResetOption
+                label="My levels and quests"
+                detail={profileIsEmpty ? 'not entered' : 'entered'}
+                checked={resetTargets.profile}
+                disabled={profileIsEmpty}
+                onChange={(next) =>
+                  setResetTargets((targets) => ({ ...targets, profile: next }))
+                }
+              />
+            </div>
+
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => {
-                  onReset()
-                  setNotice({ tone: 'ok', message: 'Progress reset.' })
-                }}
-              >
-                Reset everything
+              <AlertDialogAction onClick={handleReset} disabled={!willReset}>
+                Reset
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
       </div>
+
+      {/* Outside the row: it has no trigger of its own any more, so it isn't a
+          control here, just the panel the Load menu opens. */}
+      <WikiSyncDialog
+        completed={completed}
+        listCount={listCount}
+        lastRsn={lastRsn}
+        onApply={onWikiSyncApply}
+        open={wikiSyncOpen}
+        onOpenChange={setWikiSyncOpen}
+      />
 
       {notice && (
         <p

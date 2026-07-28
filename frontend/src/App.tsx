@@ -105,7 +105,7 @@ function compactByDefault(): boolean {
 }
 
 export default function App() {
-  const { completed, toggle, setMany, reset, undo, canUndo, storageError } = useProgress()
+  const { completed, toggle, setMany, reset, undo, storageError } = useProgress()
   const { query, setQuery, clear } = useTaskQuery()
   const taskList = useTaskList()
   const profile = useProfile()
@@ -140,9 +140,10 @@ export default function App() {
     return typeof stored === 'string' && stored.trim() !== '' ? stored : null
   })
 
-  // Ctrl+Z / ⌘Z anywhere that isn't a text field. Ticking a task is a one-click
-  // change to the thing this app is for, so the reflex that follows a misclick
-  // should work without going to find a button first.
+  // Ctrl+Z / ⌘Z anywhere that isn't a text field, and the only way to undo --
+  // ticking a task is a one-click change to the thing this app is for, so the
+  // reflex that follows a misclick is the right thing to answer, and it's the
+  // reflex people already have.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'z' || !(event.ctrlKey || event.metaKey) || event.shiftKey) return
@@ -364,9 +365,8 @@ export default function App() {
             listCount={taskList.list.length}
             lastRsn={lastRsn}
             onReset={reset}
+            onClearList={taskList.clear}
             onWikiSyncApply={applyWikiSync}
-            onUndo={undo}
-            canUndo={canUndo}
             profile={profile.profile}
             profileIsEmpty={profile.isEmpty}
             profileSource={profile.source}

@@ -13,7 +13,7 @@
 // first and applies on the second click, and one that only adds goes in one.
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Check, CircleHelp, ClipboardPaste, Copy, ExternalLink } from 'lucide-react'
+import { Check, CircleHelp, Copy, ExternalLink } from 'lucide-react'
 import {
   buildSyncUrl,
   diffAgainst,
@@ -36,7 +36,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import { gatedQuests, normalizeQuest, type PlayerProfile } from '@/lib/requirements'
 import type { WikiSyncDiff, WikiSyncErrorCode, WikiSyncParse } from '@/lib/wikisync'
@@ -67,6 +66,9 @@ export interface WikiSyncDialogProps {
     clearList: boolean,
     profile: PlayerProfile | null,
   ) => void
+  /** Controlled: the only way in is the Load menu, which is not this component. */
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
 /** The plugin's own page on the hub, so step one is one click. */
@@ -103,8 +105,9 @@ export function WikiSyncDialog({
   listCount,
   lastRsn,
   onApply,
+  open,
+  onOpenChange,
 }: WikiSyncDialogProps) {
-  const [open, setOpen] = useState(false)
   const [rsn, setRsn] = useState('')
   const [copied, setCopied] = useState(false)
   const [text, setText] = useState('')
@@ -200,7 +203,7 @@ export function WikiSyncDialog({
   function handleApply() {
     // Nothing to import, so the button is only an acknowledgement.
     if (welcome) {
-      setOpen(false)
+      onOpenChange(false)
       resetState()
       return
     }
@@ -217,7 +220,7 @@ export function WikiSyncDialog({
       differentAccount && clearList,
       parse?.profile ?? null,
     )
-    setOpen(false)
+    onOpenChange(false)
     resetState()
   }
 
@@ -330,17 +333,10 @@ export function WikiSyncDialog({
     <Dialog
       open={open}
       onOpenChange={(next) => {
-        setOpen(next)
+        onOpenChange(next)
         if (!next) resetState()
       }}
     >
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <ClipboardPaste className="size-4" aria-hidden />
-          WikiSync
-        </Button>
-      </DialogTrigger>
-
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-1.5">
