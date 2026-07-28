@@ -32,7 +32,7 @@ import { TaskListPanel } from '@/components/tasklist-panel'
 import { TASKLIST_DROPPABLE, parseDragId } from '@/lib/dnd'
 import { readJson, writeJson } from '@/lib/local-store'
 import { summarize, summarizeMonster } from '@/lib/progress-summary'
-import { checkAll, type PlayerProfile } from '@/lib/requirements'
+import { checkAll, profileIsEmpty, type PlayerProfile } from '@/lib/requirements'
 import { rewardStatus, rewardTiers } from '@/lib/rewards'
 import {
   clearShareCode,
@@ -515,7 +515,13 @@ export default function App() {
                     (incoming.dropped > 0
                       ? ` ${incoming.dropped} entries weren't recognised and will be ignored.`
                       : '') +
-                    ' Your levels and quests are left alone.'
+                    // Said plainly in both directions: a link carrying levels
+                    // overwrites yours, and one carrying none leaves them be
+                    // rather than wiping them. The second half is the one
+                    // somebody would otherwise have to test to find out.
+                    (profileIsEmpty(incoming.profile)
+                      ? ' It carries no levels or quests, so yours are left alone.'
+                      : ' Its levels and quests replace yours.')
                   : '')}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -526,6 +532,11 @@ export default function App() {
                 onClick={() => {
                   setMany(incoming.completed)
                   taskList.replace(incoming.list)
+                  // Same rule as an imported file (backup.ts): a code without a
+                  // profile is not an instruction to clear one. 'manual' rather
+                  // than 'wikisync' because from here it is a thing you accepted,
+                  // and the source only decides which way of editing wins.
+                  if (!profileIsEmpty(incoming.profile)) setProfile(incoming.profile, 'manual')
                   dismissShareCode()
                 }}
               >

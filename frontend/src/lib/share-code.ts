@@ -9,17 +9,24 @@
 // round-trip can be tested exhaustively without a fake localStorage or a DOM.
 // Reading and writing the actual stores is the caller's job.
 //
-// The profile is deliberately NOT in here. Two reasons, both structural rather
-// than about effort: gatedQuests() is sorted by label, so a positional quest
-// bitset would shift every bit after any quest added later and silently decode
-// old codes onto the wrong quests; and requirements.ts keeps every skill
-// WikiSync reported rather than only the gated ten, which a fixed-width level
-// block would quietly throw away. Both are solvable with an append-only wire
-// ordering owned by this file, but neither is solvable by reusing what's there,
-// and a lossy share code is worse than an honest one. Levels travel in the
-// export file, which has no such problem because JSON keys carry their names.
+// The profile travels too, and unlike the other two halves it travels *lossily*.
+// A positional format has to agree on what sits at each position, so this file
+// owns two append-only orderings -- SKILL_WIRE_ORDER and QUEST_WIRE_ORDER -- and
+// anything not on them cannot be encoded at all. That matters in practice:
+// WikiSync reports every quest an account has finished, and only nineteen of
+// them gate anything here, so a real profile loses the rest on the way into a
+// link. The loss is silent by the time a code is decoded -- the bytes were never
+// written -- so it has to be reported at encode time instead, which is what
+// profileWireLoss exists for. Export remains the lossless option, and the UI
+// says so where someone can still act on it.
 
 import { sanitizeIds } from '@/lib/progress-store'
+import {
+  EMPTY_PROFILE,
+  normalizeQuest,
+  profileIsEmpty,
+  type PlayerProfile,
+} from '@/lib/requirements'
 
 /**
  * Bumped only for a change that breaks old readers.
@@ -47,6 +54,111 @@ const HEADER_BYTES = 1 + BITSET_BYTES + 1
  */
 const MAX_LIST = 255
 
+// --- the wire orderings -----------------------------------------------------
+//
+// Both of these are APPEND-ONLY. Never reorder, never remove, never re-sort:
+// position *is* the identity here, so moving an entry silently re-points every
+// code already in the wild at the wrong skill or the wrong quest.
+//
+// This is exactly why they live here rather than being derived. gatedQuests()
+// (requirements.ts) sorts by label, which is right for a checklist and fatal for
+// a wire format -- adding "Below Ice Mountain" would insert at position 2 and
+// shift seventeen quests down one bit each. A display order answers "what should
+// this list look like"; a wire order answers "what did byte 3 bit 5 mean in
+// 2026", and only one of those is allowed to change.
+//
+// Tests assert these cover GATED_SKILLS and gatedQuests(), so adding a gate
+// fails the build until someone appends here.
+
+/** In-game skill order, which is also where a 24th skill would naturally land. */
+const SKILL_WIRE_ORDER = [
+  'Attack',
+  'Defence',
+  'Strength',
+  'Hitpoints',
+  'Ranged',
+  'Prayer',
+  'Magic',
+  'Cooking',
+  'Woodcutting',
+  'Fletching',
+  'Fishing',
+  'Firemaking',
+  'Crafting',
+  'Smithing',
+  'Mining',
+  'Herblore',
+  'Agility',
+  'Thieving',
+  'Slayer',
+  'Farming',
+  'Runecraft',
+  'Hunter',
+  'Construction',
+] as const
+
+/** gatedQuests() as it stood when this format was frozen. Append below, never sort. */
+const QUEST_WIRE_ORDER = [
+  'A Kingdom Divided',
+  'Beneath Cursed Sands',
+  'Children of the Sun',
+  'Desert Treasure II - The Fallen Empire',
+  'Dragon Slayer II',
+  'Monkey Madness II',
+  'Perilous Moons',
+  'Priest in Peril',
+  'Regicide',
+  'Secrets of the North',
+  'Sins of the Father',
+  'Song of the Elves',
+  'The Blood Moon Rises',
+  'The Final Dawn',
+  'The Fremennik Exiles',
+  'The Heart of Darkness',
+  'The Ides of Milk',
+  'Troubled Tortugans',
+  'While Guthix Sleeps',
+] as const
+
+export { SKILL_WIRE_ORDER, QUEST_WIRE_ORDER }
+
+/** Matching profile-store's ceiling, so a level that round-trips there fits here. */
+const MAX_LEVEL = 126
+
+const QUEST_BYTES = Math.ceil(QUEST_WIRE_ORDER.length / 8)
+
+/** Skills are matched case-insensitively; decode emits the spelling above. */
+const SKILL_INDEX = new Map(SKILL_WIRE_ORDER.map((skill, i) => [skill.toLowerCase(), i]))
+
+/** Quests go through normalizeQuest, so an en dash still finds its slot. */
+const QUEST_INDEX = new Map(QUEST_WIRE_ORDER.map((quest, i) => [normalizeQuest(quest), i]))
+
+export interface WireLoss {
+  levels: number
+  quests: number
+}
+
+/**
+ * What this profile would lose on the way into a link.
+ *
+ * Reported before the fact rather than after, because after is too late: a code
+ * that never carried your 200 finished quests is indistinguishable from one made
+ * by someone who hasn't done them. The sender is the only party who still knows,
+ * so the sender is who gets told.
+ */
+export function profileWireLoss(profile: PlayerProfile | null): WireLoss {
+  if (profile === null) return { levels: 0, quests: 0 }
+  let levels = 0
+  for (const [skill, level] of Object.entries(profile.levels)) {
+    if (typeof level === 'number' && level >= 1 && !SKILL_INDEX.has(skill.toLowerCase())) levels++
+  }
+  let quests = 0
+  for (const quest of profile.quests) {
+    if (!QUEST_INDEX.has(normalizeQuest(quest))) quests++
+  }
+  return { levels, quests }
+}
+
 // --- base64url --------------------------------------------------------------
 //
 // Plain base64 is not URL-safe: `+` and `/` survive a fragment by luck and not
@@ -71,6 +183,54 @@ function fromBase64Url(code: string): Uint8Array {
 export interface Shareable {
   completed: Iterable<number>
   list: readonly number[]
+  /** Omitted or empty means the code carries no profile section at all. */
+  profile?: PlayerProfile | null
+}
+
+/**
+ * The profile section: skill levels, then finished quests.
+ *
+ *   byte  0        skill count, s
+ *   bytes 1..s     level per skill in SKILL_WIRE_ORDER; 0 means "not known"
+ *   byte  1+s      quest bitset length in bytes, q
+ *   bytes 2+s..    q bytes, bit `i` for QUEST_WIRE_ORDER[i]
+ *
+ * Both lengths are written rather than assumed, which is what lets the orderings
+ * grow. A build with 24 skills reading a 23-skill code knows to stop at 23 and
+ * treat Sailing as unknown; a build with 23 reading a 24-skill code knows to skip
+ * a byte it can't name rather than reading the quest length out of the middle of
+ * the level block. Without the counts, appending to either list would silently
+ * shred every older code.
+ *
+ * One byte per level rather than the seven bits a level needs. Seven-bit packing
+ * saves three bytes across all 23 skills -- four characters of URL -- and costs a
+ * bit cursor in both directions, which is the same trade the task list already
+ * declined.
+ */
+function encodeProfile(profile: PlayerProfile): Uint8Array {
+  const levels = new Uint8Array(SKILL_WIRE_ORDER.length)
+  for (const [skill, level] of Object.entries(profile.levels)) {
+    const at = SKILL_INDEX.get(skill.toLowerCase())
+    // Not on the wire ordering: it cannot travel. profileWireLoss counts these
+    // for the sender, which is the only place the fact is still knowable.
+    if (at === undefined) continue
+    if (typeof level !== 'number' || !Number.isFinite(level) || level < 1) continue
+    levels[at] = Math.min(Math.floor(level), MAX_LEVEL)
+  }
+
+  const quests = new Uint8Array(QUEST_BYTES)
+  for (const quest of profile.quests) {
+    const at = QUEST_INDEX.get(normalizeQuest(quest))
+    if (at === undefined) continue
+    quests[at >> 3] |= 1 << (at & 7)
+  }
+
+  const out = new Uint8Array(1 + levels.length + 1 + quests.length)
+  out[0] = levels.length
+  out.set(levels, 1)
+  out[1 + levels.length] = quests.length
+  out.set(quests, 2 + levels.length)
+  return out
 }
 
 /**
@@ -80,6 +240,7 @@ export interface Shareable {
  *   bytes 1..81    completion bitset, bit `id` for task `id`
  *   byte  82       task list length, n
  *   bytes 83..     n ids, two bytes each, big-endian, in list order
+ *   bytes ..       the profile section above, when there is a profile
  *
  * Completions are positional because they are a set over a fixed universe: the
  * cost is 81 bytes whether one task is done or all 646, which beats a list of
@@ -90,10 +251,16 @@ export interface Shareable {
  * would save 19 bytes on a 25-task list, which is 25 characters of URL nobody
  * will ever notice, in exchange for a bit-cursor to get wrong in both
  * directions. Byte-aligned stays legible in a hex dump.
+ *
+ * The profile section is omitted entirely for an empty profile rather than
+ * written as zeroes. It keeps a code from someone who never entered their levels
+ * byte-identical to one made before this section existed, which is the cheapest
+ * possible proof that appending it broke nothing.
  */
-export function encodeShareCode({ completed, list }: Shareable): string {
+export function encodeShareCode({ completed, list, profile }: Shareable): string {
   const trimmed = list.slice(0, MAX_LIST)
-  const bytes = new Uint8Array(HEADER_BYTES + trimmed.length * 2)
+  const tail = profile && !profileIsEmpty(profile) ? encodeProfile(profile) : null
+  const bytes = new Uint8Array(HEADER_BYTES + trimmed.length * 2 + (tail?.length ?? 0))
 
   bytes[0] = VERSION
   for (const id of completed) {
@@ -111,6 +278,8 @@ export function encodeShareCode({ completed, list }: Shareable): string {
     bytes[at + 1] = id & 0xff
   })
 
+  if (tail) bytes.set(tail, HEADER_BYTES + trimmed.length * 2)
+
   return toBase64Url(bytes)
 }
 
@@ -121,6 +290,67 @@ export interface ShareCodeResult {
   list: number[]
   /** Ids the code named that this build doesn't know -- retired, or from a newer release. */
   dropped: number
+  /** Levels and quests the code carried. Empty when it carried no profile section. */
+  profile: PlayerProfile
+  /**
+   * Entries the section held at positions this build can't name -- a code from a
+   * newer release with a skill or quest appended since. Not the same thing as
+   * profileWireLoss, which is what never made it into the code in the first place.
+   */
+  profileDropped: WireLoss
+}
+
+/**
+ * Reads the profile section, or reports its absence.
+ *
+ * An absent section is a normal, expected outcome -- every code made before this
+ * existed, and every code from someone who never entered their levels -- so it
+ * returns an empty profile rather than throwing. A section that is *present but
+ * truncated* is a different thing, and throws like any other cut-off code.
+ */
+function decodeProfile(bytes: Uint8Array, at: number): { profile: PlayerProfile; dropped: WireLoss } {
+  const absent = { profile: EMPTY_PROFILE, dropped: { levels: 0, quests: 0 } }
+  if (at >= bytes.length) return absent
+
+  const skillCount = bytes[at]
+  // The count byte, the levels, and the quest-length byte all have to be there.
+  if (at + 1 + skillCount + 1 > bytes.length) {
+    throw new Error('That share code is incomplete -- it may have been cut off when copied.')
+  }
+
+  const levels: Record<string, number> = {}
+  let droppedLevels = 0
+  for (let i = 0; i < skillCount; i++) {
+    const level = bytes[at + 1 + i]
+    if (level === 0) continue
+    const skill = SKILL_WIRE_ORDER[i]
+    // Past the end of our ordering: a skill appended after this build shipped.
+    if (skill === undefined) {
+      droppedLevels++
+      continue
+    }
+    levels[skill] = Math.min(level, MAX_LEVEL)
+  }
+
+  const questAt = at + 1 + skillCount
+  const questBytes = bytes[questAt]
+  if (questAt + 1 + questBytes > bytes.length) {
+    throw new Error('That share code is incomplete -- it may have been cut off when copied.')
+  }
+
+  const quests: string[] = []
+  let droppedQuests = 0
+  for (let i = 0; i < questBytes * 8; i++) {
+    if (!(bytes[questAt + 1 + (i >> 3)] & (1 << (i & 7)))) continue
+    const quest = QUEST_WIRE_ORDER[i]
+    if (quest === undefined) {
+      droppedQuests++
+      continue
+    }
+    quests.push(quest)
+  }
+
+  return { profile: { levels, quests }, dropped: { levels: droppedLevels, quests: droppedQuests } }
 }
 
 /**
@@ -179,12 +409,16 @@ export function decodeShareCode(code: string): ShareCodeResult {
     rawList.push((bytes[at] << 8) | bytes[at + 1])
   }
 
+  const { profile, dropped: profileDropped } = decodeProfile(bytes, expected)
+
   const completed = sanitizeIds(rawCompleted)
   const list = sanitizeIds(rawList)
   return {
     completed: completed.ids,
     list: list.ids,
     dropped: completed.dropped + list.dropped,
+    profile,
+    profileDropped,
   }
 }
 

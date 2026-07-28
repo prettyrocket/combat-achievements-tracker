@@ -7,7 +7,7 @@
 import { useRef, useState } from 'react'
 import { Download, Link2, Undo2, Upload, RotateCcw } from 'lucide-react'
 import { buildBackup, importBackup } from '@/lib/backup'
-import { buildShareUrl } from '@/lib/share-code'
+import { buildShareUrl, profileWireLoss } from '@/lib/share-code'
 import type { PlayerProfile } from '@/lib/requirements'
 import type { ProfileSource } from '@/lib/profile-store'
 import { ProfileDialog } from '@/components/profile-dialog'
@@ -109,15 +109,28 @@ export function ProgressToolbar({
   }
 
   async function handleCopyLink() {
-    const url = buildShareUrl({ completed, list }, window.location)
+    const url = buildShareUrl({ completed, list, profile }, window.location)
+    // Said here or nowhere: a link that never carried your other 200 quests looks
+    // exactly like one made by someone who hasn't finished them, so the moment
+    // the sender can still choose Export instead is the only moment worth
+    // mentioning it.
+    const loss = profileWireLoss(profile)
+    const lost = [
+      loss.levels > 0 ? `${loss.levels} skill${loss.levels === 1 ? '' : 's'}` : null,
+      loss.quests > 0 ? `${loss.quests} quest${loss.quests === 1 ? '' : 's'}` : null,
+    ].filter((part) => part !== null)
     try {
       await navigator.clipboard.writeText(url)
       setNotice({
         tone: 'ok',
         message:
           `Link copied — ${completedCount} completed tasks` +
-          (listCount > 0 ? ` and ${listCount} on your list.` : '.') +
-          ' Opening it replaces whatever that browser holds.',
+          (listCount > 0 ? `, ${listCount} on your list` : '') +
+          (profileIsEmpty ? '.' : ', and your levels and quests.') +
+          ' Opening it replaces whatever that browser holds.' +
+          (lost.length > 0
+            ? ` ${lost.join(' and ')} can't fit in a link — export a file if you need those too.`
+            : ''),
       })
     } catch {
       // Denied permission, or an insecure origin. The link is the useful thing,
