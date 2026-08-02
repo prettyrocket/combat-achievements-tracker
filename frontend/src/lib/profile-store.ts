@@ -24,8 +24,19 @@ export interface StoredProfile {
   source: ProfileSource
 }
 
-/** Hand-typed, or read out of a WikiSync paste. */
-export type ProfileSource = 'manual' | 'wikisync'
+/**
+ * Hand-typed, read out of a WikiSync paste, or looked up on Wise Old Man.
+ *
+ * The three are not equal in what they know: a paste speaks for the whole
+ * account, a lookup only ever knows levels.
+ */
+export type ProfileSource = 'manual' | 'wikisync' | 'wiseoldman'
+
+const SOURCES: ReadonlySet<string> = new Set<ProfileSource>([
+  'manual',
+  'wikisync',
+  'wiseoldman',
+])
 
 /**
  * Levels are clamped to 1..126 rather than merely type-checked: the file is
@@ -75,7 +86,7 @@ function load(): PlayerProfile {
 
 function loadSource(): ProfileSource {
   const stored = (readJson(STORAGE_KEY) as { source?: unknown } | null)?.source
-  return stored === 'wikisync' ? 'wikisync' : 'manual'
+  return typeof stored === 'string' && SOURCES.has(stored) ? (stored as ProfileSource) : 'manual'
 }
 
 // Cached rather than rebuilt per read: useSyncExternalStore compares snapshots
@@ -116,6 +127,20 @@ export function getSource(): ProfileSource {
 
 export function setProfile(profile: PlayerProfile, source: ProfileSource = 'manual'): void {
   commit(sanitizeProfile(profile), source)
+}
+
+/**
+ * Every level at once, from a lookup, keeping the quests already stored.
+ *
+ * The asymmetry with setProfile is the whole reason this exists. A WikiSync
+ * paste speaks for the account and replaces both halves; a hiscores lookup has
+ * never heard of a quest, so wiping the checklist someone ticked by hand would
+ * be destroying the only copy of something to make room for nothing. Levels
+ * themselves *are* replaced -- asking for a lookup is asking for the account's
+ * numbers, including over a hypothetical you typed earlier.
+ */
+export function setLevels(levels: Record<string, number>, source: ProfileSource): void {
+  commit({ levels: sanitizeLevels(levels), quests: current.quests }, source)
 }
 
 /** One skill, from the manual form. A level of 0 or below removes it. */

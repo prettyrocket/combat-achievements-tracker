@@ -131,6 +131,7 @@ export interface ProgressToolbarProps {
   profileOpen: boolean
   onProfileOpenChange: (open: boolean) => void
   onSetLevel: (skill: string, level: number) => void
+  onImportLevels: (levels: Record<string, number>) => void
   onSetQuest: (quest: string, finished: boolean) => void
   onClearProfile: () => void
 }
@@ -150,6 +151,7 @@ export function ProgressToolbar({
   profileOpen,
   onProfileOpenChange,
   onSetLevel,
+  onImportLevels,
   onSetQuest,
   onClearProfile,
 }: ProgressToolbarProps) {
@@ -268,6 +270,7 @@ export function ProgressToolbar({
           open={profileOpen}
           onOpenChange={onProfileOpenChange}
           onSetLevel={onSetLevel}
+          onImportLevels={onImportLevels}
           onSetQuest={onSetQuest}
           onClear={onClearProfile}
         />

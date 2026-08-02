@@ -1,18 +1,24 @@
-// Your levels and quests, by hand.
+// Your levels and quests, by hand -- or as close to not by hand as each half
+// can get.
 //
-// The fast path is WikiSync -- the same paste that brings your Combat
+// The fast path is WikiSync: the same paste that brings your Combat
 // Achievements over also carries every skill level and every quest state, so
 // most people should never open this. It exists for the rest: no RuneLite, an
 // account WikiSync has never seen, or the genuinely useful case of asking "what
 // opens up if I get Slayer to 92".
+//
+// The skills half has a second way in that needs nothing installed at all --
+// type a name, and Wise Old Man's copy of the hiscores fills in all of it (see
+// wiseoldman.ts). There is no equivalent for quests, because the hiscores do
+// not track them, so that column stays a checklist.
 //
 // Both halves are derived from requirements.ts rather than listed here. Ten
 // skills and twenty quests are exactly the ones some gate actually asks for, so
 // adding a gate on Runecrafting puts a Runecrafting box in this form and nobody
 // has to remember to come and add it.
 
-import { useState } from 'react'
-import { SlidersHorizontal, Trash2 } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Loader2, Search, SlidersHorizontal, Trash2 } from 'lucide-react'
 import {
   GATED_SKILLS,
   gatedQuests,
@@ -21,6 +27,13 @@ import {
   type PlayerProfile,
 } from '@/lib/requirements'
 import type { ProfileSource } from '@/lib/profile-store'
+import {
+  fetchWomLevels,
+  updatedLabel,
+  WISE_OLD_MAN_URL,
+  WomLookupError,
+  type WomLookup,
+} from '@/lib/wiseoldman'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -46,8 +59,132 @@ export interface ProfileDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSetLevel: (skill: string, level: number) => void
+  /** Every level at once, from a lookup. Quests are not this call's business. */
+  onImportLevels: (levels: Record<string, number>) => void
   onSetQuest: (quest: string, finished: boolean) => void
   onClear: () => void
+}
+
+/**
+ * Fill the skills column from a name.
+ *
+ * Its own component because it owns four pieces of transient state that mean
+ * nothing to the rest of the dialog, and because everything it touches is gone
+ * the moment the dialog closes -- what it *found* has already been written to
+ * the store by then.
+ */
+function LevelLookup({
+  onImportLevels,
+  onFilled,
+}: {
+  onImportLevels: (levels: Record<string, number>) => void
+  /** Told after a successful fill, so the form can show the new numbers. */
+  onFilled: () => void
+}) {
+  const [rsn, setRsn] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [found, setFound] = useState<{ count: number; lookup: WomLookup } | null>(null)
+  const inFlight = useRef<AbortController | null>(null)
+
+  // A lookup outlives the dialog otherwise, and resolves against a component
+  // that is no longer mounted the moment someone searches and closes.
+  useEffect(() => () => inFlight.current?.abort(), [])
+
+  async function run() {
+    if (busy) return
+    inFlight.current?.abort()
+    const controller = new AbortController()
+    inFlight.current = controller
+
+    setBusy(true)
+    setError(null)
+    setFound(null)
+    try {
+      const lookup = await fetchWomLevels(rsn, controller.signal)
+      onImportLevels(lookup.levels)
+      setFound({ count: Object.keys(lookup.levels).length, lookup })
+      onFilled()
+    } catch (err) {
+      // Superseded or unmounted. Someone else owns the outcome now.
+      if (err instanceof DOMException && err.name === 'AbortError') return
+      setError(
+        err instanceof WomLookupError ? err.message : 'That lookup failed. Try again in a moment.',
+      )
+    } finally {
+      if (!controller.signal.aborted) setBusy(false)
+    }
+  }
+
+  const stale = found === null ? null : updatedLabel(found.lookup.updatedAt)
+
+  return (
+    <div className="mb-3 space-y-1.5">
+      <div className="flex items-center gap-2">
+        <Input
+          value={rsn}
+          onChange={(event) => setRsn(event.target.value)}
+          onKeyDown={(event) => {
+            // Enter in a dialog would otherwise find Done and close it.
+            if (event.key !== 'Enter') return
+            event.preventDefault()
+            void run()
+          }}
+          placeholder="Your RuneScape name"
+          aria-label="RuneScape name to look up"
+          maxLength={12}
+          autoComplete="off"
+          spellCheck={false}
+          className="h-8"
+        />
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 shrink-0"
+          disabled={busy || rsn.trim() === ''}
+          onClick={() => void run()}
+        >
+          {busy ? (
+            <Loader2 className="size-4 animate-spin" aria-hidden />
+          ) : (
+            <Search className="size-4" aria-hidden />
+          )}
+          {busy ? 'Looking' : 'Look up'}
+        </Button>
+      </div>
+
+      {/* alert for the failure, status for the success: one is news that
+          interrupts, the other is confirmation of something you just asked for. */}
+      <p
+        role={error === null ? 'status' : 'alert'}
+        className={`text-xs leading-snug ${error === null ? 'text-muted-foreground' : 'text-red-400'}`}
+      >
+        {error ??
+          (found === null ? (
+            <>
+              Fills these in from the hiscores, via{' '}
+              <a
+                href={WISE_OLD_MAN_URL}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="underline underline-offset-2"
+              >
+                Wise Old Man
+              </a>
+              . No plugin needed.
+            </>
+          ) : (
+            // The date is the point, not decoration: WOM holds whatever snapshot
+            // was last taken of this account, and someone who trained since then
+            // should see why the number is old rather than distrust the filter.
+            <span className="text-emerald-400">
+              Filled in {found.count} levels for {found.lookup.displayName}
+              {stale === null ? '' : ` · ${stale}`}.
+            </span>
+          ))}
+      </p>
+    </div>
+  )
 }
 
 /**
@@ -95,11 +232,19 @@ export function ProfileDialog({
   open,
   onOpenChange,
   onSetLevel,
+  onImportLevels,
   onSetQuest,
   onClear,
 }: ProfileDialogProps) {
   const finished = new Set(profile.quests.map(normalizeQuest))
   const doneCount = QUESTS.filter((quest) => finished.has(normalizeQuest(quest))).length
+
+  // Bumped by a lookup to remount the level boxes. Each one keeps its text in
+  // local state so that clearing it to type doesn't fight a re-render (see
+  // LevelInput), which also means a level arriving from anywhere but that box
+  // would leave the old number on screen. Remounting is the honest fix: the
+  // fields genuinely are being replaced, not edited.
+  const [fillNonce, setFillNonce] = useState(0)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -119,9 +264,13 @@ export function ProfileDialog({
           <DialogDescription>
             Used to work out which monsters you can face. Stays in this browser with
             everything else.{' '}
-            {source === 'wikisync' && !isEmpty
-              ? 'Imported from WikiSync — editing anything here overrides it until the next import.'
-              : 'A WikiSync import fills all of this in for you.'}
+            {isEmpty
+              ? 'A WikiSync import fills all of this in for you.'
+              : source === 'wikisync'
+                ? 'Imported from WikiSync — editing anything here overrides it until the next import.'
+                : source === 'wiseoldman'
+                  ? 'Levels came from Wise Old Man — quests it has no way of knowing, so those are yours to tick.'
+                  : 'A WikiSync import fills all of this in for you.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -130,10 +279,14 @@ export function ProfileDialog({
         <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
           <section>
             <h3 className="mb-2 text-sm font-semibold">Skills</h3>
+            <LevelLookup
+              onImportLevels={onImportLevels}
+              onFilled={() => setFillNonce((n) => n + 1)}
+            />
             <div className="space-y-1.5">
               {GATED_SKILLS.map((skill) => (
                 <LevelInput
-                  key={skill}
+                  key={`${skill}:${fillNonce}`}
                   skill={skill}
                   level={profile.levels[skill]}
                   onSetLevel={onSetLevel}

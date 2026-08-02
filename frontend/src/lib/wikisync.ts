@@ -121,9 +121,11 @@ export function parseWikiSync(text: string): WikiSyncParse {
 
   const list = body.combat_achievements
   if (list === undefined) {
-    // A valid profile with no CA list means the interface was never opened --
-    // the plugin only captures the list once the player has viewed it. The
-    // dialog phrases this one, because it phrases it as good news.
+    // A valid profile with no CA list at all. Usually a brand new account --
+    // an existing one reports the field even when it's empty, because the
+    // plugin reads completion from varps on a timer and doesn't wait to be
+    // shown the interface. The dialog phrases this one, because which of those
+    // two it is decides whether it reads as congratulation or as a fix.
     fail('No achievements to load.', 'NO_CA_LIST')
   }
   if (!Array.isArray(list)) {

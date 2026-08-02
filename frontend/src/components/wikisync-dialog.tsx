@@ -1,9 +1,15 @@
 // The WikiSync paste flow.
 //
-// The instructions are load-bearing, not decoration: the single most common way
-// this fails is a player who installed the plugin but never opened the Combat
-// Achievements interface in-game, so WikiSync has a profile for them with no CA
-// list in it. Saying that up front costs less than diagnosing it afterwards.
+// Step two used to say you had to open the Combat Achievements interface in-game
+// and then log out. That is folklore, and it came from the collection log, which
+// genuinely is gated that way -- its slots are filled by a script that only fires
+// when the interface opens. Combat Achievements aren't: WikiSyncPlugin reads them
+// out of the player varps listed in its server-side manifest and uploads on a
+// 10-second @Schedule. Logging in with the plugin running is the whole procedure.
+//
+// The safety net for having said so is below: a payload with no CA field at all
+// gets a message that suggests the old ritual as a fix, rather than the "welcome
+// to OSRS" that an account with genuinely zero completions deserves.
 //
 // There is no Preview button any more. Parsing is pure, synchronous and cheap,
 // so a paste previews itself -- a paste is already the user saying "this is the
@@ -235,6 +241,16 @@ export function WikiSyncDialog({
    */
   function statusMessage(): { tone: string; text: ReactNode } {
     if (welcome) {
+      // No CA field at all is likelier to be a sync that hasn't landed than a
+      // player who has done nothing -- an account with genuinely zero of them
+      // still reports the field, empty. So this one gets the ritual as a
+      // suggestion, which is the only place it's still worth mentioning.
+      if (error?.code === 'NO_CA_LIST') {
+        return {
+          tone: 'text-amber-400',
+          text: 'That paste carries no Combat Achievements at all. If you have some, open the Combat Achievements interface in-game, give it a few seconds, and fetch the URL again.',
+        }
+      }
       const name = displayRsn(rsn)
       return {
         tone: 'text-emerald-400',
@@ -320,6 +336,7 @@ export function WikiSyncDialog({
    * button a second, worse copy of the status line.
    */
   function applyLabel() {
+    if (error?.code === 'NO_CA_LIST') return 'Close'
     if (welcome) return 'LFG'
     if (!diff) return 'Import'
     if (diff.removed.length > 0) return confirming ? 'Confirm' : 'Replace'
@@ -371,11 +388,9 @@ export function WikiSyncDialog({
             from the RuneLite Plugin Hub.
           </li>
           <li>
-            Log in and{' '}
-            <span className="text-foreground font-medium">
-              open the Combat Achievements interface in-game at least once
-            </span>
-            .
+            Log in with it running and{' '}
+            <span className="text-foreground font-medium">give it about ten seconds</span> —
+            that's the upload timer.
           </li>
           <li>
             Enter your name below, open the URL in your address bar, and copy everything.
@@ -533,7 +548,9 @@ export function WikiSyncDialog({
               // something away wears the destructive tint instead.
               variant={
                 welcome
-                  ? 'success'
+                  ? error?.code === 'NO_CA_LIST'
+                    ? 'default'
+                    : 'success'
                   : !diff
                     ? 'default'
                     : diff.removed.length > 0 || clearList

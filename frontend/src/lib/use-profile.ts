@@ -11,6 +11,7 @@ import {
   getSource,
   refreshFromStorage,
   setLevel,
+  setLevels,
   setProfile,
   setQuest,
   subscribe,
@@ -24,6 +25,8 @@ export interface UseProfile {
   isEmpty: boolean
   source: ProfileSource
   setProfile: (profile: PlayerProfile, source?: ProfileSource) => void
+  /** Levels from a Wise Old Man lookup. Quests are left alone -- it has none. */
+  importLevels: (levels: Record<string, number>) => void
   setLevel: (skill: string, level: number) => void
   setQuest: (quest: string, finished: boolean) => void
   clear: () => void
@@ -50,6 +53,12 @@ export function useProfile(): UseProfile {
     source: getSource(),
     setProfile: useCallback(
       (next: PlayerProfile, source?: ProfileSource) => setProfile(next, source),
+      [],
+    ),
+    // Bound to its one source here rather than taking it as an argument: the
+    // dialog knows it looked something up, not what the store calls that.
+    importLevels: useCallback(
+      (levels: Record<string, number>) => setLevels(levels, 'wiseoldman'),
       [],
     ),
     setLevel: useCallback((skill: string, level: number) => setLevel(skill, level), []),

@@ -373,6 +373,7 @@ export default function App() {
             profileOpen={profileOpen}
             onProfileOpenChange={setProfileOpen}
             onSetLevel={profile.setLevel}
+            onImportLevels={profile.importLevels}
             onSetQuest={profile.setQuest}
             onClearProfile={profile.clear}
           />

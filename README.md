@@ -28,6 +28,7 @@ Both are anonymous, key-less, and CORS-open, so the browser can call them direct
 |------|-------|
 | The 646 tasks | Wiki **Bucket API**, `bucket('combat_achievement')` — one request, ~134 KB |
 | Global completion % | `Module:Combat_Achievements/completion.json` (`action=raw`) — a flat `{taskId: pct}` map |
+| Your skill levels | **Wise Old Man**, `api.wiseoldman.net/v2/players/<rsn>` — on request only, never on load |
 
 ```
 https://oldschool.runescape.wiki/api.php?action=bucket&format=json&origin=*
@@ -55,8 +56,11 @@ carrying a 134 KB static file, and everything that makes this app worth building
 pivot-by-boss, sort-by-completion-%, filtering, progress meters — is client-side work over
 646 rows. The backend was deleted; it's recoverable from git history if that changes.
 
-The official hiscores are not an alternative: Combat Achievements are not among their 90
-tracked activities, not even as a points total.
+The official hiscores are not an alternative either, on two counts. Combat Achievements
+are not among their 91 tracked activities, not even as a points total — Collections Logged
+made that list and CAs didn't. And `secure.runescape.com` answers with no
+`Access-Control-Allow-Origin` header at all, so the browser can't read them directly
+whatever they carried. Every tracker that uses the hiscores proxies them server-side.
 
 ## Importing your progress
 
@@ -66,20 +70,30 @@ tracked activities, not even as a points total.
    The `combat_achievements` field is a flat array of task IDs that maps 1:1 onto the
    Bucket `id`. This keeps the app off their API entirely.
 
-   Requires the WikiSync plugin from the RuneLite Plugin Hub. You must **open the Combat
-   Achievements interface in-game at least once** while it's running, then log out — that's
-   what populates the CA list.
+   Requires the WikiSync plugin from the RuneLite Plugin Hub. Log in with it running and
+   wait a few seconds — that's all. The plugin reads CA completion straight out of the
+   player varps and uploads on a 10-second timer (`@Schedule` in `WikiSyncPlugin`), so
+   there is no interface to open and nothing to log out for. The collection log *is*
+   gated on opening its interface, because it's populated by a script that only fires
+   there; that requirement is often repeated about Combat Achievements, and it's wrong.
 
    The same payload also carries `levels` and `quests`, which is where the requirement
    filter below gets its answers. Both are read from the paste; neither is required.
+3. **Wise Old Man lookup** (levels only) — type a name, get every skill level, no plugin
+   and no paste. WOM already scrapes and caches the hiscores, publishes the result for
+   third parties deliberately, and answers `access-control-allow-origin: *`, which is what
+   makes it reachable from a static site when the hiscores themselves aren't. It fills the
+   skills half of the profile below and never touches your progress; quests stay a
+   checklist, because the hiscores don't track those either. See `src/lib/wiseoldman.ts`.
 
 ## Filtering by what you can actually fight
 
 The **Requirements** filter cycles *Any monster → Can face → Can't face yet*, and every
 row whose monster is out of reach carries a lock. Hover or focus it and it says what the
 gate asks for — "Requires 92 Slayer and the quest Priest in Peril". It needs to know your
-levels and quests, which come either from a WikiSync paste or from **My levels**, where
-you can also type a hypothetical — "what opens up at 92 Slayer" is the same question.
+levels and quests, which come from a WikiSync paste, a Wise Old Man lookup (levels only),
+or **My levels**, where you can also type a hypothetical — "what opens up at 92 Slayer" is
+the same question.
 
 Three kinds of gate are modelled: **Slayer level**, **other skill levels that gate the
 route** (70 Ranged for the grapple into Armadyl's Eyrie, 50 Firemaking for Wintertodt),
