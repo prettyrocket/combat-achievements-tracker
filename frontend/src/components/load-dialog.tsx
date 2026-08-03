@@ -155,6 +155,34 @@ export function LoadDialog({
           </DialogDescription>
         </DialogHeader>
 
+        {/* Above the rail, not inside a pane: the name is who you are, not how
+            you're importing, and asking for it once before the choice is made
+            says so. It disappears entirely for the two sources with no account
+            behind them, which reads as a fact about those sources rather than
+            as a field that went missing. */}
+        {NEEDS_NAME.has(active) && (
+          <NameRow
+            rsn={rsn}
+            onChange={setRsn}
+            onSubmit={
+              LOOKUP[active] === undefined ? undefined : () => setSubmitToken((n) => n + 1)
+            }
+            busy={busy}
+            action={
+              LOOKUP[active] === undefined
+                ? undefined
+                : {
+                    label: LOOKUP[active],
+                    icon: busy ? (
+                      <Loader2 className="size-4 animate-spin" aria-hidden />
+                    ) : (
+                      <Search className="size-4" aria-hidden />
+                    ),
+                  }
+            }
+          />
+        )}
+
         <div className="flex min-h-0 flex-1 gap-5">
           {/* A listbox rather than tabs: five entries with a second line each is
               a column, not a row, and it leaves room to say what they carry. */}
@@ -205,29 +233,6 @@ export function LoadDialog({
               while the `truncate` on the URL never gets to do anything because
               nothing ever asked it to be narrower. */}
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-            {NEEDS_NAME.has(active) && (
-              <NameRow
-                rsn={rsn}
-                onChange={setRsn}
-                onSubmit={
-                  LOOKUP[active] === undefined ? undefined : () => setSubmitToken((n) => n + 1)
-                }
-                busy={busy}
-                action={
-                  LOOKUP[active] === undefined
-                    ? undefined
-                    : {
-                        label: LOOKUP[active],
-                        icon: busy ? (
-                          <Loader2 className="size-4 animate-spin" aria-hidden />
-                        ) : (
-                          <Search className="size-4" aria-hidden />
-                        ),
-                      }
-                }
-              />
-            )}
-
             {active === 'wikisync' && (
               <WikiSyncPanel
                 rsn={rsn}

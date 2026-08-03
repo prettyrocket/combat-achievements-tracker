@@ -130,12 +130,15 @@ export function NameRow({
   action?: { label: string; icon: ReactNode }
 }) {
   return (
-    <div className="mb-3 flex items-center gap-2 border-b pb-3">
+    // Capped rather than full-bleed: it spans the dialog now, and a 12-character
+    // field stretched across three columns of width looks like it wants an essay.
+    <div className="flex items-center gap-2 border-b pb-3">
       <label className="text-muted-foreground shrink-0 text-sm" htmlFor="load-rsn">
         Your name
       </label>
       <Input
         id="load-rsn"
+        className="max-w-64"
         value={rsn}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={(event) => {
