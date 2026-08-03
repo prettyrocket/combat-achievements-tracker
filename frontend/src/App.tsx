@@ -51,6 +51,7 @@ import {
 } from '@/lib/task-query'
 import { useProfile } from '@/lib/use-profile'
 import type { ProfileSource } from '@/lib/profile-store'
+import type { LoadSourceId } from '@/lib/load-source'
 import { useProgress } from '@/lib/use-progress'
 import { useTaskList } from '@/lib/use-tasklist'
 import { useTaskQuery } from '@/lib/use-task-query'
@@ -116,8 +117,23 @@ export default function App() {
 
   // Lifted out of the dialog because the requirement filter opens it: with no
   // levels entered there is nothing to filter on, and sending you to find the
-  // button yourself is worse than taking you there.
-  const [profileOpen, setProfileOpen] = useState(false)
+  // button yourself is worse than taking you there. The filter asks for the
+  // by-hand pane specifically; everything else opens on whichever source was
+  // last imported from.
+  const [loadOpen, setLoadOpen] = useState(false)
+  const [loadSource, setLoadSource] = useState<LoadSourceId | null>(null)
+
+  const openProfileEditor = useCallback(() => {
+    setLoadSource('manual')
+    setLoadOpen(true)
+  }, [])
+
+  const onLoadOpenChange = useCallback((open: boolean) => {
+    setLoadOpen(open)
+    // Cleared on close so the next plain Load click gets the remembered source
+    // rather than being pinned to wherever the filter last sent you.
+    if (!open) setLoadSource(null)
+  }, [])
 
   // A share code in the address bar, waiting on a yes or no. Never applied on
   // arrival: following a link is not consent to replace what this browser
@@ -381,8 +397,9 @@ export default function App() {
             profile={profile.profile}
             profileIsEmpty={profile.isEmpty}
             profileSource={profile.source}
-            profileOpen={profileOpen}
-            onProfileOpenChange={setProfileOpen}
+            loadOpen={loadOpen}
+            onLoadOpenChange={onLoadOpenChange}
+            loadSource={loadSource}
             onSetLevel={profile.setLevel}
             onImportLevels={profile.importLevels}
             onSetQuest={profile.setQuest}
@@ -439,7 +456,7 @@ export default function App() {
             resultCount={visible.length}
             totalCount={TASKS.length}
             profileIsEmpty={profile.isEmpty}
-            onEditProfile={() => setProfileOpen(true)}
+            onEditProfile={openProfileEditor}
           />
 
           {monsterSummaries.length > 0 && (

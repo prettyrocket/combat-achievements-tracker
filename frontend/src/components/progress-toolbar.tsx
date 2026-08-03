@@ -4,29 +4,21 @@
 // trap, so it stays one click from the top level -- inside a menu, but never
 // behind a settings screen the player finds only after losing their data.
 //
-// The two menus are grouped by direction rather than by mechanism: Load is
+// Load and Share are grouped by direction rather than by mechanism: Load is
 // everything that writes your progress from somewhere else, Share is everything
-// that takes it out. Which of them is a file and which is a URL is the second
-// question, and it's answered inside the menu.
+// that takes it out. Load is one button and one dialog now -- which source, and
+// whether it's a paste or a fetch or a file, is answered inside it (see
+// load-dialog.tsx). Share is still a menu, because copying a link and saving a
+// file are two acts rather than two sources for one.
 
-import { useRef, useState } from 'react'
-import {
-  ChevronDown,
-  ClipboardPaste,
-  Download,
-  Link2,
-  Search,
-  Upload,
-  RotateCcw,
-  Share2,
-} from 'lucide-react'
+import { useState } from 'react'
+import { Download, ChevronDown, Link2, Upload, RotateCcw, Share2 } from 'lucide-react'
 import { buildBackup, importBackup } from '@/lib/backup'
 import { buildShareUrl, profileWireLoss } from '@/lib/share-code'
 import type { PlayerProfile } from '@/lib/requirements'
 import type { ProfileSource } from '@/lib/profile-store'
-import { ProfileDialog } from '@/components/profile-dialog'
-import { WikiSyncDialog } from '@/components/wikisync-dialog'
-import { RuneProfileDialog } from '@/components/runeprofile-dialog'
+import type { LoadSourceId } from '@/lib/load-source'
+import { LoadDialog } from '@/components/load-dialog'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -136,8 +128,11 @@ export interface ProgressToolbarProps {
   profile: PlayerProfile
   profileIsEmpty: boolean
   profileSource: ProfileSource
-  profileOpen: boolean
-  onProfileOpenChange: (open: boolean) => void
+  /** Owned by App: the requirement filter opens this dialog too. */
+  loadOpen: boolean
+  onLoadOpenChange: (open: boolean) => void
+  /** Which pane to land on, or null for whichever was used last. */
+  loadSource: LoadSourceId | null
   onSetLevel: (skill: string, level: number) => void
   onImportLevels: (levels: Record<string, number>) => void
   onSetQuest: (quest: string, finished: boolean) => void
@@ -156,19 +151,15 @@ export function ProgressToolbar({
   profile,
   profileIsEmpty,
   profileSource,
-  profileOpen,
-  onProfileOpenChange,
+  loadOpen,
+  onLoadOpenChange,
+  loadSource,
   onSetLevel,
   onImportLevels,
   onSetQuest,
   onClearProfile,
 }: ProgressToolbarProps) {
-  const fileInput = useRef<HTMLInputElement>(null)
   const [notice, setNotice] = useState<Notice | null>(null)
-  // Owned here rather than by the dialog, because its only way in is now a menu
-  // item, and the menu closes before the dialog opens.
-  const [wikiSyncOpen, setWikiSyncOpen] = useState(false)
-  const [runeProfileOpen, setRuneProfileOpen] = useState(false)
 
   // Reset asks what to reset. Three separate stores, three separate answers --
   // wiping your levels because you wanted to re-tick your tasks was never
@@ -248,69 +239,36 @@ export function ProgressToolbar({
     }
   }
 
+  /**
+   * Rethrows rather than swallowing: the file pane shows the failure beside its
+   * own button, where the person who picked the file is looking. Only a success
+   * reaches the toolbar's notice line, because that message describes three
+   * stores at once and is worth reading after the dialog has gone.
+   */
   async function handleImportFile(file: File) {
-    try {
-      const result = importBackup(await file.text())
-      setNotice({
-        tone: 'ok',
-        message:
-          `Imported ${result.imported} completed tasks` +
-          (result.listImported > 0 ? ` and ${result.listImported} on your list.` : '.') +
-          (result.profileImported ? ' Your levels and quests came with it.' : '') +
-          (result.dropped + result.listDropped > 0
-            ? ` Ignored ${result.dropped + result.listDropped} unrecognised entries.`
-            : ''),
-      })
-    } catch (err) {
-      setNotice({ tone: 'error', message: err instanceof Error ? err.message : 'Import failed.' })
-    }
+    const result = importBackup(await file.text())
+    setNotice({
+      tone: 'ok',
+      message:
+        `Imported ${result.imported} completed tasks` +
+        (result.listImported > 0 ? ` and ${result.listImported} on your list.` : '.') +
+        (result.profileImported ? ' Your levels and quests came with it.' : '') +
+        (result.dropped + result.listDropped > 0
+          ? ` Ignored ${result.dropped + result.listDropped} unrecognised entries.`
+          : ''),
+    })
   }
 
   return (
     <div className="flex flex-col items-end gap-2">
       <div className="flex items-center gap-2">
-        {/* Beside Load rather than in the filter bar: this is a fact about the
-            account, like your progress, not a view of the table. A WikiSync
-            paste fills it in, so the two belong next to each other. */}
-        <ProfileDialog
-          profile={profile}
-          isEmpty={profileIsEmpty}
-          source={profileSource}
-          open={profileOpen}
-          onOpenChange={onProfileOpenChange}
-          onSetLevel={onSetLevel}
-          onImportLevels={onImportLevels}
-          onSetQuest={onSetQuest}
-          onClear={onClearProfile}
-        />
-
-        {/* Every way in, in one place, ordered by how many people it can serve.
-            WikiSync is first on install count alone -- roughly 335k against
-            RuneProfile's 92k -- even though RuneProfile is the nicer flow for
-            anyone who has it. A file is what you reach for when neither fits. */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
-              <Upload className="size-4" aria-hidden />
-              Load
-              <ChevronDown className="size-3.5 opacity-60" aria-hidden />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onSelect={() => setWikiSyncOpen(true)}>
-              <ClipboardPaste aria-hidden />
-              Paste from WikiSync
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setRuneProfileOpen(true)}>
-              <Search aria-hidden />
-              Look up on RuneProfile
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => fileInput.current?.click()}>
-              <Upload aria-hidden />
-              Import a file
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* One button, because there is one question -- where should this come
+            from -- and the dialog is where it gets asked. A menu here would be
+            the same five options with nowhere to say what any of them carry. */}
+        <Button variant="outline" size="sm" onClick={() => onLoadOpenChange(true)}>
+          <Upload className="size-4" aria-hidden />
+          Load
+        </Button>
 
         {/* Two answers to the same question with a different trade: the file is
             the durable copy, the link is the one that fits in a message. Neither
@@ -335,18 +293,6 @@ export function ProgressToolbar({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <input
-          ref={fileInput}
-          type="file"
-          accept="application/json,.json"
-          className="hidden"
-          onChange={(event) => {
-            const file = event.target.files?.[0]
-            if (file) void handleImportFile(file)
-            // Clear, so picking the same file twice still fires a change event.
-            event.target.value = ''
-          }}
-        />
 
         <AlertDialog
           open={resetOpen}
@@ -414,28 +360,25 @@ export function ProgressToolbar({
         </AlertDialog>
       </div>
 
-      {/* Outside the row: neither has a trigger of its own, so they aren't
-          controls here, just the panels the Load menu opens. */}
-      <WikiSyncDialog
+      {/* Outside the row: it isn't a control here, just the panel Load opens.
+          Its open state lives in App, because the requirement filter opens it
+          too -- straight onto the by-hand pane when it has nothing to run on. */}
+      <LoadDialog
+        open={loadOpen}
+        onOpenChange={onLoadOpenChange}
+        initialSource={loadSource}
         completed={completed}
         listCount={listCount}
         lastRsn={lastRsn}
-        onApply={(ids, rsn, clear, imported) =>
-          onImportApply(ids, rsn, clear, imported, 'wikisync')
-        }
-        open={wikiSyncOpen}
-        onOpenChange={setWikiSyncOpen}
-      />
-
-      <RuneProfileDialog
-        completed={completed}
-        listCount={listCount}
-        lastRsn={lastRsn}
-        onApply={(ids, rsn, clear, imported) =>
-          onImportApply(ids, rsn, clear, imported, 'runeprofile')
-        }
-        open={runeProfileOpen}
-        onOpenChange={setRuneProfileOpen}
+        onImportApply={onImportApply}
+        onImportLevels={onImportLevels}
+        onImportFile={handleImportFile}
+        profile={profile}
+        profileIsEmpty={profileIsEmpty}
+        profileSource={profileSource}
+        onSetLevel={onSetLevel}
+        onSetQuest={onSetQuest}
+        onClearProfile={onClearProfile}
       />
 
       {notice && (
