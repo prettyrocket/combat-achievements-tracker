@@ -50,6 +50,7 @@ import {
   applyQuery,
 } from '@/lib/task-query'
 import { useProfile } from '@/lib/use-profile'
+import type { ProfileSource } from '@/lib/profile-store'
 import { useProgress } from '@/lib/use-progress'
 import { useTaskList } from '@/lib/use-tasklist'
 import { useTaskQuery } from '@/lib/use-task-query'
@@ -282,17 +283,27 @@ export default function App() {
   }, [])
 
   /**
-   * A WikiSync paste replaces progress outright -- the account is the authority
-   * on what's done. The planned list is not the account's to overwrite, so it
+   * An import replaces progress outright -- the account is the authority on
+   * what's done. The planned list is not the account's to overwrite, so it
    * survives unless the import is for a different player and you say so.
+   *
+   * Shared by both doors: a WikiSync paste and a RuneProfile lookup carry the
+   * same three facts and differ only in how they were fetched, so the only
+   * thing `source` changes is what the profile editor calls it afterwards.
    */
-  const applyWikiSync = useCallback(
-    (ids: number[], rsn: string, clearList: boolean, imported: PlayerProfile | null) => {
+  const applyImport = useCallback(
+    (
+      ids: number[],
+      rsn: string,
+      clearList: boolean,
+      imported: PlayerProfile | null,
+      source: ProfileSource,
+    ) => {
       setMany(ids)
       if (clearList) taskList.clear()
-      // Only when the paste actually carried levels. A payload without them
+      // Only when the import actually carried levels. A payload without them
       // must not wipe a profile the player typed in by hand.
-      if (imported) setProfile(imported, 'wikisync')
+      if (imported) setProfile(imported, source)
       const name = rsn.replace(/_/g, ' ').replace(/\s+/g, ' ').trim()
       if (name) {
         setLastRsn(name)
@@ -366,7 +377,7 @@ export default function App() {
             lastRsn={lastRsn}
             onReset={reset}
             onClearList={taskList.clear}
-            onWikiSyncApply={applyWikiSync}
+            onImportApply={applyImport}
             profile={profile.profile}
             profileIsEmpty={profile.isEmpty}
             profileSource={profile.source}

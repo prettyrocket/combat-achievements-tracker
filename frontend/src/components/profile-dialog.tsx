@@ -266,8 +266,8 @@ export function ProfileDialog({
             everything else.{' '}
             {isEmpty
               ? 'A WikiSync import fills all of this in for you.'
-              : source === 'wikisync'
-                ? 'Imported from WikiSync — editing anything here overrides it until the next import.'
+              : source === 'wikisync' || source === 'runeprofile'
+                ? `Imported from ${source === 'wikisync' ? 'WikiSync' : 'RuneProfile'} — editing anything here overrides it until the next import.`
                 : source === 'wiseoldman'
                   ? 'Levels came from Wise Old Man — quests it has no way of knowing, so those are yours to tick.'
                   : 'A WikiSync import fills all of this in for you.'}

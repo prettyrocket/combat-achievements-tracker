@@ -25,17 +25,19 @@ export interface StoredProfile {
 }
 
 /**
- * Hand-typed, read out of a WikiSync paste, or looked up on Wise Old Man.
+ * Hand-typed, read out of a WikiSync paste, or fetched from Wise Old Man or
+ * RuneProfile.
  *
- * The three are not equal in what they know: a paste speaks for the whole
- * account, a lookup only ever knows levels.
+ * They are not equal in what they know: a paste and a RuneProfile lookup both
+ * speak for the whole account, a Wise Old Man lookup only ever knows levels.
  */
-export type ProfileSource = 'manual' | 'wikisync' | 'wiseoldman'
+export type ProfileSource = 'manual' | 'wikisync' | 'wiseoldman' | 'runeprofile'
 
 const SOURCES: ReadonlySet<string> = new Set<ProfileSource>([
   'manual',
   'wikisync',
   'wiseoldman',
+  'runeprofile',
 ])
 
 /**

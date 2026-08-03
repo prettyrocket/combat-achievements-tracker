@@ -15,6 +15,7 @@ import {
   ClipboardPaste,
   Download,
   Link2,
+  Search,
   Upload,
   RotateCcw,
   Share2,
@@ -25,6 +26,7 @@ import type { PlayerProfile } from '@/lib/requirements'
 import type { ProfileSource } from '@/lib/profile-store'
 import { ProfileDialog } from '@/components/profile-dialog'
 import { WikiSyncDialog } from '@/components/wikisync-dialog'
+import { RuneProfileDialog } from '@/components/runeprofile-dialog'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -118,11 +120,17 @@ export interface ProgressToolbarProps {
   /** Clears completed tasks. Reset picks which of these three it calls. */
   onReset: () => void
   onClearList: () => void
-  onWikiSyncApply: (
+  /**
+   * One callback for both import doors. They differ only in where the data came
+   * from, which the profile editor wants to name back at you -- the progress
+   * half is identical either way.
+   */
+  onImportApply: (
     wikiIds: number[],
     rsn: string,
     clearList: boolean,
     profile: PlayerProfile | null,
+    source: ProfileSource,
   ) => void
   /** The levels and quests behind the requirement filter, and its editor. */
   profile: PlayerProfile
@@ -144,7 +152,7 @@ export function ProgressToolbar({
   lastRsn,
   onReset,
   onClearList,
-  onWikiSyncApply,
+  onImportApply,
   profile,
   profileIsEmpty,
   profileSource,
@@ -160,6 +168,7 @@ export function ProgressToolbar({
   // Owned here rather than by the dialog, because its only way in is now a menu
   // item, and the menu closes before the dialog opens.
   const [wikiSyncOpen, setWikiSyncOpen] = useState(false)
+  const [runeProfileOpen, setRuneProfileOpen] = useState(false)
 
   // Reset asks what to reset. Three separate stores, three separate answers --
   // wiping your levels because you wanted to re-tick your tasks was never
@@ -275,9 +284,10 @@ export function ProgressToolbar({
           onClear={onClearProfile}
         />
 
-        {/* Both ways in, in one place. WikiSync is first because it's the one
-            that fills everything in from the game; a file is what you reach for
-            when it can't. */}
+        {/* Every way in, in one place, ordered by how many people it can serve.
+            WikiSync is first on install count alone -- roughly 335k against
+            RuneProfile's 92k -- even though RuneProfile is the nicer flow for
+            anyone who has it. A file is what you reach for when neither fits. */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm">
@@ -290,6 +300,10 @@ export function ProgressToolbar({
             <DropdownMenuItem onSelect={() => setWikiSyncOpen(true)}>
               <ClipboardPaste aria-hidden />
               Paste from WikiSync
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => setRuneProfileOpen(true)}>
+              <Search aria-hidden />
+              Look up on RuneProfile
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => fileInput.current?.click()}>
               <Upload aria-hidden />
@@ -400,15 +414,28 @@ export function ProgressToolbar({
         </AlertDialog>
       </div>
 
-      {/* Outside the row: it has no trigger of its own any more, so it isn't a
-          control here, just the panel the Load menu opens. */}
+      {/* Outside the row: neither has a trigger of its own, so they aren't
+          controls here, just the panels the Load menu opens. */}
       <WikiSyncDialog
         completed={completed}
         listCount={listCount}
         lastRsn={lastRsn}
-        onApply={onWikiSyncApply}
+        onApply={(ids, rsn, clear, imported) =>
+          onImportApply(ids, rsn, clear, imported, 'wikisync')
+        }
         open={wikiSyncOpen}
         onOpenChange={setWikiSyncOpen}
+      />
+
+      <RuneProfileDialog
+        completed={completed}
+        listCount={listCount}
+        lastRsn={lastRsn}
+        onApply={(ids, rsn, clear, imported) =>
+          onImportApply(ids, rsn, clear, imported, 'runeprofile')
+        }
+        open={runeProfileOpen}
+        onOpenChange={setRuneProfileOpen}
       />
 
       {notice && (

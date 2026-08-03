@@ -34,12 +34,14 @@ export type WomErrorCode =
 
 /** Carries a code so the dialog can tell "try again" from "that's not fixable". */
 export class WomLookupError extends Error {
-  constructor(
-    readonly code: WomErrorCode,
-    message: string,
-  ) {
+  // Assigned in the body rather than as a parameter property: the build runs
+  // with `erasableSyntaxOnly`, which rules those out.
+  readonly code: WomErrorCode
+
+  constructor(code: WomErrorCode, message: string) {
     super(message)
     this.name = 'WomLookupError'
+    this.code = code
   }
 }
 
