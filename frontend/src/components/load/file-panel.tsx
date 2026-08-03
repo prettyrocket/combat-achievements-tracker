@@ -12,7 +12,7 @@
 import { useRef, useState } from 'react'
 import { Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ImportFooter } from '@/components/load/import-footer'
+import { ImportFooter } from '@/components/load/pane-parts'
 
 export interface FilePanelProps {
   /** Reads the file and writes every store. Throws with a readable message. */

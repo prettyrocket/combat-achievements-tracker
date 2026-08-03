@@ -26,7 +26,7 @@ import {
   ImportFooter,
   LookUpButton,
   Steps,
-} from '@/components/load/import-footer'
+} from '@/components/load/pane-parts'
 
 const GATE_QUESTS = gatedQuests().map(normalizeQuest)
 

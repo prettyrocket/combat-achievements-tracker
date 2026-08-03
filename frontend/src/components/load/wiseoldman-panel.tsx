@@ -18,7 +18,7 @@ import {
   WomLookupError,
   type WomLookup,
 } from '@/lib/wiseoldman'
-import { ImportFooter, LookUpButton } from '@/components/load/import-footer'
+import { ImportFooter, LookUpButton } from '@/components/load/pane-parts'
 
 export interface WiseOldManPanelProps {
   /** Owned by the dialog: who this browser is tracking, not this pane's input. */

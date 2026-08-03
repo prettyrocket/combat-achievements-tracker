@@ -1,17 +1,30 @@
-// The bottom of every Load pane, so five flows end in the same shape.
+// The furniture the five Load panes share.
 //
-// One sentence and one button. The sentence is the only place that says what
-// applying will do, which is why every panel writes into it rather than growing
-// a panel of its own above the fold -- there is a single place to look, and it
-// is next to the thing that does it.
+// Everything here is used by a pane, never by the dialog around them -- that
+// distinction is the file's whole reason for existing, and it earned the name
+// the hard way. This started as import-footer.tsx holding one footer, then
+// accreted a warning, a step list, a lookup button and for a while the name
+// field, by which point it was a drawer with a misleading label. The name field
+// went to name-row.tsx, where it belongs, because it was the one thing in here
+// the dialog rendered rather than a pane.
+//
+// Nothing here holds state. Panes own their own flow; these just make five of
+// them look like one app.
 
 import type { ReactNode } from 'react'
 import { Loader2, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Input } from '@/components/ui/input'
 import { DialogClose } from '@/components/ui/dialog'
 
+/**
+ * The bottom of every pane, so five flows end in the same shape.
+ *
+ * One sentence and one button. The sentence is the only place that says what
+ * applying will do, which is why every pane writes into it rather than growing
+ * a panel of its own above the fold -- there is a single place to look, and it
+ * is next to the thing that does it.
+ */
 export interface ImportFooterProps {
   /** What applying would do, or what went wrong. Null shows nothing. */
   status: ReactNode
@@ -100,50 +113,6 @@ export function DifferentAccountNotice({
 export function Steps({ children }: { children: ReactNode }) {
   return (
     <ol className="text-muted-foreground list-decimal space-y-1.5 pl-5 text-sm">{children}</ol>
-  )
-}
-
-/**
- * Who this browser is tracking.
- *
- * Not an input to importing -- the identity of the profile being built, which
- * is why it sits above the rail, shows on every source including the two that
- * never send it anywhere, and holds no button. It went through two worse
- * versions first: one per pane, which meant typing it twice, and then one
- * shared field that appeared and vanished as you moved down the rail with a
- * Look up button that came and went with it. Both were symptoms of treating it
- * as a step rather than as a fact.
- *
- * So: no action here, ever. The panes that fetch own their own button, because
- * fetching is what those panes do and it differs between them -- WikiSync
- * builds a URL for you to open yourself and has nothing to press at all.
- */
-export function NameRow({ rsn, onChange }: { rsn: string; onChange: (next: string) => void }) {
-  return (
-    <div className="space-y-1.5 border-b pb-3">
-      <div className="flex items-center gap-2">
-        <label className="text-muted-foreground shrink-0 text-sm" htmlFor="load-rsn">
-          Your name
-        </label>
-        {/* Capped rather than full-bleed: a 12-character field stretched across
-            the whole dialog looks like it wants an essay. */}
-        <Input
-          id="load-rsn"
-          className="max-w-64"
-          value={rsn}
-          onChange={(event) => onChange(event.target.value)}
-          placeholder="Your RuneScape name"
-          aria-label="RuneScape name"
-          maxLength={12}
-          autoComplete="off"
-          spellCheck={false}
-        />
-      </div>
-      <p className="text-muted-foreground text-xs leading-snug">
-        Kept with your progress, so this browser knows whose account it holds — and can
-        warn you before an import for somebody else lands on top of your plan.
-      </p>
-    </div>
   )
 }
 

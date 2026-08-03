@@ -17,7 +17,7 @@
 // write for an import, and both are worse than the seam.
 
 import { useEffect, useState } from 'react'
-import { NameRow } from '@/components/load/import-footer'
+import { NameRow } from '@/components/load/name-row'
 import {
   DEFAULT_LOAD_SOURCE,
   LOAD_SOURCES,
@@ -32,13 +32,7 @@ import { RuneProfilePanel } from '@/components/load/runeprofile-panel'
 import { WiseOldManPanel } from '@/components/load/wiseoldman-panel'
 import { FilePanel } from '@/components/load/file-panel'
 import { ManualPanel } from '@/components/load/manual-panel'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 export interface LoadDialogProps {
   open: boolean
@@ -147,9 +141,6 @@ export function LoadDialog({
       <DialogContent className="flex h-[34rem] max-h-[90dvh] flex-col sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Load your progress</DialogTitle>
-          <DialogDescription>
-            Everything stays in this browser. Nothing here creates an account.
-          </DialogDescription>
         </DialogHeader>
 
         {/* Above the rail and on every source, including the two that never
