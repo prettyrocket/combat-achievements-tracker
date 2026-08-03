@@ -73,11 +73,6 @@ export function FilePanel({ onImport, onFinished }: FilePanelProps) {
             <span className="text-muted-foreground"> · {Math.round(file.size / 1024)} KB</span>
           </p>
         )}
-
-        <p className="text-muted-foreground text-xs leading-snug">
-          Replaces what this browser holds. Export first if you haven't — there's no
-          server copy to fall back on.
-        </p>
       </div>
 
       <ImportFooter

@@ -10,7 +10,7 @@
 // it gets amber and a fix rather than red and a shrug, because the alternative
 // is telling a maxed account it has done nothing.
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from "react";
 import {
   fetchRuneProfile,
   RUNEPROFILE_PLUGIN_URL,
@@ -18,36 +18,40 @@ import {
   RuneProfileError,
   syncedLabel,
   type RuneProfileImport,
-} from '@/lib/runeprofile'
-import { useImportFlow } from '@/lib/use-import-flow'
-import { gatedQuests, normalizeQuest, type PlayerProfile } from '@/lib/requirements'
+} from "@/lib/runeprofile";
+import { useImportFlow } from "@/lib/use-import-flow";
+import {
+  gatedQuests,
+  normalizeQuest,
+  type PlayerProfile,
+} from "@/lib/requirements";
 import {
   DifferentAccountNotice,
   ImportFooter,
   LookUpButton,
   Steps,
-} from '@/components/load/pane-parts'
+} from "@/components/load/pane-parts";
 
-const GATE_QUESTS = gatedQuests().map(normalizeQuest)
+const GATE_QUESTS = gatedQuests().map(normalizeQuest);
 
 function countGateQuests(profile: PlayerProfile): number {
-  const finished = new Set(profile.quests.map(normalizeQuest))
-  return GATE_QUESTS.filter((quest) => finished.has(quest)).length
+  const finished = new Set(profile.quests.map(normalizeQuest));
+  return GATE_QUESTS.filter((quest) => finished.has(quest)).length;
 }
 
 export interface RuneProfilePanelProps {
   /** Owned by the dialog: who this browser is tracking, not this pane's input. */
-  rsn: string
-  completed: ReadonlySet<number>
-  listCount: number
-  lastRsn: string | null
+  rsn: string;
+  completed: ReadonlySet<number>;
+  listCount: number;
+  lastRsn: string | null;
   onApply: (
     ids: number[],
     rsn: string,
     clearList: boolean,
     profile: PlayerProfile | null,
-  ) => void
-  onFinished: (remember: boolean) => void
+  ) => void;
+  onFinished: (remember: boolean) => void;
 }
 
 export function RuneProfilePanel({
@@ -58,10 +62,12 @@ export function RuneProfilePanel({
   onApply,
   onFinished,
 }: RuneProfilePanelProps) {
-  const [busy, setBusy] = useState(false)
-  const [found, setFound] = useState<RuneProfileImport | null>(null)
-  const [error, setError] = useState<{ message: string; code: string } | null>(null)
-  const inFlight = useRef<AbortController | null>(null)
+  const [busy, setBusy] = useState(false);
+  const [found, setFound] = useState<RuneProfileImport | null>(null);
+  const [error, setError] = useState<{ message: string; code: string } | null>(
+    null,
+  );
+  const inFlight = useRef<AbortController | null>(null);
 
   const flow = useImportFlow({
     completed,
@@ -69,51 +75,54 @@ export function RuneProfilePanel({
     lastRsn,
     onApply,
     onApplied: () => onFinished(true),
-  })
+  });
 
   // A lookup outlives the pane otherwise, and resolves against a component that
   // isn't mounted any more the moment somebody searches and switches source.
-  useEffect(() => () => inFlight.current?.abort(), [])
+  useEffect(() => () => inFlight.current?.abort(), []);
 
   // Editing the name invalidates whatever the last one found, including an
   // armed destructive apply. Runs on mount too, which costs nothing. Pulled off
   // `flow` into a binding first: the hook's return value is a fresh object each
   // render, but `clear` itself is stable, and a dependency on the whole object
   // would re-run this on every keystroke in the paste box.
-  const clearFlow = flow.clear
+  const clearFlow = flow.clear;
   useEffect(() => {
-    setFound(null)
-    setError(null)
-    clearFlow()
-  }, [rsn, clearFlow])
+    setFound(null);
+    setError(null);
+    clearFlow();
+  }, [rsn, clearFlow]);
 
   async function run() {
-    if (busy || rsn.trim() === '') return
-    inFlight.current?.abort()
-    const controller = new AbortController()
-    inFlight.current = controller
+    if (busy || rsn.trim() === "") return;
+    inFlight.current?.abort();
+    const controller = new AbortController();
+    inFlight.current = controller;
 
-    setBusy(true)
-    setError(null)
-    setFound(null)
-    flow.clear()
+    setBusy(true);
+    setError(null);
+    setFound(null);
+    flow.clear();
     try {
-      const imported = await fetchRuneProfile(rsn, controller.signal)
-      setFound(imported)
-      flow.read(imported)
+      const imported = await fetchRuneProfile(rsn, controller.signal);
+      setFound(imported);
+      flow.read(imported);
     } catch (err) {
-      if (err instanceof DOMException && err.name === 'AbortError') return
+      if (err instanceof DOMException && err.name === "AbortError") return;
       setError(
         err instanceof RuneProfileError
           ? { message: err.message, code: err.code }
-          : { message: 'That lookup failed. Try again in a moment.', code: 'BAD_RESPONSE' },
-      )
+          : {
+              message: "That lookup failed. Try again in a moment.",
+              code: "BAD_RESPONSE",
+            },
+      );
     } finally {
-      if (!controller.signal.aborted) setBusy(false)
+      if (!controller.signal.aborted) setBusy(false);
     }
   }
 
-  const synced = found === null ? null : syncedLabel(found.updatedAt)
+  const synced = found === null ? null : syncedLabel(found.updatedAt);
 
   const footer = error
     ? {
@@ -121,64 +130,56 @@ export function RuneProfilePanel({
         // fine, it just hasn't spoken to RuneProfile since they started storing
         // this.
         status: error.message,
-        tone: error.code === 'STALE_PROFILE' ? 'text-amber-400' : 'text-red-400',
-        alert: error.code !== 'STALE_PROFILE',
+        tone:
+          error.code === "STALE_PROFILE" ? "text-amber-400" : "text-red-400",
+        alert: error.code !== "STALE_PROFILE",
       }
     : {
         status: flow.status(rsn),
         tone:
           flow.diff === null
-            ? ''
-            : flow.variant(rsn) === 'default'
-              ? 'text-emerald-400'
-              : 'text-foreground',
+            ? ""
+            : flow.variant(rsn) === "default"
+              ? "text-emerald-400"
+              : "text-foreground",
         alert: false,
-      }
+      };
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
         <p className="text-muted-foreground text-sm">
-          Achievements, levels and quests in one go — no paste.
+          Lookup combat achievements, skill levels and quests on{" "}
+          <a
+            href={RUNEPROFILE_URL}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="text-foreground font-medium underline underline-offset-2"
+          >
+            RuneProfile
+          </a>
+          .
         </p>
 
         <Steps>
           <li>
-            Install{' '}
+            Install the{" "}
             <a
               href={RUNEPROFILE_PLUGIN_URL}
               target="_blank"
               rel="noreferrer noopener"
               className="text-foreground font-medium underline underline-offset-2"
             >
-              RuneProfile
-            </a>{' '}
+              RuneProfile plugin
+            </a>{" "}
             from the RuneLite Plugin Hub.
           </li>
-          <li>
-            Log in with it running, so your profile appears on{' '}
-            <a
-              href={RUNEPROFILE_URL}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="text-foreground font-medium underline underline-offset-2"
-            >
-              runeprofile.com
-            </a>
-            .
-          </li>
-          <li>
-            <div className="space-y-2">
-              <span>Fetch it, with the name above.</span>
-              <div>
-                <LookUpButton
-                  busy={busy}
-                  disabled={rsn.trim() === ''}
-                  onClick={() => void run()}
-                />
-              </div>
-            </div>
-          </li>
+          <li>Log in via Runelite.</li>
+          <LookUpButton
+            busy={busy}
+            disabled={rsn.trim() === ""}
+            onClick={() => void run()}
+          />
         </Steps>
 
         {/* What arrived, and how old it is. The date is not decoration: only the
@@ -188,26 +189,34 @@ export function RuneProfilePanel({
           <div className="space-y-1 text-sm">
             <p>
               <span className="font-medium">{found.displayName}</span>
-              {found.accountType !== null && found.accountType !== 'regular' && (
-                <span className="text-muted-foreground"> · {found.accountType}</span>
+              {found.accountType !== null &&
+                found.accountType !== "regular" && (
+                  <span className="text-muted-foreground">
+                    {" "}
+                    · {found.accountType}
+                  </span>
+                )}
+              {synced !== null && (
+                <span className="text-muted-foreground"> · {synced}</span>
               )}
-              {synced !== null && <span className="text-muted-foreground"> · {synced}</span>}
             </p>
             <p className="text-muted-foreground text-xs leading-snug">
-              Carries{' '}
+              Carries{" "}
               <span className="text-foreground">
-                {found.ids.length} completed task{found.ids.length === 1 ? '' : 's'}
+                {found.ids.length} completed task
+                {found.ids.length === 1 ? "" : "s"}
               </span>
               {found.profile && (
                 <>
-                  ,{' '}
+                  ,{" "}
                   <span className="text-foreground">
                     {Object.keys(found.profile.levels).length} skill levels
-                  </span>{' '}
-                  and{' '}
+                  </span>{" "}
+                  and{" "}
                   <span className="text-foreground">
-                    {countGateQuests(found.profile)} of {GATE_QUESTS.length} quests
-                  </span>{' '}
+                    {countGateQuests(found.profile)} of {GATE_QUESTS.length}{" "}
+                    quests
+                  </span>{" "}
                   that gate a boss
                 </>
               )}
@@ -234,9 +243,9 @@ export function RuneProfilePanel({
         disabled={flow.disabled(rsn)}
         variant={flow.variant(rsn)}
         onApply={() => {
-          if (found) flow.apply(found.displayName, found)
+          if (found) flow.apply(found.displayName, found);
         }}
       />
     </div>
-  )
+  );
 }

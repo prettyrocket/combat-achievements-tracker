@@ -75,7 +75,7 @@ export function WiseOldManPanel({ rsn, onApply, onFinished }: WiseOldManPanelPro
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
         <p className="text-muted-foreground text-sm">
-          Every skill level, from the hiscores, via{' '}
+          Lookup skill levels on{' '}
           <a
             href={WISE_OLD_MAN_URL}
             target="_blank"
@@ -84,7 +84,7 @@ export function WiseOldManPanel({ rsn, onApply, onFinished }: WiseOldManPanelPro
           >
             Wise Old Man
           </a>
-          . No plugin needed — just the name above.
+          .
         </p>
 
         <LookUpButton busy={busy} disabled={rsn.trim() === ''} onClick={() => void run()} />
@@ -108,11 +108,6 @@ export function WiseOldManPanel({ rsn, onApply, onFinished }: WiseOldManPanelPro
             </p>
           </div>
         )}
-
-        <p className="text-muted-foreground text-xs leading-snug">
-          Importing replaces every level with the account's. Quests and completed
-          achievements are untouched.
-        </p>
       </div>
 
       <ImportFooter
