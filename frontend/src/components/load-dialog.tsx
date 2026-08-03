@@ -164,7 +164,14 @@ export function LoadDialog({
             })}
           </nav>
 
-          <div className="flex min-h-0 flex-1 flex-col">
+          {/* min-w-0 is load-bearing. A flex item defaults to min-width:auto,
+              so this column refuses to shrink below its widest unbreakable
+              child -- and the WikiSync pane has one: the sync URL, a single
+              token with no break opportunity. Without this the column grows
+              past the dialog and takes the textarea and footer out with it,
+              while the `truncate` on the URL never gets to do anything because
+              nothing ever asked it to be narrower. */}
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             {active === 'wikisync' && (
               <WikiSyncPanel
                 completed={completed}

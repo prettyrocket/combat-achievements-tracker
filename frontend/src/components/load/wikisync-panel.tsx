@@ -198,8 +198,7 @@ export function WikiSyncPanel({
           </li>
           <li>
             Log in with it running and{' '}
-            <span className="text-foreground font-medium">give it about ten seconds</span> —
-            that's the upload timer.
+            <span className="text-foreground font-medium">wait about ten seconds</span>.
           </li>
           <li>Enter your name below, open the URL, and copy everything.</li>
         </Steps>
