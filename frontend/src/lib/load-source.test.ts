@@ -25,11 +25,6 @@ afterEach(() => {
 })
 
 describe('the source list', () => {
-  it('marks exactly one source as the popular one', async () => {
-    const { LOAD_SOURCES } = await load()
-    expect(LOAD_SOURCES.filter((source) => source.popular)).toHaveLength(1)
-  })
-
   it('leads with the source most people can use', async () => {
     // Install count, not preference: WikiSync has roughly 335k Plugin Hub
     // installs to RuneProfile's 92k, and the rail order says so.

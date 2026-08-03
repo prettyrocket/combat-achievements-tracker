@@ -168,20 +168,8 @@ export function LoadDialog({
                     selected ? 'bg-muted' : 'hover:bg-muted/60'
                   }`}
                 >
-                  <span
-                    className={`flex items-baseline gap-1.5 text-sm ${
-                      selected ? 'font-semibold' : ''
-                    }`}
-                  >
+                  <span className={`block text-sm ${selected ? 'font-semibold' : ''}`}>
                     {source.label}
-                    {source.popular && (
-                      <span
-                        className="text-[0.65rem] font-normal text-amber-400"
-                        title="The plugin most players already have"
-                      >
-                        most used
-                      </span>
-                    )}
                   </span>
                   <span className="text-muted-foreground mt-0.5 block text-xs leading-tight">
                     {source.carries}

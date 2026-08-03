@@ -23,17 +23,10 @@ export interface LoadSourceMeta {
    * only one carries a plan.
    */
   carries: string
-  /** Marks the one most people can use. Exactly one source has it. */
-  popular?: boolean
 }
 
 export const LOAD_SOURCES: readonly LoadSourceMeta[] = [
-  {
-    id: 'wikisync',
-    label: 'WikiSync',
-    carries: 'Achievements, levels, quests',
-    popular: true,
-  },
+  { id: 'wikisync', label: 'WikiSync', carries: 'Achievements, levels, quests' },
   { id: 'runeprofile', label: 'RuneProfile', carries: 'Achievements, levels, quests' },
   { id: 'wiseoldman', label: 'Wise Old Man', carries: 'Levels only' },
   { id: 'file', label: 'A backup file', carries: 'Everything, including your plan' },
