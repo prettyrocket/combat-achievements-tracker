@@ -18,17 +18,24 @@ browser.
   shadcn/ui.
 - **Data** — fetched from the OSRS Wiki; see below.
 - **Progress** — `localStorage`, with JSON export/import so it's portable between devices.
-- **Hosting** — any static host (`vite build` → `dist/`).
+- **Hosting** — [GitHub Pages](https://prettyrocket.github.io/combat-achievements-tracker/),
+  deployed by `.github/workflows/deploy.yml` on every push to `main`. Tests and `tsc -b`
+  gate it, so a type error fails the deploy rather than shipping.
+- **Formatting** — Prettier defaults (`npm run format`).
 
 ## Data sources
 
-Both are anonymous, key-less, and CORS-open, so the browser can call them directly:
+All anonymous, key-less, and CORS-open, so the browser can call them directly:
 
 | What | Where |
 |------|-------|
 | The 646 tasks | Wiki **Bucket API**, `bucket('combat_achievement')` — one request, ~134 KB |
 | Global completion % | `Module:Combat_Achievements/completion.json` (`action=raw`) — a flat `{taskId: pct}` map |
-| Your skill levels | **Wise Old Man**, `api.wiseoldman.net/v2/players/<rsn>` — on request only, never on load |
+| Your skill levels | **Wise Old Man**, `api.wiseoldman.net/v2/players/<rsn>` |
+| Your achievements, levels and quests | **RuneProfile**, `api.runeprofile.com/v1/accounts/<rsn>` |
+
+The first two load with the app; the last two are fetched only when you ask, and never on
+page load.
 
 ```
 https://oldschool.runescape.wiki/api.php?action=bucket&format=json&origin=*
@@ -64,36 +71,58 @@ whatever they carried. Every tracker that uses the hiscores proxies them server-
 
 ## Importing your progress
 
-1. **Manual** — click tasks; state persists in `localStorage`.
-2. **WikiSync JSON paste** — a top-level browser navigation sends no `Origin` header, so
-   you can open your own sync URL in the address bar (or `curl` it) and paste the JSON in.
-   The `combat_achievements` field is a flat array of task IDs that maps 1:1 onto the
-   Bucket `id`. This keeps the app off their API entirely.
+Ticking tasks by hand always works, and persists in `localStorage`. Everything else lives
+behind one **Load** button: a dialog with your RuneScape name at the top and a rail of five
+sources beside their instructions (`src/components/load-dialog.tsx`). The rail says what
+each one carries, because that is the real difference between them — only three bring
+achievements, and only one brings your planned list.
 
-   Requires the WikiSync plugin from the RuneLite Plugin Hub. Log in with it running and
-   wait a few seconds — that's all. The plugin reads CA completion straight out of the
-   player varps and uploads on a 10-second timer (`@Schedule` in `WikiSyncPlugin`), so
-   there is no interface to open and nothing to log out for. The collection log *is*
-   gated on opening its interface, because it's populated by a script that only fires
-   there; that requirement is often repeated about Combat Achievements, and it's wrong.
+| Source | Carries | Needs |
+|--------|---------|-------|
+| **WikiSync** | Achievements, levels, quests | The plugin, and a paste |
+| **RuneProfile** | Achievements, levels, quests | The plugin |
+| **Wise Old Man** | Levels only | Nothing |
+| **A backup file** | Everything, including your plan | A file this app exported |
+| **By hand** | Levels and quests | Nothing |
 
-   The same payload also carries `levels` and `quests`, which is where the requirement
-   filter below gets its answers. Both are read from the paste; neither is required.
-3. **Wise Old Man lookup** (levels only) — type a name, get every skill level, no plugin
-   and no paste. WOM already scrapes and caches the hiscores, publishes the result for
-   third parties deliberately, and answers `access-control-allow-origin: *`, which is what
-   makes it reachable from a static site when the hiscores themselves aren't. It fills the
-   skills half of the profile below and never touches your progress; quests stay a
-   checklist, because the hiscores don't track those either. See `src/lib/wiseoldman.ts`.
+It opens on whichever source you last imported from, and the name is remembered — typing it
+counts, so someone who only ever enters levels by hand still gets the different-account
+warning that protects their plan.
+
+**WikiSync** is first on reach alone: ~335k Plugin Hub installs against RuneProfile's ~92k.
+A top-level browser navigation sends no `Origin` header, so you open your own sync URL in
+the address bar and paste the JSON back — which keeps the app off their API entirely. The
+`combat_achievements` field is a flat array of task IDs mapping 1:1 onto the Bucket `id`.
+
+> Log in with the plugin running and wait a few seconds; that's the whole procedure. The
+> plugin reads CA completion out of the player varps and uploads on a 10-second timer
+> (`@Schedule` in `WikiSyncPlugin`), so there is no interface to open and nothing to log
+> out for. The collection log *is* gated on opening its interface, because it's populated
+> by a script that only fires there — that requirement gets repeated about Combat
+> Achievements, and it's wrong.
+
+**RuneProfile** is the only API anywhere that serves per-task Combat Achievement completion
+to a third party over CORS, so it needs no paste at all: type a name, press Look up. Its
+plugin reads the same bit-packed CA varps. The `index` it returns was checked against the
+wiki Bucket `id` across all 646 tasks — zero mismatches — so there is no mapping table.
+Two traps are handled in `src/lib/runeprofile.ts`: never send a non-simple header (their
+outer CORS middleware rejects the preflight), and a profile that hasn't synced since
+2026-05-14 answers `200` with all 646 marked incomplete, which the tier summary catches.
+
+**Wise Old Man** needs nothing installed. It mirrors the hiscores, which carry every skill
+level, and answers `access-control-allow-origin: *` — the reason it's reachable from a
+static site when the hiscores themselves aren't. Levels only; quests stay a checklist,
+because the hiscores don't track those either.
 
 ## Filtering by what you can actually fight
 
 The **Requirements** filter cycles *Any monster → Can face → Can't face yet*, and every
 row whose monster is out of reach carries a lock. Hover or focus it and it says what the
 gate asks for — "Requires 92 Slayer and the quest Priest in Peril". It needs to know your
-levels and quests, which come from a WikiSync paste, a Wise Old Man lookup (levels only),
-or **My levels**, where you can also type a hypothetical — "what opens up at 92 Slayer" is
-the same question.
+levels and quests, which any of the sources above can supply. The **By hand** pane is the
+one that can answer a question none of the others can: type a level you haven't earned yet
+and the filter tells you what it would open up. When the filter has nothing to run on, it
+opens Load straight onto that pane.
 
 Three kinds of gate are modelled: **Slayer level**, **other skill levels that gate the
 route** (70 Ranged for the grapple into Armadyl's Eyrie, 50 Firemaking for Wintertodt),
@@ -119,9 +148,14 @@ npm run check-requirements   # exits 1 on a disagreement
 against it in both directions: one we claim that the wiki disagrees with, and one the wiki
 gates on that we've missed (which is what a new release looks like). Every quest name is
 verified to be a real quest spelled the way the game spells it — that one matters because
-the strings are joined against a WikiSync paste, and a near miss like `Desert Treasure II`
-instead of `Desert Treasure II - The Fallen Empire` would read as "not done" forever
+the strings are joined against imported quest names, and a near miss like `Desert Treasure
+II` instead of `Desert Treasure II - The Fallen Empire` would read as "not done" forever
 rather than as an error.
+
+Re-checked 2026-08-02 across all 47 Bucket schemas: still nothing machine-readable. Slayer
+levels are (`infobox_monster.slayer_level`), but quest gates fail three separate ways —
+`infobox_npc.quest` means "appears in" rather than "unlocked by", bosses like Duke Sucellus
+have no `infobox_npc` row at all, and page categories cover only 14 of the 31 gated bosses.
 
 ## Prerequisites
 
@@ -136,7 +170,11 @@ npm run dev      # http://localhost:5173
 npm run build    # static output in dist/
 npm run lint
 npm run test
+npm run format   # prettier --write .
 ```
+
+`npm run build` is what the deploy runs, and it catches things `npx tsc --noEmit` doesn't —
+it resolves a different config. Run it before pushing.
 
 Every task row links out to the wiki — to the task's own article and to its monster's
 page. Both are built from names, so after `npm run refresh-data` run:
