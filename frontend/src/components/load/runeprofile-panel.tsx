@@ -11,7 +11,6 @@
 // is telling a maxed account it has done nothing.
 
 import { useEffect, useRef, useState } from 'react'
-import { Loader2, Search } from 'lucide-react'
 import {
   fetchRuneProfile,
   RUNEPROFILE_PLUGIN_URL,
@@ -22,12 +21,7 @@ import {
 } from '@/lib/runeprofile'
 import { useImportFlow } from '@/lib/use-import-flow'
 import { gatedQuests, normalizeQuest, type PlayerProfile } from '@/lib/requirements'
-import {
-  DifferentAccountNotice,
-  ImportFooter,
-  RsnField,
-  Steps,
-} from '@/components/load/import-footer'
+import { DifferentAccountNotice, ImportFooter, Steps } from '@/components/load/import-footer'
 
 const GATE_QUESTS = gatedQuests().map(normalizeQuest)
 
@@ -37,6 +31,12 @@ function countGateQuests(profile: PlayerProfile): number {
 }
 
 export interface RuneProfilePanelProps {
+  /** Owned by the dialog and shared with the other account-shaped sources. */
+  rsn: string
+  /** Incremented by the dialog's Look up button. Zero means "not yet". */
+  submitToken: number
+  /** Lifted so the dialog's button can spin while this pane is fetching. */
+  onBusyChange: (busy: boolean) => void
   completed: ReadonlySet<number>
   listCount: number
   lastRsn: string | null
@@ -50,13 +50,15 @@ export interface RuneProfilePanelProps {
 }
 
 export function RuneProfilePanel({
+  rsn,
+  submitToken,
+  onBusyChange,
   completed,
   listCount,
   lastRsn,
   onApply,
   onFinished,
 }: RuneProfilePanelProps) {
-  const [rsn, setRsn] = useState('')
   const [busy, setBusy] = useState(false)
   const [found, setFound] = useState<RuneProfileImport | null>(null)
   const [error, setError] = useState<{ message: string; code: string } | null>(null)
@@ -74,6 +76,18 @@ export function RuneProfilePanel({
   // isn't mounted any more the moment somebody searches and switches source.
   useEffect(() => () => inFlight.current?.abort(), [])
 
+  // Editing the name invalidates whatever the last one found, including an
+  // armed destructive apply. Runs on mount too, which costs nothing. Pulled off
+  // `flow` into a binding first: the hook's return value is a fresh object each
+  // render, but `clear` itself is stable, and a dependency on the whole object
+  // would re-run this on every keystroke in the paste box.
+  const clearFlow = flow.clear
+  useEffect(() => {
+    setFound(null)
+    setError(null)
+    clearFlow()
+  }, [rsn, clearFlow])
+
   async function run() {
     if (busy || rsn.trim() === '') return
     inFlight.current?.abort()
@@ -81,6 +95,7 @@ export function RuneProfilePanel({
     inFlight.current = controller
 
     setBusy(true)
+    onBusyChange(true)
     setError(null)
     setFound(null)
     flow.clear()
@@ -96,9 +111,21 @@ export function RuneProfilePanel({
           : { message: 'That lookup failed. Try again in a moment.', code: 'BAD_RESPONSE' },
       )
     } finally {
-      if (!controller.signal.aborted) setBusy(false)
+      if (!controller.signal.aborted) {
+        setBusy(false)
+        onBusyChange(false)
+      }
     }
   }
+
+  // The dialog's Look up button lives above this pane, so it asks by bumping a
+  // counter rather than calling in. Zero is the "nobody has pressed it" state
+  // the dialog resets to whenever the source changes.
+  useEffect(() => {
+    if (submitToken === 0) return
+    void run()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [submitToken])
 
   const synced = found === null ? null : syncedLabel(found.updatedAt)
 
@@ -154,29 +181,8 @@ export function RuneProfilePanel({
             </a>
             .
           </li>
-          <li>Enter your name below.</li>
+          <li>Enter your name above and press Look up.</li>
         </Steps>
-
-        <RsnField
-          rsn={rsn}
-          onChange={(next) => {
-            setRsn(next)
-            // A new name invalidates whatever the last one found, including an
-            // armed destructive apply.
-            setFound(null)
-            setError(null)
-            flow.clear()
-          }}
-          onSubmit={() => void run()}
-          busy={busy}
-          icon={
-            busy ? (
-              <Loader2 className="size-4 animate-spin" aria-hidden />
-            ) : (
-              <Search className="size-4" aria-hidden />
-            )
-          }
-        />
 
         {/* What arrived, and how old it is. The date is not decoration: only the
             player can refresh a RuneProfile, so somebody importing a month-old

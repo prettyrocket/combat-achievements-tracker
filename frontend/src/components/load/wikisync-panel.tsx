@@ -24,7 +24,6 @@ import {
 import { useImportFlow } from '@/lib/use-import-flow'
 import { gatedQuests, normalizeQuest, type PlayerProfile } from '@/lib/requirements'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Textarea } from '@/components/ui/textarea'
 import {
@@ -46,6 +45,8 @@ function countGateQuests(profile: PlayerProfile): number {
 }
 
 export interface WikiSyncPanelProps {
+  /** Owned by the dialog and shared with the other account-shaped sources. */
+  rsn: string
   completed: ReadonlySet<number>
   listCount: number
   lastRsn: string | null
@@ -64,13 +65,13 @@ export interface WikiSyncPanelProps {
 }
 
 export function WikiSyncPanel({
+  rsn,
   completed,
   listCount,
   lastRsn,
   onApply,
   onFinished,
 }: WikiSyncPanelProps) {
-  const [rsn, setRsn] = useState('')
   const [copied, setCopied] = useState(false)
   const [text, setText] = useState('')
   const [parse, setParse] = useState<WikiSyncParse | null>(null)
@@ -200,20 +201,10 @@ export function WikiSyncPanel({
             Log in with it running and{' '}
             <span className="text-foreground font-medium">wait about ten seconds</span>.
           </li>
-          <li>Enter your name below, open the URL, and copy everything.</li>
+          <li>Open the URL below and copy everything it gives you.</li>
         </Steps>
 
         <div className="space-y-2">
-          <Input
-            value={rsn}
-            onChange={(event) => setRsn(event.target.value)}
-            placeholder="Your RuneScape name"
-            aria-label="RuneScape name"
-            maxLength={12}
-            autoComplete="off"
-            spellCheck={false}
-          />
-
           <div className="flex items-center gap-2">
             <code
               className="bg-muted text-muted-foreground min-w-0 flex-1 truncate rounded px-2 py-1.5 text-xs"

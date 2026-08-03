@@ -17,6 +17,8 @@
 // write for an import, and both are worse than the seam.
 
 import { useEffect, useState } from 'react'
+import { Loader2, Search } from 'lucide-react'
+import { NameRow } from '@/components/load/import-footer'
 import {
   DEFAULT_LOAD_SOURCE,
   LOAD_SOURCES,
@@ -70,6 +72,19 @@ export interface LoadDialogProps {
   onClearProfile: () => void
 }
 
+/** The sources that are about an account, and so need a name. */
+const NEEDS_NAME: ReadonlySet<LoadSourceId> = new Set([
+  'wikisync',
+  'runeprofile',
+  'wiseoldman',
+])
+
+/** Which of those fetch when you press something, and what it's called. */
+const LOOKUP: Partial<Record<LoadSourceId, string>> = {
+  runeprofile: 'Look up',
+  wiseoldman: 'Look up',
+}
+
 export function LoadDialog({
   open,
   onOpenChange,
@@ -88,14 +103,32 @@ export function LoadDialog({
   onClearProfile,
 }: LoadDialogProps) {
   const [active, setActive] = useState<LoadSourceId>(DEFAULT_LOAD_SOURCE)
+  const [rsn, setRsn] = useState('')
+  // Bumped to tell the active pane to go and fetch. A counter rather than a
+  // callback handed upward, because the panes mount and unmount as you move
+  // down the rail and a stale function reference is a worse bug than a number.
+  const [submitToken, setSubmitToken] = useState(0)
+  const [busy, setBusy] = useState(false)
 
   // Chosen on open rather than held between openings: the remembered source is
   // a fact about the last import, and reading it fresh each time means another
-  // tab's import is honoured too.
+  // tab's import is honoured too. The name is prefilled from the account last
+  // imported from, so a returning player opens this and presses the button.
   useEffect(() => {
     if (!open) return
     setActive(initialSource ?? readLastSource())
-  }, [open, initialSource])
+    setRsn(lastRsn ?? '')
+    setSubmitToken(0)
+    setBusy(false)
+  }, [open, initialSource, lastRsn])
+
+  function selectSource(id: LoadSourceId) {
+    setActive(id)
+    // The new pane mounts with the token it inherits; zeroing it stops that
+    // looking like somebody just pressed Look up.
+    setSubmitToken(0)
+    setBusy(false)
+  }
 
   /**
    * A pane is done with itself.
@@ -136,7 +169,7 @@ export function LoadDialog({
                   key={source.id}
                   type="button"
                   aria-current={selected ? 'true' : undefined}
-                  onClick={() => setActive(source.id)}
+                  onClick={() => selectSource(source.id)}
                   className={`w-full rounded-md px-2.5 py-2 text-left transition-colors ${
                     selected ? 'bg-muted' : 'hover:bg-muted/60'
                   }`}
@@ -172,30 +205,63 @@ export function LoadDialog({
               while the `truncate` on the URL never gets to do anything because
               nothing ever asked it to be narrower. */}
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+            {NEEDS_NAME.has(active) && (
+              <NameRow
+                rsn={rsn}
+                onChange={setRsn}
+                onSubmit={
+                  LOOKUP[active] === undefined ? undefined : () => setSubmitToken((n) => n + 1)
+                }
+                busy={busy}
+                action={
+                  LOOKUP[active] === undefined
+                    ? undefined
+                    : {
+                        label: LOOKUP[active],
+                        icon: busy ? (
+                          <Loader2 className="size-4 animate-spin" aria-hidden />
+                        ) : (
+                          <Search className="size-4" aria-hidden />
+                        ),
+                      }
+                }
+              />
+            )}
+
             {active === 'wikisync' && (
               <WikiSyncPanel
+                rsn={rsn}
                 completed={completed}
                 listCount={listCount}
                 lastRsn={lastRsn}
-                onApply={(ids, rsn, clear, imported) =>
-                  onImportApply(ids, rsn, clear, imported, 'wikisync')
+                onApply={(ids, name, clear, imported) =>
+                  onImportApply(ids, name, clear, imported, 'wikisync')
                 }
                 onFinished={finish}
               />
             )}
             {active === 'runeprofile' && (
               <RuneProfilePanel
+                rsn={rsn}
+                submitToken={submitToken}
+                onBusyChange={setBusy}
                 completed={completed}
                 listCount={listCount}
                 lastRsn={lastRsn}
-                onApply={(ids, rsn, clear, imported) =>
-                  onImportApply(ids, rsn, clear, imported, 'runeprofile')
+                onApply={(ids, name, clear, imported) =>
+                  onImportApply(ids, name, clear, imported, 'runeprofile')
                 }
                 onFinished={finish}
               />
             )}
             {active === 'wiseoldman' && (
-              <WiseOldManPanel onApply={onImportLevels} onFinished={finish} />
+              <WiseOldManPanel
+                rsn={rsn}
+                submitToken={submitToken}
+                onBusyChange={setBusy}
+                onApply={onImportLevels}
+                onFinished={finish}
+              />
             )}
             {active === 'file' && (
               <FilePanel onImport={onImportFile} onFinished={finish} />

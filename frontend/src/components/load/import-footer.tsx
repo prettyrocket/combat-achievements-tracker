@@ -102,30 +102,45 @@ export function Steps({ children }: { children: ReactNode }) {
   )
 }
 
-/** A name box and its Look up button, for the two panes that fetch by RSN. */
-export function RsnField({
+/**
+ * The name, asked once.
+ *
+ * Owned by the dialog rather than by the three panes that need it, because it
+ * is a fact about *you*, not about which door you picked -- typing it into
+ * WikiSync and then retyping it into RuneProfile was the tell that it had been
+ * put in the wrong place. It sits above the pane and outlives switching between
+ * them; the two sources with no account behind them simply don't render it.
+ *
+ * `action` is optional because the panes differ in what to do with a name:
+ * RuneProfile and Wise Old Man fetch, so they get a button, while WikiSync
+ * builds a URL for you to open yourself and has nothing to press here.
+ */
+export function NameRow({
   rsn,
   onChange,
   onSubmit,
-  busy,
-  icon,
-  label = 'Look up',
+  busy = false,
+  action,
 }: {
   rsn: string
   onChange: (next: string) => void
-  onSubmit: () => void
-  busy: boolean
-  icon: ReactNode
-  label?: string
+  /** Enter, and the action button. Absent for panes that don't fetch. */
+  onSubmit?: () => void
+  busy?: boolean
+  action?: { label: string; icon: ReactNode }
 }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="mb-3 flex items-center gap-2 border-b pb-3">
+      <label className="text-muted-foreground shrink-0 text-sm" htmlFor="load-rsn">
+        Your name
+      </label>
       <Input
+        id="load-rsn"
         value={rsn}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={(event) => {
           // Enter would otherwise find the footer button and fire the import.
-          if (event.key !== 'Enter') return
+          if (event.key !== 'Enter' || !onSubmit) return
           event.preventDefault()
           onSubmit()
         }}
@@ -135,15 +150,17 @@ export function RsnField({
         autoComplete="off"
         spellCheck={false}
       />
-      <Button
-        variant="outline"
-        className="shrink-0"
-        disabled={busy || rsn.trim() === ''}
-        onClick={onSubmit}
-      >
-        {icon}
-        {busy ? 'Looking' : label}
-      </Button>
+      {action && (
+        <Button
+          variant="outline"
+          className="shrink-0"
+          disabled={busy || rsn.trim() === ''}
+          onClick={onSubmit}
+        >
+          {action.icon}
+          {busy ? 'Looking' : action.label}
+        </Button>
+      )}
     </div>
   )
 }

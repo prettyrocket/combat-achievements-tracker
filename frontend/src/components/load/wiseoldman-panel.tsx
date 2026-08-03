@@ -11,7 +11,6 @@
 // the hiscores have never heard of a quest.
 
 import { useEffect, useRef, useState } from 'react'
-import { Loader2, Search } from 'lucide-react'
 import {
   fetchWomLevels,
   updatedLabel,
@@ -19,22 +18,39 @@ import {
   WomLookupError,
   type WomLookup,
 } from '@/lib/wiseoldman'
-import { ImportFooter, RsnField } from '@/components/load/import-footer'
+import { ImportFooter } from '@/components/load/import-footer'
 
 export interface WiseOldManPanelProps {
+  /** Owned by the dialog and shared with the other account-shaped sources. */
+  rsn: string
+  /** Incremented by the dialog's Look up button. Zero means "not yet". */
+  submitToken: number
+  /** Lifted so the dialog's button can spin while this pane is fetching. */
+  onBusyChange: (busy: boolean) => void
   /** Replaces every level, leaving quests alone -- this source has none. */
   onApply: (levels: Record<string, number>) => void
   onFinished: (remember: boolean) => void
 }
 
-export function WiseOldManPanel({ onApply, onFinished }: WiseOldManPanelProps) {
-  const [rsn, setRsn] = useState('')
+export function WiseOldManPanel({
+  rsn,
+  submitToken,
+  onBusyChange,
+  onApply,
+  onFinished,
+}: WiseOldManPanelProps) {
   const [busy, setBusy] = useState(false)
   const [found, setFound] = useState<WomLookup | null>(null)
   const [error, setError] = useState<string | null>(null)
   const inFlight = useRef<AbortController | null>(null)
 
   useEffect(() => () => inFlight.current?.abort(), [])
+
+  // Editing the name invalidates the last result. Runs on mount too, harmlessly.
+  useEffect(() => {
+    setFound(null)
+    setError(null)
+  }, [rsn])
 
   async function run() {
     if (busy || rsn.trim() === '') return
@@ -43,6 +59,7 @@ export function WiseOldManPanel({ onApply, onFinished }: WiseOldManPanelProps) {
     inFlight.current = controller
 
     setBusy(true)
+    onBusyChange(true)
     setError(null)
     setFound(null)
     try {
@@ -58,9 +75,20 @@ export function WiseOldManPanel({ onApply, onFinished }: WiseOldManPanelProps) {
           : 'That lookup failed. Try again in a moment.',
       )
     } finally {
-      if (!controller.signal.aborted) setBusy(false)
+      if (!controller.signal.aborted) {
+        setBusy(false)
+        onBusyChange(false)
+      }
     }
   }
+
+  // The dialog's Look up button lives above this pane, so it asks by bumping a
+  // counter rather than calling in.
+  useEffect(() => {
+    if (submitToken === 0) return
+    void run()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [submitToken])
 
   const stale = found === null ? null : updatedLabel(found.updatedAt)
   const count = found === null ? 0 : Object.keys(found.levels).length
@@ -78,26 +106,8 @@ export function WiseOldManPanel({ onApply, onFinished }: WiseOldManPanelProps) {
           >
             Wise Old Man
           </a>
-          . No plugin needed — just a name.
+          . No plugin needed — enter your name above and press Look up.
         </p>
-
-        <RsnField
-          rsn={rsn}
-          onChange={(next) => {
-            setRsn(next)
-            setFound(null)
-            setError(null)
-          }}
-          onSubmit={() => void run()}
-          busy={busy}
-          icon={
-            busy ? (
-              <Loader2 className="size-4 animate-spin" aria-hidden />
-            ) : (
-              <Search className="size-4" aria-hidden />
-            )
-          }
-        />
 
         {found && (
           <div className="space-y-1 text-sm">
