@@ -40,7 +40,7 @@
 // Relative, not `@/lib/types`: check-requirements.ts loads this module in bare
 // Node to verify the Slayer half against the wiki, and Node doesn't read the
 // alias out of tsconfig. types.ts imports nothing, so the graph stops here.
-import type { TaskRow } from './types.ts'
+import type { TaskRow } from "./types.ts";
 
 /**
  * The skills any gate actually asks for.
@@ -51,32 +51,32 @@ import type { TaskRow } from './types.ts'
  * agree -- add a gate on a new skill and the script says so.
  */
 export const GATED_SKILLS = [
-  'Slayer',
-  'Hitpoints',
-  'Ranged',
-  'Strength',
-  'Agility',
-  'Mining',
-  'Smithing',
-  'Farming',
-  'Firemaking',
-  'Fishing',
-] as const
-export type GatedSkill = (typeof GATED_SKILLS)[number]
+  "Slayer",
+  "Hitpoints",
+  "Ranged",
+  "Strength",
+  "Agility",
+  "Mining",
+  "Smithing",
+  "Farming",
+  "Firemaking",
+  "Fishing",
+] as const;
+export type GatedSkill = (typeof GATED_SKILLS)[number];
 
 export interface MonsterGate {
   /** Levels that must be met. Unboostable in the cases that matter (Slayer). */
-  readonly skills?: Readonly<Partial<Record<GatedSkill, number>>>
+  readonly skills?: Readonly<Partial<Record<GatedSkill, number>>>;
   /** Quests that must be finished, by their full in-game name. */
-  readonly quests?: readonly string[]
+  readonly quests?: readonly string[];
 }
 
 // Morytania is behind one quest, and four separate entries need it. Named once
 // so they can't drift apart.
-const MORYTANIA = 'Priest in Peril'
-const SOTE = 'Song of the Elves'
-const DT2 = 'Desert Treasure II - The Fallen Empire'
-const VARLAMORE = 'Children of the Sun'
+const MORYTANIA = "Priest in Peril";
+const SOTE = "Song of the Elves";
+const DT2 = "Desert Treasure II - The Fallen Empire";
+const VARLAMORE = "Children of the Sun";
 
 /**
  * Keyed by the wiki's own monster name, exactly as it arrives in `tasks.json`.
@@ -89,36 +89,42 @@ const VARLAMORE = 'Children of the Sun'
  */
 const GATES: Readonly<Record<string, MonsterGate>> = {
   // --- Slayer, and only Slayer -----------------------------------------------
-  'Aberrant Spectre': { skills: { Slayer: 60 } },
-  'Abyssal Sire': { skills: { Slayer: 85 } },
-  'Alchemical Hydra': { skills: { Slayer: 95 } },
+  "Aberrant Spectre": { skills: { Slayer: 60 } },
+  "Abyssal Sire": { skills: { Slayer: 85 } },
+  "Alchemical Hydra": { skills: { Slayer: 95 } },
   Bloodveld: { skills: { Slayer: 50 } },
-  'Brutal Black Dragon': { skills: { Slayer: 77 } },
+  "Brutal Black Dragon": { skills: { Slayer: 77 } },
   Cerberus: { skills: { Slayer: 91 } },
   Gargoyle: { skills: { Slayer: 75 } },
   // The wiki files this one under Dusk and Dawn, which is why the check script
   // needs an alias to verify it -- the roof itself is behind a brittle key from
   // a 75 Slayer gargoyle task.
-  'Grotesque Guardians': { skills: { Slayer: 75 } },
+  "Grotesque Guardians": { skills: { Slayer: 75 } },
   Kraken: { skills: { Slayer: 87 } },
   Kurask: { skills: { Slayer: 70 } },
-  'Skeletal Wyvern': { skills: { Slayer: 72 } },
-  'Thermonuclear Smoke Devil': { skills: { Slayer: 93 } },
+  "Skeletal Wyvern": { skills: { Slayer: 72 } },
+  "Thermonuclear Smoke Devil": { skills: { Slayer: 93 } },
   Wyrm: { skills: { Slayer: 62 } },
 
   // --- Slayer plus a quest ---------------------------------------------------
-  Amoxliatl: { skills: { Slayer: 48 }, quests: ['The Heart of Darkness'] },
+  Amoxliatl: { skills: { Slayer: 48 }, quests: ["The Heart of Darkness"] },
   Araxxor: { skills: { Slayer: 92 }, quests: [MORYTANIA] },
-  'Basilisk Knight': { skills: { Slayer: 60 }, quests: ['The Fremennik Exiles'] },
-  'Shellbane gryphon': { skills: { Slayer: 51 }, quests: ['Troubled Tortugans'] },
+  "Basilisk Knight": {
+    skills: { Slayer: 60 },
+    quests: ["The Fremennik Exiles"],
+  },
+  "Shellbane gryphon": {
+    skills: { Slayer: 51 },
+    quests: ["Troubled Tortugans"],
+  },
 
   // --- Skill levels that gate the route, not the monster ---------------------
   //
   // The God Wars quartet is the clearest case in the game of a requirement that
   // has nothing to do with the fight: each fortress door asks for one level 70,
   // and none of them can be boosted.
-  'Commander Zilyana': { skills: { Agility: 70 } },
-  'General Graardor': { skills: { Strength: 70 } },
+  "Commander Zilyana": { skills: { Agility: 70 } },
+  "General Graardor": { skills: { Strength: 70 } },
   "K'ril Tsutsaroth": { skills: { Hitpoints: 70 } },
   "Kree'arra": { skills: { Ranged: 70 } },
   // Nex is behind the whole set at once -- the Ancient Prison is reached through
@@ -131,36 +137,36 @@ const GATES: Readonly<Record<string, MonsterGate>> = {
 
   // --- Quest-locked ----------------------------------------------------------
   Barrows: { quests: [MORYTANIA] },
-  Brutus: { quests: ['The Ides of Milk'] },
-  'Corrupted Hunllef': { quests: [SOTE] },
-  'Crystalline Hunllef': { quests: [SOTE] },
-  'Demonic Gorilla': { quests: ['Monkey Madness II'] },
-  'Doom of Mokhaiotl': { quests: ['The Final Dawn'] },
-  'Duke Sucellus': { quests: [DT2] },
-  'Fortis Colosseum': { quests: [VARLAMORE] },
-  'Fragment of Seren': { quests: [SOTE] },
-  Galvek: { quests: ['Dragon Slayer II'] },
-  Glough: { quests: ['Monkey Madness II'] },
+  Brutus: { quests: ["The Ides of Milk"] },
+  "Corrupted Hunllef": { quests: [SOTE] },
+  "Crystalline Hunllef": { quests: [SOTE] },
+  "Demonic Gorilla": { quests: ["Monkey Madness II"] },
+  "Doom of Mokhaiotl": { quests: ["The Final Dawn"] },
+  "Duke Sucellus": { quests: [DT2] },
+  "Fortis Colosseum": { quests: [VARLAMORE] },
+  "Fragment of Seren": { quests: [SOTE] },
+  Galvek: { quests: ["Dragon Slayer II"] },
+  Glough: { quests: ["Monkey Madness II"] },
   Leviathan: { quests: [DT2] },
-  'Maggot King': { quests: ['The Blood Moon Rises'] },
-  'Moons of Peril': { quests: ['Perilous Moons'] },
-  'Phantom Muspah': { quests: ['Secrets of the North'] },
-  "Phosani's Nightmare": { quests: ['Sins of the Father'] },
-  'The Hueycoatl': { quests: [VARLAMORE] },
-  'The Nightmare': { quests: [MORYTANIA] },
-  'Theatre of Blood': { quests: [MORYTANIA] },
-  'Theatre of Blood: Entry Mode': { quests: [MORYTANIA] },
-  'Theatre of Blood: Hard Mode': { quests: [MORYTANIA] },
-  'Tombs of Amascut': { quests: ['Beneath Cursed Sands'] },
-  'Tombs of Amascut: Entry Mode': { quests: ['Beneath Cursed Sands'] },
-  'Tombs of Amascut: Expert Mode': { quests: ['Beneath Cursed Sands'] },
-  'Tormented Demon': { quests: ['While Guthix Sleeps'] },
+  "Maggot King": { quests: ["The Blood Moon Rises"] },
+  "Moons of Peril": { quests: ["Perilous Moons"] },
+  "Phantom Muspah": { quests: ["Secrets of the North"] },
+  "Phosani's Nightmare": { quests: ["Sins of the Father"] },
+  "The Hueycoatl": { quests: [VARLAMORE] },
+  "The Nightmare": { quests: [MORYTANIA] },
+  "Theatre of Blood": { quests: [MORYTANIA] },
+  "Theatre of Blood: Entry Mode": { quests: [MORYTANIA] },
+  "Theatre of Blood: Hard Mode": { quests: [MORYTANIA] },
+  "Tombs of Amascut": { quests: ["Beneath Cursed Sands"] },
+  "Tombs of Amascut: Entry Mode": { quests: ["Beneath Cursed Sands"] },
+  "Tombs of Amascut: Expert Mode": { quests: ["Beneath Cursed Sands"] },
+  "Tormented Demon": { quests: ["While Guthix Sleeps"] },
   Vardorvis: { quests: [DT2] },
-  Vorkath: { quests: ['Dragon Slayer II'] },
+  Vorkath: { quests: ["Dragon Slayer II"] },
   Whisperer: { quests: [DT2] },
-  Yama: { quests: ['A Kingdom Divided'] },
-  Zulrah: { quests: ['Regicide'] },
-}
+  Yama: { quests: ["A Kingdom Divided"] },
+  Zulrah: { quests: ["Regicide"] },
+};
 
 /**
  * Shorter names for the quest chips and tooltips, where the full in-game title
@@ -168,26 +174,26 @@ const GATES: Readonly<Record<string, MonsterGate>> = {
  * stores and what WikiSync is joined on, so this is display only.
  */
 const QUEST_LABEL: Readonly<Record<string, string>> = {
-  [DT2]: 'Desert Treasure II',
-}
+  [DT2]: "Desert Treasure II",
+};
 
 export function questLabel(quest: string): string {
-  return QUEST_LABEL[quest] ?? quest
+  return QUEST_LABEL[quest] ?? quest;
 }
 
 /** Lower-cased lookup, so a monster's casing in the data can drift without breaking. */
 const BY_MONSTER = new Map<string, MonsterGate>(
   Object.entries(GATES).map(([monster, gate]) => [monster.toLowerCase(), gate]),
-)
+);
 
 /** Every monster this module has an opinion about, in the data's own casing. */
 export function gatedMonsters(): string[] {
-  return Object.keys(GATES)
+  return Object.keys(GATES);
 }
 
 export function gateFor(monster: string | null): MonsterGate | null {
-  if (monster === null) return null
-  return BY_MONSTER.get(monster.trim().toLowerCase()) ?? null
+  if (monster === null) return null;
+  return BY_MONSTER.get(monster.trim().toLowerCase()) ?? null;
 }
 
 /**
@@ -195,11 +201,11 @@ export function gateFor(monster: string | null): MonsterGate | null {
  * checklist, so that list can never fall out of step with the table.
  */
 export function gatedQuests(): string[] {
-  const seen = new Set<string>()
+  const seen = new Set<string>();
   for (const gate of Object.values(GATES)) {
-    for (const quest of gate.quests ?? []) seen.add(quest)
+    for (const quest of gate.quests ?? []) seen.add(quest);
   }
-  return [...seen].sort((a, b) => questLabel(a).localeCompare(questLabel(b)))
+  return [...seen].sort((a, b) => questLabel(a).localeCompare(questLabel(b)));
 }
 
 // --- the player -------------------------------------------------------------
@@ -213,8 +219,8 @@ export function gatedQuests(): string[] {
  * every profile already stored. `quests` is the finished ones only.
  */
 export interface PlayerProfile {
-  readonly levels: Readonly<Record<string, number>>
-  readonly quests: readonly string[]
+  readonly levels: Readonly<Record<string, number>>;
+  readonly quests: readonly string[];
 }
 
 /**
@@ -226,21 +232,24 @@ export interface PlayerProfile {
  * about. Case and runs of whitespace go the same way.
  */
 export function normalizeQuest(quest: string): string {
-  return quest
-    .toLowerCase()
-    // U+2010..U+2015 are the typographic dashes; U+2212 is the maths minus.
-    .replace(/[‐-―−]/g, '-')
-    .replace(/\s+/g, ' ')
-    .trim()
+  return (
+    quest
+      .toLowerCase()
+      // U+2010..U+2015 are the typographic dashes; U+2212 is the maths minus.
+      .replace(/[‐-―−]/g, "-")
+      .replace(/\s+/g, " ")
+      .trim()
+  );
 }
 
-export const EMPTY_PROFILE: PlayerProfile = { levels: {}, quests: [] }
+export const EMPTY_PROFILE: PlayerProfile = { levels: {}, quests: [] };
 
 /** Whether a profile says anything at all -- an empty one can't answer questions. */
 export function profileIsEmpty(profile: PlayerProfile | null): boolean {
   return (
-    profile === null || (Object.keys(profile.levels).length === 0 && profile.quests.length === 0)
-  )
+    profile === null ||
+    (Object.keys(profile.levels).length === 0 && profile.quests.length === 0)
+  );
 }
 
 // --- checking ---------------------------------------------------------------
@@ -251,25 +260,25 @@ export function profileIsEmpty(profile: PlayerProfile | null): boolean {
  * Collapsing that into "blocked" would hide half the game from someone who
  * simply hasn't told us their levels yet.
  */
-export type GateStatus = 'open' | 'blocked' | 'unknown'
+export type GateStatus = "open" | "blocked" | "unknown";
 
 export interface Shortfall {
-  kind: 'skill' | 'quest'
+  kind: "skill" | "quest";
   /** Reads as the requirement itself: "92 Slayer", "Dragon Slayer II". */
-  label: string
+  label: string;
   /** For skills, the level actually held -- so a tooltip can say how far off. */
-  have?: number
+  have?: number;
 }
 
 export interface GateCheck {
-  status: GateStatus
+  status: GateStatus;
   /** Everything the gate asks for, met or not. Empty when there is no gate. */
-  requires: string[]
+  requires: string[];
   /** Only what's missing. Always empty unless the status is `blocked`. */
-  missing: Shortfall[]
+  missing: Shortfall[];
 }
 
-const OPEN: GateCheck = { status: 'open', requires: [], missing: [] }
+const OPEN: GateCheck = { status: "open", requires: [], missing: [] };
 
 /**
  * What stands between this profile and this monster.
@@ -277,45 +286,49 @@ const OPEN: GateCheck = { status: 'open', requires: [], missing: [] }
  * Pure, and cheap enough to call per row: the table is a Map lookup and a gate
  * has at most four clauses.
  */
-export function checkGate(monster: string | null, profile: PlayerProfile | null): GateCheck {
-  const gate = gateFor(monster)
+export function checkGate(
+  monster: string | null,
+  profile: PlayerProfile | null,
+): GateCheck {
+  const gate = gateFor(monster);
   // No modelled gate means open to everyone, profile or not -- a third of the
   // 89 monsters, and the reason the filter is worth having at all: 56 of them
   // are behind something, which is far too many to keep in your head.
-  if (gate === null) return OPEN
+  if (gate === null) return OPEN;
 
-  const requires: string[] = []
+  const requires: string[] = [];
   for (const [skill, level] of Object.entries(gate.skills ?? {})) {
-    requires.push(`${level} ${skill}`)
+    requires.push(`${level} ${skill}`);
   }
-  for (const quest of gate.quests ?? []) requires.push(questLabel(quest))
+  for (const quest of gate.quests ?? []) requires.push(questLabel(quest));
 
   // The `profile === null` half is redundant against profileIsEmpty and is what
   // narrows the type for the two lines below it.
   if (profile === null || profileIsEmpty(profile)) {
-    return { status: 'unknown', requires, missing: [] }
+    return { status: "unknown", requires, missing: [] };
   }
 
-  const held = profile.levels
-  const finished = new Set(profile.quests.map(normalizeQuest))
+  const held = profile.levels;
+  const finished = new Set(profile.quests.map(normalizeQuest));
 
-  const missing: Shortfall[] = []
+  const missing: Shortfall[] = [];
   for (const [skill, level] of Object.entries(gate.skills ?? {})) {
     // Absent means 1, not "assume it's fine": a profile typed by hand may only
     // have Slayer in it, and treating the gaps as met would call Nex open on the
     // strength of one number.
-    const have = held[skill] ?? 1
-    if (have < level) missing.push({ kind: 'skill', label: `${level} ${skill}`, have })
+    const have = held[skill] ?? 1;
+    if (have < level)
+      missing.push({ kind: "skill", label: `${level} ${skill}`, have });
   }
   for (const quest of gate.quests ?? []) {
     if (!finished.has(normalizeQuest(quest))) {
-      missing.push({ kind: 'quest', label: questLabel(quest) })
+      missing.push({ kind: "quest", label: questLabel(quest) });
     }
   }
 
   return missing.length === 0
-    ? { status: 'open', requires, missing: [] }
-    : { status: 'blocked', requires, missing }
+    ? { status: "open", requires, missing: [] }
+    : { status: "blocked", requires, missing };
 }
 
 /**
@@ -327,12 +340,12 @@ export function checkAll(
   tasks: readonly TaskRow[],
   profile: PlayerProfile | null,
 ): Map<string, GateCheck> {
-  const out = new Map<string, GateCheck>()
+  const out = new Map<string, GateCheck>();
   for (const task of tasks) {
-    if (task.monster === null || out.has(task.monster)) continue
-    out.set(task.monster, checkGate(task.monster, profile))
+    if (task.monster === null || out.has(task.monster)) continue;
+    out.set(task.monster, checkGate(task.monster, profile));
   }
-  return out
+  return out;
 }
 
 /** A one-line summary for the tooltip on a locked row. */
@@ -341,11 +354,11 @@ export function describeMissing(missing: readonly Shortfall[]): string {
     // "Priest in Peril" alone reads as a place or a person. Naming it as a quest
     // is the difference between a requirement you understand and one you have to
     // go and look up.
-    item.kind === 'quest' ? `the quest ${item.label}` : item.label,
-  )
+    item.kind === "quest" ? `the quest ${item.label}` : item.label,
+  );
   // Joined as a sentence, not with a separator. This is read aloud by a screen
   // reader, where "·" is either silence or the word "middot" -- neither of which
   // is what a list of two requirements sounds like.
-  if (parts.length <= 1) return parts[0] ?? ''
-  return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`
+  if (parts.length <= 1) return parts[0] ?? "";
+  return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
 }

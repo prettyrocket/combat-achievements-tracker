@@ -14,7 +14,7 @@
 // the column defs no longer close over `completed` (it arrives via table meta),
 // so a tick can't invalidate them and remount every cell either.
 
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -22,9 +22,9 @@ import {
   type ColumnDef,
   type Header,
   type Row,
-} from '@tanstack/react-table'
-import { useVirtualizer } from '@tanstack/react-virtual'
-import { useDraggable } from '@dnd-kit/core'
+} from "@tanstack/react-table";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useDraggable } from "@dnd-kit/core";
 import {
   ArrowDown,
   ArrowUp,
@@ -35,16 +35,28 @@ import {
   ListChecks,
   ListPlus,
   Lock,
-} from 'lucide-react'
-import { dragId } from '@/lib/dnd'
-import { describeMissing, type GateCheck } from '@/lib/requirements'
-import type { SortKey, TaskRow, TaskType } from '@/lib/types'
-import { COMPLETION_TONE_CLASS, completionTone, formatCompletion } from '@/lib/completion'
-import { COLUMN_SORT, sortDirection, type SortDirection } from '@/lib/task-query'
-import { monsterWikiUrl, splitAtColon, taskWikiUrl } from '@/lib/wiki'
-import { TierBadge } from '@/components/tier-badge'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+} from "lucide-react";
+import { dragId } from "@/lib/dnd";
+import { describeMissing, type GateCheck } from "@/lib/requirements";
+import type { SortKey, TaskRow, TaskType } from "@/lib/types";
+import {
+  COMPLETION_TONE_CLASS,
+  completionTone,
+  formatCompletion,
+} from "@/lib/completion";
+import {
+  COLUMN_SORT,
+  sortDirection,
+  type SortDirection,
+} from "@/lib/task-query";
+import { monsterWikiUrl, splitAtColon, taskWikiUrl } from "@/lib/wiki";
+import { TierBadge } from "@/components/tier-badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 // Note the missing `Table`: that wrapper brings its own `overflow-x-auto` div,
 // and nesting one inside this viewport puts the horizontal scrollbar back at the
 // bottom of all 646 rows -- the exact thing the viewport exists to fix. The
@@ -55,16 +67,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
+} from "@/components/ui/table";
 
 const TYPE_LABEL: Record<TaskType, string> = {
-  KILL_COUNT: 'Kill Count',
-  RESTRICTION: 'Restriction',
-  PERFECTION: 'Perfection',
-  MECHANICAL: 'Mechanical',
-  SPEED: 'Speed',
-  STAMINA: 'Stamina',
-}
+  KILL_COUNT: "Kill Count",
+  RESTRICTION: "Restriction",
+  PERFECTION: "Perfection",
+  MECHANICAL: "Mechanical",
+  SPEED: "Speed",
+  STAMINA: "Stamina",
+};
 
 /**
  * Row state that changes constantly, kept out of the column defs.
@@ -74,51 +86,51 @@ const TYPE_LABEL: Record<TaskType, string> = {
  * this from meta instead means a tick re-renders cells and nothing more.
  */
 interface TableMeta {
-  completed: ReadonlySet<number>
-  onList: ReadonlySet<number> | undefined
-  activeMonsters: readonly string[]
-  gates: ReadonlyMap<string, GateCheck>
+  completed: ReadonlySet<number>;
+  onList: ReadonlySet<number> | undefined;
+  activeMonsters: readonly string[];
+  gates: ReadonlyMap<string, GateCheck>;
 }
 
 export interface TaskTableProps {
-  tasks: readonly TaskRow[]
-  completed: ReadonlySet<number>
-  onToggle: (wikiId: number) => void
+  tasks: readonly TaskRow[];
+  completed: ReadonlySet<number>;
+  onToggle: (wikiId: number) => void;
   /**
    * Turns the Monster cell into the pivot control. Optional so the table stays
    * usable on its own: without it the cell renders as plain text rather than
    * shipping a control that goes nowhere.
    */
-  onPivotToMonster?: (monster: string) => void
+  onPivotToMonster?: (monster: string) => void;
   /** Adds a monster to the filter alongside whatever's already there (shift-click). */
-  onAddMonster?: (monster: string) => void
+  onAddMonster?: (monster: string) => void;
   /** Monsters already filtered to. Their cells render as plain text. */
-  activeMonsters?: readonly string[]
+  activeMonsters?: readonly string[];
   /** Ids on the plan, so a row can show it's already there. */
-  onList?: ReadonlySet<number>
+  onList?: ReadonlySet<number>;
   /**
    * Adds/removes the row from the plan. The keyboard- and touch-reachable
    * counterpart to dragging a row into the panel, which is pointer-only however
    * carefully it's built.
    */
-  onToggleListed?: (wikiId: number) => void
+  onToggleListed?: (wikiId: number) => void;
   /**
    * Puts a whole monster group on the plan at once, from its banner. Separate
    * from onToggleListed because this one only ever adds: a toggle over twenty
    * tasks would take half of them off again depending on what was already there.
    */
-  onAddManyToList?: (wikiIds: number[]) => void
+  onAddManyToList?: (wikiIds: number[]) => void;
   /**
    * Per-monster requirement verdicts, for the lock marker. Optional so the table
    * stays usable on its own; an absent map simply means no locks.
    */
-  gates?: ReadonlyMap<string, GateCheck>
+  gates?: ReadonlyMap<string, GateCheck>;
   /** Current sort, for the header arrows. */
-  sort: SortKey
-  onSortChange?: (next: SortKey) => void
+  sort: SortKey;
+  onSortChange?: (next: SortKey) => void;
 }
 
-const NO_GATES: ReadonlyMap<string, GateCheck> = new Map()
+const NO_GATES: ReadonlyMap<string, GateCheck> = new Map();
 
 /**
  * The lock on a monster you can't face yet.
@@ -130,8 +142,8 @@ const NO_GATES: ReadonlyMap<string, GateCheck> = new Map()
  * authority on what you have done, you are.
  */
 function GateLock({ gate }: { gate: GateCheck }) {
-  if (gate.status !== 'blocked') return null
-  const requires = `Requires ${describeMissing(gate.missing)}`
+  if (gate.status !== "blocked") return null;
+  const requires = `Requires ${describeMissing(gate.missing)}`;
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -154,7 +166,7 @@ function GateLock({ gate }: { gate: GateCheck }) {
           you came to the lock to find out. */}
       <TooltipContent>{requires}</TooltipContent>
     </Tooltip>
-  )
+  );
 }
 
 /** A wiki link that doesn't take the click meant for the control next to it. */
@@ -171,7 +183,7 @@ function WikiLink({ href, label }: { href: string; label: string }) {
     >
       <ExternalLink className="size-3.5" aria-hidden />
     </a>
-  )
+  );
 }
 
 /**
@@ -180,15 +192,21 @@ function WikiLink({ href, label }: { href: string; label: string }) {
  * Only the handful of names with a colon are affected; everything else renders
  * as one line exactly as before.
  */
-function SplitName({ value, className }: { value: string; className?: string }) {
-  const [head, tail] = splitAtColon(value)
-  if (tail === null) return <span className={className}>{value}</span>
+function SplitName({
+  value,
+  className,
+}: {
+  value: string;
+  className?: string;
+}) {
+  const [head, tail] = splitAtColon(value);
+  if (tail === null) return <span className={className}>{value}</span>;
   return (
     <span className={className}>
       {head}:<br />
       <span className="text-muted-foreground">{tail}</span>
     </span>
-  )
+  );
 }
 
 /**
@@ -208,32 +226,32 @@ function DraggableRow({
   measureRef,
   children,
 }: {
-  task: TaskRow
-  isCompleted: boolean
-  draggable: boolean
-  index: number
-  measureRef: (node: HTMLElement | null) => void
-  children: React.ReactNode
+  task: TaskRow;
+  isCompleted: boolean;
+  draggable: boolean;
+  index: number;
+  measureRef: (node: HTMLElement | null) => void;
+  children: React.ReactNode;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: dragId('table', task.wikiId),
+    id: dragId("table", task.wikiId),
     disabled: !draggable,
-  })
+  });
 
   const ref = useCallback(
     (node: HTMLTableRowElement | null) => {
-      setNodeRef(node)
-      measureRef(node)
+      setNodeRef(node);
+      measureRef(node);
     },
     [setNodeRef, measureRef],
-  )
+  );
 
   return (
     <TableRow
       ref={ref}
       data-index={index}
-      data-state={isCompleted && 'selected'}
-      className={isDragging ? 'opacity-40' : undefined}
+      data-state={isCompleted && "selected"}
+      className={isDragging ? "opacity-40" : undefined}
       {...(draggable ? attributes : {})}
       {...(draggable ? listeners : {})}
       // The row is a drag surface, not a button: dnd-kit's default role would
@@ -244,17 +262,17 @@ function DraggableRow({
     >
       {children}
     </TableRow>
-  )
+  );
 }
 
 /** One monster's banner, and the tasks under it, in one flat virtualised list. */
 interface GroupItem {
-  kind: 'group'
-  monster: string | null
+  kind: "group";
+  monster: string | null;
   /** Every task under this banner, collapsed or not -- what "add all" adds. */
-  wikiIds: number[]
+  wikiIds: number[];
 }
-type RowItem = GroupItem | { kind: 'row'; row: Row<TaskRow> }
+type RowItem = GroupItem | { kind: "row"; row: Row<TaskRow> };
 
 /**
  * `null` is a real value here -- tasks with no monster group under "Any monster"
@@ -262,7 +280,7 @@ type RowItem = GroupItem | { kind: 'row'; row: Row<TaskRow> }
  * sentinel string no monster could be called.
  */
 function groupKey(monster: string | null): string {
-  return monster === null ? 'any:' : `monster:${monster}`
+  return monster === null ? "any:" : `monster:${monster}`;
 }
 
 /**
@@ -285,22 +303,24 @@ function GroupBanner({
   onList,
   onAddManyToList,
 }: {
-  group: GroupItem
-  index: number
-  columnCount: number
-  measureRef: (node: HTMLElement | null) => void
-  collapsed: boolean
-  onToggleCollapsed: (monster: string | null) => void
-  completed: ReadonlySet<number>
-  onList: ReadonlySet<number> | undefined
-  onAddManyToList?: (wikiIds: number[]) => void
+  group: GroupItem;
+  index: number;
+  columnCount: number;
+  measureRef: (node: HTMLElement | null) => void;
+  collapsed: boolean;
+  onToggleCollapsed: (monster: string | null) => void;
+  completed: ReadonlySet<number>;
+  onList: ReadonlySet<number> | undefined;
+  onAddManyToList?: (wikiIds: number[]) => void;
 }) {
-  const name = group.monster ?? 'Any monster'
+  const name = group.monster ?? "Any monster";
   // A plan is what's left to do. Filtered to "All tasks" a group carries the
   // ones you've already finished, and putting those on the list is the one
   // thing this button must never quietly do.
-  const toAdd = group.wikiIds.filter((id) => !completed.has(id) && !onList?.has(id))
-  const Chevron = collapsed ? ChevronRight : ChevronDown
+  const toAdd = group.wikiIds.filter(
+    (id) => !completed.has(id) && !onList?.has(id),
+  );
+  const Chevron = collapsed ? ChevronRight : ChevronDown;
 
   return (
     <tr data-index={index} ref={measureRef} className="bg-muted/60">
@@ -315,7 +335,11 @@ function GroupBanner({
             className="hover:text-foreground text-foreground flex min-w-0 items-center gap-1.5 rounded px-1 py-0.5 text-left text-xs font-semibold transition-colors"
           >
             <Chevron className="size-3.5 shrink-0 opacity-70" aria-hidden />
-            <span className={`truncate ${group.monster === null ? 'italic' : ''}`}>{name}</span>
+            <span
+              className={`truncate ${group.monster === null ? "italic" : ""}`}
+            >
+              {name}
+            </span>
             <span className="text-muted-foreground shrink-0 font-normal tabular-nums">
               {group.wikiIds.length}
             </span>
@@ -329,23 +353,23 @@ function GroupBanner({
               title={
                 toAdd.length === 0
                   ? `Nothing left to plan for ${name} — every task is done or already on your list`
-                  : `Add ${toAdd.length} unfinished ${name} task${toAdd.length === 1 ? '' : 's'} to my list`
+                  : `Add ${toAdd.length} unfinished ${name} task${toAdd.length === 1 ? "" : "s"} to my list`
               }
               className="text-muted-foreground hover:bg-background hover:text-foreground flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-xs transition-colors disabled:pointer-events-none disabled:opacity-40"
             >
               <ListPlus className="size-3.5" aria-hidden />
               {/* The number is what makes this safe to click: it counts what is
                   actually about to be added, not how big the group is. */}
-              Add {toAdd.length === 0 ? 'all' : toAdd.length}
+              Add {toAdd.length === 0 ? "all" : toAdd.length}
             </button>
           )}
         </div>
       </td>
     </tr>
-  )
+  );
 }
 
-const DIRECTION_ICON = { asc: ArrowUp, desc: ArrowDown } as const
+const DIRECTION_ICON = { asc: ArrowUp, desc: ArrowDown } as const;
 
 /** A header that sorts on click and flips direction on the second click. */
 function SortableHead({
@@ -353,24 +377,25 @@ function SortableHead({
   sort,
   onSortChange,
 }: {
-  header: Header<TaskRow, unknown>
-  sort: SortKey
-  onSortChange?: (next: SortKey) => void
+  header: Header<TaskRow, unknown>;
+  sort: SortKey;
+  onSortChange?: (next: SortKey) => void;
 }) {
   // Widened from the per-column tuple: every column has its own literal pair, and
   // the union of those has no member in common for `includes` to accept.
   const pair = COLUMN_SORT[header.column.id as keyof typeof COLUMN_SORT] as
-    | readonly [SortKey, SortKey]
-    | undefined
-  const label = flexRender(header.column.columnDef.header, header.getContext())
+    readonly [SortKey, SortKey] | undefined;
+  const label = flexRender(header.column.columnDef.header, header.getContext());
 
-  if (!pair || !onSortChange) return <>{label}</>
+  if (!pair || !onSortChange) return <>{label}</>;
 
-  const active: SortDirection | null = pair.includes(sort) ? sortDirection(sort) : null
+  const active: SortDirection | null = pair.includes(sort)
+    ? sortDirection(sort)
+    : null;
   // Second click flips; arriving from another column starts in this column's
   // natural direction -- descending for percentages, ascending for names.
-  const next = active === null ? pair[0] : pair[0] === sort ? pair[1] : pair[0]
-  const Icon = active === null ? ChevronsUpDown : DIRECTION_ICON[active]
+  const next = active === null ? pair[0] : pair[0] === sort ? pair[1] : pair[0];
+  const Icon = active === null ? ChevronsUpDown : DIRECTION_ICON[active];
 
   return (
     <button
@@ -378,13 +403,13 @@ function SortableHead({
       onClick={() => onSortChange(next)}
       aria-label={`Sort by ${header.column.id}`}
       className={`hover:text-foreground -mx-1 inline-flex items-center gap-1 rounded px-1 py-0.5 transition-colors ${
-        active ? 'text-foreground' : 'text-muted-foreground'
+        active ? "text-foreground" : "text-muted-foreground"
       }`}
     >
       {label}
-      <Icon className={`size-3.5 ${active ? '' : 'opacity-40'}`} aria-hidden />
+      <Icon className={`size-3.5 ${active ? "" : "opacity-40"}`} aria-hidden />
     </button>
-  )
+  );
 }
 
 export function TaskTable({
@@ -405,65 +430,73 @@ export function TaskTable({
   const columns = useMemo<ColumnDef<TaskRow>[]>(
     () => [
       {
-        id: 'completed',
+        id: "completed",
         header: () => <span className="sr-only">Completed</span>,
         cell: ({ row, table }) => {
-          const task = row.original
-          const isDone = (table.options.meta as TableMeta).completed.has(task.wikiId)
+          const task = row.original;
+          const isDone = (table.options.meta as TableMeta).completed.has(
+            task.wikiId,
+          );
           return (
             <Checkbox
               checked={isDone}
               onCheckedChange={() => onToggle(task.wikiId)}
-              aria-label={`Mark "${task.name}" as ${isDone ? 'not completed' : 'completed'}`}
+              aria-label={`Mark "${task.name}" as ${isDone ? "not completed" : "completed"}`}
             />
-          )
+          );
         },
       },
       ...(onToggleListed
         ? [
             {
-              id: 'listed',
+              id: "listed",
               header: () => <span className="sr-only">On my list</span>,
               cell: ({ row, table }) => {
-                const task = row.original
+                const task = row.original;
                 const listed =
-                  (table.options.meta as TableMeta).onList?.has(task.wikiId) ?? false
-                const Icon = listed ? ListChecks : ListPlus
+                  (table.options.meta as TableMeta).onList?.has(task.wikiId) ??
+                  false;
+                const Icon = listed ? ListChecks : ListPlus;
                 return (
                   <button
                     type="button"
                     onClick={() => onToggleListed(task.wikiId)}
                     aria-pressed={listed}
-                    title={listed ? 'On my list' : 'Add to my list'}
+                    title={listed ? "On my list" : "Add to my list"}
                     aria-label={
-                      listed ? `Remove "${task.name}" from my list` : `Add "${task.name}" to my list`
+                      listed
+                        ? `Remove "${task.name}" from my list`
+                        : `Add "${task.name}" to my list`
                     }
                     className={`rounded p-1 transition-colors ${
                       listed
-                        ? 'text-background bg-foreground'
-                        : 'text-muted-foreground/50 hover:bg-muted hover:text-foreground'
+                        ? "text-background bg-foreground"
+                        : "text-muted-foreground/50 hover:bg-muted hover:text-foreground"
                     }`}
                   >
                     <Icon className="size-4" aria-hidden />
                   </button>
-                )
+                );
               },
             } satisfies ColumnDef<TaskRow>,
           ]
         : []),
       {
-        id: 'monster',
-        header: 'Monster',
+        id: "monster",
+        header: "Monster",
         accessorFn: (t) => t.monster,
         cell: ({ row, table }) => {
-          const { monster } = row.original
+          const { monster } = row.original;
           if (monster === null) {
-            return <span className="text-muted-foreground italic">Any</span>
+            return <span className="text-muted-foreground italic">Any</span>;
           }
-          const { activeMonsters: active, gates } = table.options.meta as TableMeta
+          const { activeMonsters: active, gates } = table.options
+            .meta as TableMeta;
           // Already filtered to this one: clicking would be a no-op, so don't offer it.
-          const isActive = active.some((m) => m.toLowerCase() === monster.toLowerCase())
-          const gate = gates.get(monster)
+          const isActive = active.some(
+            (m) => m.toLowerCase() === monster.toLowerCase(),
+          );
+          const gate = gates.get(monster);
           return (
             <span className="flex items-start gap-1.5">
               {gate && <GateLock gate={gate} />}
@@ -475,8 +508,8 @@ export function TaskTable({
                   onClick={(event) => {
                     // Shift adds to the filter instead of replacing it, so you can
                     // hold two bosses side by side without retyping either.
-                    if (event.shiftKey && onAddMonster) onAddMonster(monster)
-                    else onPivotToMonster(monster)
+                    if (event.shiftKey && onAddMonster) onAddMonster(monster);
+                    else onPivotToMonster(monster);
                   }}
                   title={`Show only ${monster} tasks — shift-click to add it alongside`}
                   className="hover:text-foreground text-left underline decoration-dotted underline-offset-4 hover:decoration-solid"
@@ -484,14 +517,17 @@ export function TaskTable({
                   <SplitName value={monster} />
                 </button>
               )}
-              <WikiLink href={monsterWikiUrl(monster)} label={`${monster} on the wiki`} />
+              <WikiLink
+                href={monsterWikiUrl(monster)}
+                label={`${monster} on the wiki`}
+              />
             </span>
-          )
+          );
         },
       },
       {
-        id: 'name',
-        header: 'Name',
+        id: "name",
+        header: "Name",
         accessorFn: (t) => t.name,
         cell: ({ row }) => (
           <span className="flex items-start gap-1.5">
@@ -504,8 +540,8 @@ export function TaskTable({
         ),
       },
       {
-        id: 'description',
-        header: 'Description',
+        id: "description",
+        header: "Description",
         accessorFn: (t) => t.description,
         // The only column allowed to wrap freely -- descriptions are full
         // sentences, and truncating them hides the actual requirement.
@@ -516,19 +552,19 @@ export function TaskTable({
         ),
       },
       {
-        id: 'type',
-        header: 'Type',
+        id: "type",
+        header: "Type",
         accessorFn: (t) => t.type,
         cell: ({ row }) => TYPE_LABEL[row.original.type],
       },
       {
-        id: 'tier',
-        header: 'Tier',
+        id: "tier",
+        header: "Tier",
         accessorFn: (t) => t.tier,
         cell: ({ row }) => <TierBadge tier={row.original.tier} />,
       },
       {
-        id: 'points',
+        id: "points",
         header: () => <span className="block text-right">Pts</span>,
         accessorFn: (t) => t.points,
         cell: ({ row }) => (
@@ -538,25 +574,25 @@ export function TaskTable({
         ),
       },
       {
-        id: 'completionPct',
+        id: "completionPct",
         header: () => <span className="block text-right">Comp%</span>,
         accessorFn: (t) => t.completionPct,
         cell: ({ row }) => {
-          const { completionPct } = row.original
+          const { completionPct } = row.original;
           return (
             <span
               className={`block text-right tabular-nums ${COMPLETION_TONE_CLASS[completionTone(completionPct)]}`}
             >
               {formatCompletion(completionPct)}
             </span>
-          )
+          );
         },
       },
     ],
     [onToggle, onPivotToMonster, onAddMonster, onToggleListed],
-  )
+  );
 
-  const data = useMemo(() => tasks as TaskRow[], [tasks])
+  const data = useMemo(() => tasks as TaskRow[], [tasks]);
 
   const meta = useMemo<TableMeta>(
     () => ({
@@ -566,7 +602,7 @@ export function TaskTable({
       gates: gates ?? NO_GATES,
     }),
     [completed, onList, activeMonsters, gates],
-  )
+  );
 
   const table = useReactTable({
     data,
@@ -574,10 +610,10 @@ export function TaskTable({
     meta,
     getCoreRowModel: getCoreRowModel(),
     getRowId: (task) => String(task.wikiId),
-  })
+  });
 
-  const rows = table.getRowModel().rows
-  const viewportRef = useRef<HTMLDivElement>(null)
+  const rows = table.getRowModel().rows;
+  const viewportRef = useRef<HTMLDivElement>(null);
 
   // Sorting by monster puts every Vorkath task together, but a flat list of 646
   // rows doesn't *look* like it did anything -- the runs are only visible if you
@@ -588,41 +624,43 @@ export function TaskTable({
   // measures and windows exactly like a row. The alternative -- rendering
   // banners outside the virtual window -- puts all 89 of them in the DOM at
   // once, which is most of what windowing was added to avoid.
-  const grouped = sort === 'monster_asc' || sort === 'monster_desc'
+  const grouped = sort === "monster_asc" || sort === "monster_desc";
 
   // Keyed by monster rather than by position, so collapsing Vorkath and then
   // filtering or re-sorting leaves Vorkath collapsed instead of whatever now
   // happens to sit where it was.
-  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => new Set())
+  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
 
   const toggleCollapsed = useCallback((monster: string | null) => {
     setCollapsed((current) => {
-      const next = new Set(current)
-      const key = groupKey(monster)
-      if (!next.delete(key)) next.add(key)
-      return next
-    })
-  }, [])
+      const next = new Set(current);
+      const key = groupKey(monster);
+      if (!next.delete(key)) next.add(key);
+      return next;
+    });
+  }, []);
 
   const items = useMemo<RowItem[]>(() => {
-    if (!grouped) return rows.map((row) => ({ kind: 'row', row }))
-    const out: RowItem[] = []
-    let open: GroupItem | null = null
-    let hidden = false
+    if (!grouped) return rows.map((row) => ({ kind: "row", row }));
+    const out: RowItem[] = [];
+    let open: GroupItem | null = null;
+    let hidden = false;
     for (const row of rows) {
-      const { monster } = row.original
+      const { monster } = row.original;
       if (open === null || open.monster !== monster) {
-        open = { kind: 'group', monster, wikiIds: [] }
-        hidden = collapsed.has(groupKey(monster))
-        out.push(open)
+        open = { kind: "group", monster, wikiIds: [] };
+        hidden = collapsed.has(groupKey(monster));
+        out.push(open);
       }
       // Collected either way: a collapsed group still knows what's under it,
       // which is what lets "add all" work without expanding it first.
-      open.wikiIds.push(row.original.wikiId)
-      if (!hidden) out.push({ kind: 'row', row })
+      open.wikiIds.push(row.original.wikiId);
+      if (!hidden) out.push({ kind: "row", row });
     }
-    return out
-  }, [rows, grouped, collapsed])
+    return out;
+  }, [rows, grouped, collapsed]);
 
   const virtualizer = useVirtualizer({
     count: items.length,
@@ -632,18 +670,18 @@ export function TaskTable({
     // Enough rows above and below to survive a flick of the wheel without a
     // visible gap, and few enough that a tick stays cheap.
     overscan: 12,
-  })
+  });
 
-  const virtualRows = virtualizer.getVirtualItems()
-  const columnCount = table.getAllLeafColumns().length
+  const virtualRows = virtualizer.getVirtualItems();
+  const columnCount = table.getAllLeafColumns().length;
   // Spacer rows rather than absolute positioning: a <tbody> can't have its
   // children taken out of flow without losing the column widths that make this
   // a table in the first place.
-  const paddingTop = virtualRows.length > 0 ? virtualRows[0].start : 0
+  const paddingTop = virtualRows.length > 0 ? virtualRows[0].start : 0;
   const paddingBottom =
     virtualRows.length > 0
       ? virtualizer.getTotalSize() - virtualRows[virtualRows.length - 1].end
-      : 0
+      : 0;
 
   return (
     <div
@@ -658,7 +696,11 @@ export function TaskTable({
             <TableRow key={group.id} className="hover:bg-transparent">
               {group.headers.map((header) => (
                 <TableHead key={header.id} className="border-b">
-                  <SortableHead header={header} sort={sort} onSortChange={onSortChange} />
+                  <SortableHead
+                    header={header}
+                    sort={sort}
+                    onSortChange={onSortChange}
+                  />
                 </TableHead>
               ))}
             </TableRow>
@@ -671,8 +713,8 @@ export function TaskTable({
             </tr>
           )}
           {virtualRows.map((virtualRow) => {
-            const item = items[virtualRow.index]
-            if (item.kind === 'group') {
+            const item = items[virtualRow.index];
+            if (item.kind === "group") {
               return (
                 <GroupBanner
                   key={groupKey(item.monster)}
@@ -686,9 +728,9 @@ export function TaskTable({
                   onList={onList}
                   onAddManyToList={onAddManyToList}
                 />
-              )
+              );
             }
-            const { row } = item
+            const { row } = item;
             return (
               <DraggableRow
                 key={row.id}
@@ -704,7 +746,7 @@ export function TaskTable({
                   </TableCell>
                 ))}
               </DraggableRow>
-            )
+            );
           })}
           {paddingBottom > 0 && (
             <tr aria-hidden>
@@ -714,5 +756,5 @@ export function TaskTable({
         </TableBody>
       </table>
     </div>
-  )
+  );
 }

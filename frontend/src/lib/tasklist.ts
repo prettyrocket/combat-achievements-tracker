@@ -8,23 +8,23 @@
 // Pure and free of React and of storage, so the ordering rules can be tested
 // directly. tasklist-store.ts persists the result; use-tasklist.ts binds it.
 
-import type { TaskRow } from '@/lib/types'
+import type { TaskRow } from "@/lib/types";
 
 /** An entry, resolved against the task data for rendering. */
 export interface TaskListEntry {
-  task: TaskRow
+  task: TaskRow;
   /** 1-based, as shown in the panel. */
-  position: number
-  completed: boolean
+  position: number;
+  completed: boolean;
 }
 
 export interface TaskListSummary {
-  total: number
-  completed: number
+  total: number;
+  completed: number;
   /** Points the plan is worth in full, and the part of it already earned. Named
    *  to match ProgressSummary, since they mean the same thing over a smaller set. */
-  pointsTotal: number
-  pointsEarned: number
+  pointsTotal: number;
+  pointsEarned: number;
 }
 
 // --- ordering primitives ----------------------------------------------------
@@ -35,7 +35,7 @@ export interface TaskListSummary {
 /** Appends, if it isn't already there. New work goes to the bottom, not the top:
  *  arriving tasks must never displace the thing you decided to do next. */
 export function add(list: readonly number[], wikiId: number): number[] {
-  return list.includes(wikiId) ? [...list] : [...list, wikiId]
+  return list.includes(wikiId) ? [...list] : [...list, wikiId];
 }
 
 /**
@@ -46,23 +46,26 @@ export function add(list: readonly number[], wikiId: number): number[] {
  * ids keep their existing position rather than moving to the bottom -- adding a
  * group you'd partly planned shouldn't reshuffle the part you'd already ordered.
  */
-export function addMany(list: readonly number[], wikiIds: Iterable<number>): number[] {
-  const seen = new Set(list)
-  const next = [...list]
+export function addMany(
+  list: readonly number[],
+  wikiIds: Iterable<number>,
+): number[] {
+  const seen = new Set(list);
+  const next = [...list];
   for (const wikiId of wikiIds) {
-    if (seen.has(wikiId)) continue
-    seen.add(wikiId)
-    next.push(wikiId)
+    if (seen.has(wikiId)) continue;
+    seen.add(wikiId);
+    next.push(wikiId);
   }
-  return next
+  return next;
 }
 
 export function remove(list: readonly number[], wikiId: number): number[] {
-  return list.filter((id) => id !== wikiId)
+  return list.filter((id) => id !== wikiId);
 }
 
 export function toggle(list: readonly number[], wikiId: number): number[] {
-  return list.includes(wikiId) ? remove(list, wikiId) : add(list, wikiId)
+  return list.includes(wikiId) ? remove(list, wikiId) : add(list, wikiId);
 }
 
 /**
@@ -74,38 +77,52 @@ export function toggle(list: readonly number[], wikiId: number): number[] {
  * Out-of-range indices return the list unchanged rather than throwing: the
  * source of these is a drag gesture, and a nonsense one should be a no-op.
  */
-export function move(list: readonly number[], from: number, to: number): number[] {
-  if (!Number.isInteger(from) || !Number.isInteger(to)) return [...list]
-  if (from < 0 || from >= list.length || to < 0 || to >= list.length) return [...list]
-  if (from === to) return [...list]
+export function move(
+  list: readonly number[],
+  from: number,
+  to: number,
+): number[] {
+  if (!Number.isInteger(from) || !Number.isInteger(to)) return [...list];
+  if (from < 0 || from >= list.length || to < 0 || to >= list.length)
+    return [...list];
+  if (from === to) return [...list];
 
-  const next = [...list]
-  const [moved] = next.splice(from, 1)
-  next.splice(to, 0, moved)
-  return next
+  const next = [...list];
+  const [moved] = next.splice(from, 1);
+  next.splice(to, 0, moved);
+  return next;
 }
 
 /** Move by id rather than index -- what a drop handler and a keyboard shortcut
  *  both actually have to hand. */
-export function moveId(list: readonly number[], wikiId: number, to: number): number[] {
-  return move(list, list.indexOf(wikiId), to)
+export function moveId(
+  list: readonly number[],
+  wikiId: number,
+  to: number,
+): number[] {
+  return move(list, list.indexOf(wikiId), to);
 }
 
 /** Insert at a position, or move there if it's already on the list. The drop
  *  handler's single entry point: dropping a table row onto the panel and
  *  dropping an entry within the panel are the same gesture. */
-export function insertAt(list: readonly number[], wikiId: number, to: number): number[] {
-  if (list.includes(wikiId)) return moveId(list, wikiId, clamp(to, 0, list.length - 1))
-  const next = [...list]
-  next.splice(clamp(to, 0, list.length), 0, wikiId)
-  return next
+export function insertAt(
+  list: readonly number[],
+  wikiId: number,
+  to: number,
+): number[] {
+  if (list.includes(wikiId))
+    return moveId(list, wikiId, clamp(to, 0, list.length - 1));
+  const next = [...list];
+  next.splice(clamp(to, 0, list.length), 0, wikiId);
+  return next;
 }
 
 /** Clamps into range, treating a non-integer as "the end" -- a drop with no
  *  meaningful target lands at the bottom rather than silently doing nothing. */
 function clamp(value: number, min: number, max: number): number {
-  if (!Number.isInteger(value)) return Math.max(min, max)
-  return Math.min(max, Math.max(min, value))
+  if (!Number.isInteger(value)) return Math.max(min, max);
+  return Math.min(max, Math.max(min, value));
 }
 
 // --- resolving against the data ---------------------------------------------
@@ -123,21 +140,21 @@ export function resolve(
   tasks: readonly TaskRow[],
   completed: ReadonlySet<number>,
 ): TaskListEntry[] {
-  const byId = new Map(tasks.map((task) => [task.wikiId, task]))
-  const entries: TaskListEntry[] = []
+  const byId = new Map(tasks.map((task) => [task.wikiId, task]));
+  const entries: TaskListEntry[] = [];
 
   for (const wikiId of list) {
-    const task = byId.get(wikiId)
-    if (!task) continue
+    const task = byId.get(wikiId);
+    if (!task) continue;
     entries.push({
       task,
       // Numbered over what's actually shown, so the panel never reads 1, 2, 4.
       position: entries.length + 1,
       completed: completed.has(wikiId),
-    })
+    });
   }
 
-  return entries
+  return entries;
 }
 
 /**
@@ -161,14 +178,14 @@ export function summarize(entries: readonly TaskListEntry[]): TaskListSummary {
     completed: 0,
     pointsTotal: 0,
     pointsEarned: 0,
-  }
+  };
 
   for (const entry of entries) {
-    summary.pointsTotal += entry.task.points
-    if (!entry.completed) continue
-    summary.completed++
-    summary.pointsEarned += entry.task.points
+    summary.pointsTotal += entry.task.points;
+    if (!entry.completed) continue;
+    summary.completed++;
+    summary.pointsEarned += entry.task.points;
   }
 
-  return summary
+  return summary;
 }

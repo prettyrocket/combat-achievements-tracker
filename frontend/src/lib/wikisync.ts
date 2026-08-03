@@ -9,11 +9,11 @@
 // Pure and side-effect free: this decides what the paste *means*, and the caller
 // decides what to do about it.
 
-import { sanitizeIds } from '@/lib/progress-store'
-import type { PlayerProfile } from '@/lib/requirements'
+import { sanitizeIds } from "@/lib/progress-store";
+import type { PlayerProfile } from "@/lib/requirements";
 
 /** WikiSync's own "this RSN has never synced" response. */
-const NO_USER_DATA = 'NO_USER_DATA'
+const NO_USER_DATA = "NO_USER_DATA";
 
 /**
  * The sync URL for a player, or null if there's no usable name yet.
@@ -25,9 +25,9 @@ const NO_USER_DATA = 'NO_USER_DATA'
  * "Lynx_Titan" and " Lynx Titan " all produce the same URL.
  */
 export function buildSyncUrl(rsn: string): string | null {
-  const name = displayRsn(rsn)
-  if (name === '') return null
-  return `https://sync.runescape.wiki/runelite/player/${encodeURIComponent(name)}/STANDARD`
+  const name = displayRsn(rsn);
+  if (name === "") return null;
+  return `https://sync.runescape.wiki/runelite/player/${encodeURIComponent(name)}/STANDARD`;
 }
 
 /**
@@ -35,14 +35,14 @@ export function buildSyncUrl(rsn: string): string | null {
  * unlike normalizeRsn, which lowercases because it only ever compares.
  */
 export function displayRsn(rsn: string): string {
-  return rsn.replace(/_/g, ' ').replace(/\s+/g, ' ').trim()
+  return rsn.replace(/_/g, " ").replace(/\s+/g, " ").trim();
 }
 
 export interface WikiSyncParse {
   /** Valid, known task ids found in the paste, deduped. */
-  ids: number[]
+  ids: number[];
   /** Entries that weren't ids of tasks we know about. */
-  dropped: number
+  dropped: number;
   /**
    * Skill levels and finished quests, when the paste carried them.
    *
@@ -51,7 +51,7 @@ export interface WikiSyncParse {
    * payload whose `levels` is nonsense imports the achievements and says nothing
    * about requirements, rather than rejecting a paste that was mostly good.
    */
-  profile: PlayerProfile | null
+  profile: PlayerProfile | null;
 }
 
 /**
@@ -60,26 +60,26 @@ export interface WikiSyncParse {
  * gets a different tone and a different button.
  */
 export type WikiSyncErrorCode =
-  | 'EMPTY_PASTE'
-  | 'NOT_JSON'
-  | 'NOT_WIKISYNC'
-  | 'NO_USER'
-  | 'NO_CA_LIST'
-  | 'EMPTY_LIST'
+  | "EMPTY_PASTE"
+  | "NOT_JSON"
+  | "NOT_WIKISYNC"
+  | "NO_USER"
+  | "NO_CA_LIST"
+  | "EMPTY_LIST";
 
 export class WikiSyncParseError extends Error {
   // Assigned in the body rather than as a parameter property: the build runs
   // with `erasableSyntaxOnly`, which rules those out.
-  readonly code: WikiSyncErrorCode
+  readonly code: WikiSyncErrorCode;
 
   constructor(message: string, code: WikiSyncErrorCode) {
-    super(message)
-    this.code = code
+    super(message);
+    this.code = code;
   }
 }
 
 function fail(message: string, code: WikiSyncErrorCode): never {
-  throw new WikiSyncParseError(message, code)
+  throw new WikiSyncParseError(message, code);
 }
 
 /**
@@ -91,58 +91,62 @@ function fail(message: string, code: WikiSyncErrorCode): never {
  * the only reason this feature is a paste box rather than a mapping table.
  */
 export function parseWikiSync(text: string): WikiSyncParse {
-  const trimmed = text.trim()
-  if (trimmed === '') fail('Paste the JSON from your sync URL first.', 'EMPTY_PASTE')
+  const trimmed = text.trim();
+  if (trimmed === "")
+    fail("Paste the JSON from your sync URL first.", "EMPTY_PASTE");
 
-  let parsed: unknown
+  let parsed: unknown;
   try {
-    parsed = JSON.parse(trimmed)
+    parsed = JSON.parse(trimmed);
   } catch {
-    fail('Invalid JSON. Try again.', 'NOT_JSON')
+    fail("Invalid JSON. Try again.", "NOT_JSON");
   }
 
   if (Array.isArray(parsed)) {
     // A bare list of ids, from someone who pulled it out themselves. Nothing
     // else to read, so no profile.
-    return toResult(parsed, null)
+    return toResult(parsed, null);
   }
 
-  if (parsed === null || typeof parsed !== 'object') {
-    fail('Invalid WikiSync response. Try again.', 'NOT_WIKISYNC')
+  if (parsed === null || typeof parsed !== "object") {
+    fail("Invalid WikiSync response. Try again.", "NOT_WIKISYNC");
   }
 
-  const body = parsed as Record<string, unknown>
+  const body = parsed as Record<string, unknown>;
 
   if (body.code === NO_USER_DATA) {
-    fail('Invalid username. Try again.', 'NO_USER')
+    fail("Invalid username. Try again.", "NO_USER");
   }
 
-  const profile = readProfile(body)
+  const profile = readProfile(body);
 
-  const list = body.combat_achievements
+  const list = body.combat_achievements;
   if (list === undefined) {
     // A valid profile with no CA list at all. Usually a brand new account --
     // an existing one reports the field even when it's empty, because the
     // plugin reads completion from varps on a timer and doesn't wait to be
     // shown the interface. The dialog phrases this one, because which of those
     // two it is decides whether it reads as congratulation or as a fix.
-    fail('No achievements to load.', 'NO_CA_LIST')
+    fail("No achievements to load.", "NO_CA_LIST");
   }
   if (!Array.isArray(list)) {
-    fail('Invalid WikiSync response. Try again.', 'NOT_WIKISYNC')
+    fail("Invalid WikiSync response. Try again.", "NOT_WIKISYNC");
   }
 
-  return toResult(list, profile)
+  return toResult(list, profile);
 }
 
-function toResult(list: unknown[], profile: PlayerProfile | null): WikiSyncParse {
-  const { ids, dropped } = sanitizeIds(list)
+function toResult(
+  list: unknown[],
+  profile: PlayerProfile | null,
+): WikiSyncParse {
+  const { ids, dropped } = sanitizeIds(list);
   if (ids.length === 0 && dropped === 0) {
     // Same situation as NO_CA_LIST from where the player is standing: the
     // account has no Combat Achievements to bring over yet.
-    fail('No achievements to load.', 'EMPTY_LIST')
+    fail("No achievements to load.", "EMPTY_LIST");
   }
-  return { ids, dropped, profile }
+  return { ids, dropped, profile };
 }
 
 // --- the requirements half --------------------------------------------------
@@ -162,49 +166,54 @@ function toResult(list: unknown[], profile: PlayerProfile | null): WikiSyncParse
  * showing a row rather than hiding it.
  */
 function questIsFinished(value: unknown): boolean {
-  if (typeof value === 'number') return value >= 2
-  if (typeof value === 'boolean') return value
-  if (typeof value === 'string') return value.trim().toUpperCase() === 'FINISHED'
-  return false
+  if (typeof value === "number") return value >= 2;
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string")
+    return value.trim().toUpperCase() === "FINISHED";
+  return false;
 }
 
 function readLevels(value: unknown): Record<string, number> {
-  const out: Record<string, number> = {}
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) return out
-  for (const [skill, level] of Object.entries(value as Record<string, unknown>)) {
-    if (typeof level === 'number' && Number.isFinite(level) && level >= 1) {
-      out[skill] = Math.floor(level)
+  const out: Record<string, number> = {};
+  if (value === null || typeof value !== "object" || Array.isArray(value))
+    return out;
+  for (const [skill, level] of Object.entries(
+    value as Record<string, unknown>,
+  )) {
+    if (typeof level === "number" && Number.isFinite(level) && level >= 1) {
+      out[skill] = Math.floor(level);
     }
   }
-  return out
+  return out;
 }
 
 function readQuests(value: unknown): string[] {
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) return []
+  if (value === null || typeof value !== "object" || Array.isArray(value))
+    return [];
   return Object.entries(value as Record<string, unknown>)
     .filter(([, state]) => questIsFinished(state))
-    .map(([quest]) => quest)
+    .map(([quest]) => quest);
 }
 
 function readProfile(body: Record<string, unknown>): PlayerProfile | null {
-  const levels = readLevels(body.levels)
-  const quests = readQuests(body.quests)
+  const levels = readLevels(body.levels);
+  const quests = readQuests(body.quests);
   // Neither half present means this payload has nothing to say about
   // requirements -- distinct from an account with a genuinely empty profile,
   // which can't happen (every account has levels).
-  if (Object.keys(levels).length === 0 && quests.length === 0) return null
-  return { levels, quests }
+  if (Object.keys(levels).length === 0 && quests.length === 0) return null;
+  return { levels, quests };
 }
 
 export interface WikiSyncDiff {
   /** Not currently ticked, and will be after applying. */
-  newlyCompleted: number[]
+  newlyCompleted: number[];
   /** Already ticked; the paste agrees. */
-  alreadyCompleted: number[]
+  alreadyCompleted: number[];
   /** Currently ticked but absent from the paste, so about to be un-ticked. */
-  removed: number[]
+  removed: number[];
   /** Unrecognised entries, ignored rather than failing the whole import. */
-  dropped: number
+  dropped: number;
 }
 
 /**
@@ -222,27 +231,30 @@ export interface WikiSyncDiff {
  * at the top wrong. The planned list is a different matter and is never touched
  * by an import; it is yours, not the account's.
  */
-export function diffAgainst(parse: WikiSyncParse, completed: ReadonlySet<number>): WikiSyncDiff {
-  const newlyCompleted: number[] = []
-  const alreadyCompleted: number[] = []
+export function diffAgainst(
+  parse: WikiSyncParse,
+  completed: ReadonlySet<number>,
+): WikiSyncDiff {
+  const newlyCompleted: number[] = [];
+  const alreadyCompleted: number[] = [];
   for (const id of parse.ids) {
-    if (completed.has(id)) alreadyCompleted.push(id)
-    else newlyCompleted.push(id)
+    if (completed.has(id)) alreadyCompleted.push(id);
+    else newlyCompleted.push(id);
   }
 
-  const incoming = new Set(parse.ids)
-  const removed: number[] = []
+  const incoming = new Set(parse.ids);
+  const removed: number[] = [];
   for (const id of completed) {
-    if (!incoming.has(id)) removed.push(id)
+    if (!incoming.has(id)) removed.push(id);
   }
-  removed.sort((a, b) => a - b)
+  removed.sort((a, b) => a - b);
 
-  return { newlyCompleted, alreadyCompleted, removed, dropped: parse.dropped }
+  return { newlyCompleted, alreadyCompleted, removed, dropped: parse.dropped };
 }
 
 /** Whether applying this diff would change anything at all. */
 export function diffIsNoop(diff: WikiSyncDiff): boolean {
-  return diff.newlyCompleted.length === 0 && diff.removed.length === 0
+  return diff.newlyCompleted.length === 0 && diff.removed.length === 0;
 }
 
 /**
@@ -255,9 +267,9 @@ export function diffIsNoop(diff: WikiSyncDiff): boolean {
  * typed an underscore would be noise.
  */
 export function normalizeRsn(rsn: string): string {
-  return rsn.replace(/_/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase()
+  return rsn.replace(/_/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
 }
 
 export function sameAccount(a: string, b: string): boolean {
-  return normalizeRsn(a) === normalizeRsn(b)
+  return normalizeRsn(a) === normalizeRsn(b);
 }

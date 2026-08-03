@@ -8,10 +8,15 @@
 // The progress half is delegated to progress-store rather than reimplemented, so
 // there is still exactly one place that decides what a valid file looks like.
 
-import { buildExport, importProgress, sanitizeIds, type ProgressExport } from '@/lib/progress-store'
-import { getProfile, sanitizeProfile, setProfile } from '@/lib/profile-store'
-import { getList, setList } from '@/lib/tasklist-store'
-import { profileIsEmpty, type PlayerProfile } from '@/lib/requirements'
+import {
+  buildExport,
+  importProgress,
+  sanitizeIds,
+  type ProgressExport,
+} from "@/lib/progress-store";
+import { getProfile, sanitizeProfile, setProfile } from "@/lib/profile-store";
+import { getList, setList } from "@/lib/tasklist-store";
+import { profileIsEmpty, type PlayerProfile } from "@/lib/requirements";
 
 /**
  * `list` and `profile` are optional, and the version deliberately does *not*
@@ -23,28 +28,28 @@ import { profileIsEmpty, type PlayerProfile } from '@/lib/requirements'
  * and drops the rest. The version is there for a change that actually breaks.
  */
 export interface Backup extends ProgressExport {
-  list?: number[]
-  profile?: PlayerProfile
+  list?: number[];
+  profile?: PlayerProfile;
 }
 
 export function buildBackup(): Backup {
-  const profile = getProfile()
+  const profile = getProfile();
   return {
     ...buildExport(),
     list: [...getList()],
     // Omitted rather than written empty, so a file from someone who never
     // entered their levels doesn't carry a field that means nothing.
     ...(profileIsEmpty(profile) ? {} : { profile }),
-  }
+  };
 }
 
 export interface BackupImportResult {
-  imported: number
-  dropped: number
-  listImported: number
-  listDropped: number
+  imported: number;
+  dropped: number;
+  listImported: number;
+  listDropped: number;
   /** Whether the file carried levels and quests to restore. */
-  profileImported: boolean
+  profileImported: boolean;
 }
 
 /**
@@ -59,42 +64,45 @@ export interface BackupImportResult {
  * and then refusing over the softer half would be the worst of both.
  */
 export function importBackup(text: string): BackupImportResult {
-  const progress = importProgress(text)
+  const progress = importProgress(text);
 
   // Parsed a second time rather than threaded through importProgress: it keeps
   // that function's contract (and its tests) untouched, and the cost is one more
   // pass over a file measured in kilobytes.
-  let list: number[] = []
-  let listDropped = 0
-  let profile: PlayerProfile | null = null
+  let list: number[] = [];
+  let listDropped = 0;
+  let profile: PlayerProfile | null = null;
   try {
-    const parsed = JSON.parse(text) as { list?: unknown; profile?: unknown } | null
-    const sanitized = sanitizeIds(parsed?.list)
-    list = sanitized.ids
+    const parsed = JSON.parse(text) as {
+      list?: unknown;
+      profile?: unknown;
+    } | null;
+    const sanitized = sanitizeIds(parsed?.list);
+    list = sanitized.ids;
     // Only count drops when there was something list-shaped to begin with --
     // a v1 file has no `list` at all, and that isn't data loss to report.
-    listDropped = Array.isArray(parsed?.list) ? sanitized.dropped : 0
+    listDropped = Array.isArray(parsed?.list) ? sanitized.dropped : 0;
 
     if (parsed?.profile !== undefined) {
-      const read = sanitizeProfile(parsed.profile)
+      const read = sanitizeProfile(parsed.profile);
       // An empty result means the field was there but unreadable. Restoring it
       // would clear levels the player still has; leaving it alone is the
       // conservative half of a restore that has already succeeded.
-      if (!profileIsEmpty(read)) profile = read
+      if (!profileIsEmpty(read)) profile = read;
     }
   } catch {
     // Unreachable: importProgress already parsed this successfully. Belt and
     // braces, because the alternative is losing a restore to a stray throw.
   }
 
-  setList(list)
+  setList(list);
   // Unlike progress and the list, a missing profile is *not* an instruction to
   // clear one. Your levels aren't part of what a backup is a snapshot of in the
   // same way -- a file exported before this existed shouldn't wipe them.
   // 'manual' rather than remembering where the exporting browser got it: from
   // here it is a file you restored, and the only thing the source changes is one
   // sentence about which of the two ways to edit it wins.
-  if (profile) setProfile(profile, 'manual')
+  if (profile) setProfile(profile, "manual");
 
   return {
     imported: progress.imported,
@@ -102,5 +110,5 @@ export function importBackup(text: string): BackupImportResult {
     listImported: list.length,
     listDropped,
     profileImported: profile !== null,
-  }
+  };
 }

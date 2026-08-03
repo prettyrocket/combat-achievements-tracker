@@ -12,32 +12,33 @@
 // profile. Both sides derive from the same game cache struct param, so there is
 // no mapping table here and there should never need to be one.
 
-import { sanitizeIds } from '@/lib/progress-store'
-import { displayRsn } from '@/lib/wikisync'
-import type { PlayerProfile } from '@/lib/requirements'
+import { sanitizeIds } from "@/lib/progress-store";
+import { displayRsn } from "@/lib/wikisync";
+import type { PlayerProfile } from "@/lib/requirements";
 
-const API_BASE = 'https://api.runeprofile.com/v1/accounts/'
+const API_BASE = "https://api.runeprofile.com/v1/accounts/";
 
 /** Their site, for the "you need the plugin" link in the dialog. */
-export const RUNEPROFILE_URL = 'https://runeprofile.com'
-export const RUNEPROFILE_PLUGIN_URL = 'https://runelite.net/plugin-hub/show/runeprofile'
+export const RUNEPROFILE_URL = "https://runeprofile.com";
+export const RUNEPROFILE_PLUGIN_URL =
+  "https://runelite.net/plugin-hub/show/runeprofile";
 
 export type RuneProfileErrorCode =
-  | 'BAD_NAME'
-  | 'NOT_TRACKED'
-  | 'RATE_LIMITED'
-  | 'STALE_PROFILE'
-  | 'BAD_RESPONSE'
-  | 'UNREACHABLE'
+  | "BAD_NAME"
+  | "NOT_TRACKED"
+  | "RATE_LIMITED"
+  | "STALE_PROFILE"
+  | "BAD_RESPONSE"
+  | "UNREACHABLE";
 
 /** Carries a code so the dialog can tell a fixable state from a dead end. */
 export class RuneProfileError extends Error {
-  readonly code: RuneProfileErrorCode
+  readonly code: RuneProfileErrorCode;
 
   constructor(message: string, code: RuneProfileErrorCode) {
-    super(message)
-    this.name = 'RuneProfileError'
-    this.code = code
+    super(message);
+    this.name = "RuneProfileError";
+    this.code = code;
   }
 }
 
@@ -50,22 +51,22 @@ export class RuneProfileError extends Error {
  */
 export interface RuneProfileImport {
   /** Valid, known task ids the account has completed. */
-  ids: number[]
+  ids: number[];
   /** Completed indices that aren't tasks we know about -- a CA release we lack. */
-  dropped: number
-  profile: PlayerProfile | null
+  dropped: number;
+  profile: PlayerProfile | null;
   /** RuneProfile's capitalisation of the name, which is the player's own. */
-  displayName: string
+  displayName: string;
   /** 'regular', 'ironman', 'hardcore', 'ultimate'. */
-  accountType: string | null
+  accountType: string | null;
   /** When the plugin last uploaded. The player alone can refresh it. */
-  updatedAt: Date | null
+  updatedAt: Date | null;
 }
 
 // --- the achievements half ---------------------------------------------------
 
 interface TasksBody {
-  data?: unknown
+  data?: unknown;
 }
 
 /**
@@ -77,23 +78,32 @@ interface TasksBody {
  * floor here rather than carried into state.
  */
 export function parseTasks(body: unknown): { ids: number[]; dropped: number } {
-  if (body === null || typeof body !== 'object') {
-    throw new RuneProfileError("RuneProfile's reply wasn't readable.", 'BAD_RESPONSE')
+  if (body === null || typeof body !== "object") {
+    throw new RuneProfileError(
+      "RuneProfile's reply wasn't readable.",
+      "BAD_RESPONSE",
+    );
   }
-  const rows = (body as TasksBody).data
+  const rows = (body as TasksBody).data;
   if (!Array.isArray(rows)) {
-    throw new RuneProfileError('RuneProfile returned no task list.', 'BAD_RESPONSE')
+    throw new RuneProfileError(
+      "RuneProfile returned no task list.",
+      "BAD_RESPONSE",
+    );
   }
 
-  const completed: number[] = []
+  const completed: number[] = [];
   for (const row of rows) {
-    if (row === null || typeof row !== 'object') continue
-    const { index, completed: done } = row as { index?: unknown; completed?: unknown }
-    if (done !== true) continue
-    if (typeof index !== 'number' || !Number.isFinite(index)) continue
-    completed.push(index)
+    if (row === null || typeof row !== "object") continue;
+    const { index, completed: done } = row as {
+      index?: unknown;
+      completed?: unknown;
+    };
+    if (done !== true) continue;
+    if (typeof index !== "number" || !Number.isFinite(index)) continue;
+    completed.push(index);
   }
-  return sanitizeIds(completed)
+  return sanitizeIds(completed);
 }
 
 // --- the requirements half ---------------------------------------------------
@@ -107,16 +117,17 @@ export function parseTasks(body: unknown): { ids: number[]; dropped: number } {
  * profile -- 24 skills, all matching.
  */
 function readLevels(input: unknown): Record<string, number> {
-  const out: Record<string, number> = {}
-  if (!Array.isArray(input)) return out
+  const out: Record<string, number> = {};
+  if (!Array.isArray(input)) return out;
   for (const row of input) {
-    if (row === null || typeof row !== 'object') continue
-    const { name, level } = row as { name?: unknown; level?: unknown }
-    if (typeof name !== 'string' || name.trim() === '') continue
-    if (typeof level !== 'number' || !Number.isFinite(level) || level < 1) continue
-    out[name] = Math.floor(level)
+    if (row === null || typeof row !== "object") continue;
+    const { name, level } = row as { name?: unknown; level?: unknown };
+    if (typeof name !== "string" || name.trim() === "") continue;
+    if (typeof level !== "number" || !Number.isFinite(level) || level < 1)
+      continue;
+    out[name] = Math.floor(level);
   }
-  return out
+  return out;
 }
 
 /**
@@ -128,78 +139,85 @@ function readLevels(input: unknown): Record<string, number> {
  * rather than taken from its documentation.)
  */
 function readQuests(input: unknown): string[] {
-  const out: string[] = []
-  if (!Array.isArray(input)) return out
+  const out: string[] = [];
+  if (!Array.isArray(input)) return out;
   for (const row of input) {
-    if (row === null || typeof row !== 'object') continue
-    const { name, state } = row as { name?: unknown; state?: unknown }
-    if (state !== 'finished') continue
-    if (typeof name !== 'string' || name.trim() === '') continue
-    out.push(name.trim())
+    if (row === null || typeof row !== "object") continue;
+    const { name, state } = row as { name?: unknown; state?: unknown };
+    if (state !== "finished") continue;
+    if (typeof name !== "string" || name.trim() === "") continue;
+    out.push(name.trim());
   }
-  return out
+  return out;
 }
 
 interface FullBody {
-  username?: unknown
-  accountType?: { key?: unknown } | null
-  skills?: unknown
-  quests?: unknown
-  combatAchievements?: unknown
-  updatedAt?: unknown
+  username?: unknown;
+  accountType?: { key?: unknown } | null;
+  skills?: unknown;
+  quests?: unknown;
+  combatAchievements?: unknown;
+  updatedAt?: unknown;
 }
 
 /** How many CAs the tier summary claims, which is the staleness cross-check. */
 function readTierCompleted(input: unknown): number {
-  if (!Array.isArray(input)) return 0
-  let total = 0
+  if (!Array.isArray(input)) return 0;
+  let total = 0;
   for (const row of input) {
-    if (row === null || typeof row !== 'object') continue
-    const { completed } = row as { completed?: unknown }
-    if (typeof completed === 'number' && Number.isFinite(completed)) total += completed
+    if (row === null || typeof row !== "object") continue;
+    const { completed } = row as { completed?: unknown };
+    if (typeof completed === "number" && Number.isFinite(completed))
+      total += completed;
   }
-  return total
+  return total;
 }
 
 /** Read `/full` -- everything except the per-task list. */
 export function parseFull(body: unknown): {
-  displayName: string
-  accountType: string | null
-  updatedAt: Date | null
-  profile: PlayerProfile | null
-  tierCompleted: number
+  displayName: string;
+  accountType: string | null;
+  updatedAt: Date | null;
+  profile: PlayerProfile | null;
+  tierCompleted: number;
 } {
-  if (body === null || typeof body !== 'object') {
-    throw new RuneProfileError("RuneProfile's reply wasn't a profile.", 'BAD_RESPONSE')
+  if (body === null || typeof body !== "object") {
+    throw new RuneProfileError(
+      "RuneProfile's reply wasn't a profile.",
+      "BAD_RESPONSE",
+    );
   }
-  const full = body as FullBody
+  const full = body as FullBody;
 
-  const levels = readLevels(full.skills)
-  const quests = readQuests(full.quests)
+  const levels = readLevels(full.skills);
+  const quests = readQuests(full.quests);
 
   return {
-    displayName: typeof full.username === 'string' ? full.username : '',
-    accountType: typeof full.accountType?.key === 'string' ? full.accountType.key : null,
+    displayName: typeof full.username === "string" ? full.username : "",
+    accountType:
+      typeof full.accountType?.key === "string" ? full.accountType.key : null,
     updatedAt: parseDate(full.updatedAt),
     // Neither half means this profile can't answer a requirement question --
     // the same rule the WikiSync reader uses, so a lookup that carried nothing
     // useful never overwrites levels somebody typed by hand.
     profile:
-      Object.keys(levels).length === 0 && quests.length === 0 ? null : { levels, quests },
+      Object.keys(levels).length === 0 && quests.length === 0
+        ? null
+        : { levels, quests },
     tierCompleted: readTierCompleted(full.combatAchievements),
-  }
+  };
 }
 
 function parseDate(value: unknown): Date | null {
-  if (typeof value !== 'string') return null
+  if (typeof value !== "string") return null;
   // The API returns "2026-08-02 18:26:28.409099" -- a space instead of the T,
   // and no zone. Safari refuses that outright and Chrome guesses local time,
   // so it's normalised to an ISO UTC string rather than handed to Date as-is.
   const iso = /^\d{4}-\d{2}-\d{2} /.test(value)
-    ? `${value.replace(' ', 'T').replace(/(\.\d{3})\d+$/, '$1')}Z`
-    : value
-  const date = new Date(iso)
-  return Number.isNaN(date.getTime()) ? null : date
+    ? `${value.replace(" ", "T").replace(/(\.\d{3})\d+$/, "$1")}Z`
+    : value;
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 /**
@@ -209,45 +227,64 @@ function parseDate(value: unknown): Date | null {
  * player can refresh it, and someone looking at a month-old import deserves to
  * know that before they believe the numbers.
  */
-export function syncedLabel(updatedAt: Date | null, now: Date = new Date()): string | null {
-  if (updatedAt === null) return null
-  const days = Math.floor((now.getTime() - updatedAt.getTime()) / 86_400_000)
-  if (days <= 0) return 'synced today'
-  if (days === 1) return 'synced yesterday'
-  if (days < 60) return `synced ${days} days ago`
-  const months = Math.floor(days / 30)
-  return `synced ${months} months ago`
+export function syncedLabel(
+  updatedAt: Date | null,
+  now: Date = new Date(),
+): string | null {
+  if (updatedAt === null) return null;
+  const days = Math.floor((now.getTime() - updatedAt.getTime()) / 86_400_000);
+  if (days <= 0) return "synced today";
+  if (days === 1) return "synced yesterday";
+  if (days < 60) return `synced ${days} days ago`;
+  const months = Math.floor(days / 30);
+  return `synced ${months} months ago`;
 }
 
 // --- the lookup --------------------------------------------------------------
 
-async function getJson(url: string, signal: AbortSignal | undefined, who: string) {
-  let response: Response
+async function getJson(
+  url: string,
+  signal: AbortSignal | undefined,
+  who: string,
+) {
+  let response: Response;
   try {
     // A bare fetch on purpose. RuneProfile's outer CORS middleware answers
     // preflights against an origin allowlist that we are not on, so any header
     // that makes this a non-simple request -- X-API-Key above all -- turns a
     // working call into a blocked one. Anonymous is 30 requests a minute, which
     // is a great deal more than one person clicking Look up.
-    response = await fetch(url, { signal })
+    response = await fetch(url, { signal });
   } catch (err) {
-    if (err instanceof DOMException && err.name === 'AbortError') throw err
-    throw new RuneProfileError("Couldn't reach RuneProfile.", 'UNREACHABLE')
+    if (err instanceof DOMException && err.name === "AbortError") throw err;
+    throw new RuneProfileError("Couldn't reach RuneProfile.", "UNREACHABLE");
   }
 
   if (response.status === 404) {
-    throw new RuneProfileError(`RuneProfile has no profile for ${who}.`, 'NOT_TRACKED')
+    throw new RuneProfileError(
+      `RuneProfile has no profile for ${who}.`,
+      "NOT_TRACKED",
+    );
   }
   if (response.status === 429) {
-    throw new RuneProfileError('Too many lookups just now. Try again in a minute.', 'RATE_LIMITED')
+    throw new RuneProfileError(
+      "Too many lookups just now. Try again in a minute.",
+      "RATE_LIMITED",
+    );
   }
   if (!response.ok) {
-    throw new RuneProfileError(`RuneProfile answered ${response.status}.`, 'BAD_RESPONSE')
+    throw new RuneProfileError(
+      `RuneProfile answered ${response.status}.`,
+      "BAD_RESPONSE",
+    );
   }
   try {
-    return (await response.json()) as unknown
+    return (await response.json()) as unknown;
   } catch {
-    throw new RuneProfileError("RuneProfile's reply wasn't JSON.", 'BAD_RESPONSE')
+    throw new RuneProfileError(
+      "RuneProfile's reply wasn't JSON.",
+      "BAD_RESPONSE",
+    );
   }
 }
 
@@ -266,33 +303,34 @@ export async function fetchRuneProfile(
   rsn: string,
   signal?: AbortSignal,
 ): Promise<RuneProfileImport> {
-  const name = displayRsn(rsn)
-  if (name === '') throw new RuneProfileError('Enter your RuneScape name.', 'BAD_NAME')
-  const base = `${API_BASE}${encodeURIComponent(name)}`
+  const name = displayRsn(rsn);
+  if (name === "")
+    throw new RuneProfileError("Enter your RuneScape name.", "BAD_NAME");
+  const base = `${API_BASE}${encodeURIComponent(name)}`;
 
   const [fullBody, tasksBody] = await Promise.all([
     getJson(`${base}/full`, signal, name),
     getJson(`${base}/combat-achievements/tasks`, signal, name),
-  ])
+  ]);
 
-  const full = parseFull(fullBody)
-  const { ids, dropped } = parseTasks(tasksBody)
+  const full = parseFull(fullBody);
+  const { ids, dropped } = parseTasks(tasksBody);
 
   if (ids.length === 0 && full.tierCompleted > 0) {
     throw new RuneProfileError(
       `RuneProfile has ${full.tierCompleted} achievements for ${name} but no per-task detail — ` +
-        'the profile predates that feature. Log in with the RuneProfile plugin to refresh it, ' +
-        'then try again.',
-      'STALE_PROFILE',
-    )
+        "the profile predates that feature. Log in with the RuneProfile plugin to refresh it, " +
+        "then try again.",
+      "STALE_PROFILE",
+    );
   }
 
   return {
     ids,
     dropped,
     profile: full.profile,
-    displayName: full.displayName === '' ? name : full.displayName,
+    displayName: full.displayName === "" ? name : full.displayName,
     accountType: full.accountType,
     updatedAt: full.updatedAt,
-  }
+  };
 }

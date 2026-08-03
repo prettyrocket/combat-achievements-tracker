@@ -9,53 +9,59 @@
 // want a count beside each name and a tick showing what's already chosen, and
 // the browser's autocomplete can show neither.
 
-import { useMemo, useRef, useState } from 'react'
-import { Check, Plus, Search } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { useMemo, useRef, useState } from "react";
+import { Check, Plus, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export interface MonsterPickerProps {
   /** Every monster in the data, with how many tasks it has. */
-  monsters: readonly { name: string; count: number }[]
-  selected: readonly string[]
-  onToggle: (monster: string) => void
+  monsters: readonly { name: string; count: number }[];
+  selected: readonly string[];
+  onToggle: (monster: string) => void;
   /** Trigger wording, so the bar and the breadcrumb can each say the right thing. */
-  label?: string
+  label?: string;
   /** Off in the breadcrumb, where the chosen monsters are listed right beside it. */
-  showCount?: boolean
-  className?: string
+  showCount?: boolean;
+  className?: string;
 }
 
 export function MonsterPicker({
   monsters,
   selected,
   onToggle,
-  label = 'Add monster',
+  label = "Add monster",
   showCount = true,
   className,
 }: MonsterPickerProps) {
-  const [open, setOpen] = useState(false)
-  const [search, setSearch] = useState('')
-  const listRef = useRef<HTMLDivElement>(null)
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const listRef = useRef<HTMLDivElement>(null);
 
   const chosen = useMemo(
     () => new Set(selected.map((monster) => monster.toLowerCase())),
     [selected],
-  )
+  );
 
   const matches = useMemo(() => {
-    const needle = search.trim().toLowerCase()
-    if (!needle) return monsters
-    return monsters.filter((monster) => monster.name.toLowerCase().includes(needle))
-  }, [monsters, search])
+    const needle = search.trim().toLowerCase();
+    if (!needle) return monsters;
+    return monsters.filter((monster) =>
+      monster.name.toLowerCase().includes(needle),
+    );
+  }, [monsters, search]);
 
   return (
     <Popover
       open={open}
       onOpenChange={(next) => {
-        setOpen(next)
-        if (!next) setSearch('')
+        setOpen(next);
+        if (!next) setSearch("");
       }}
     >
       <PopoverTrigger asChild>
@@ -66,7 +72,7 @@ export function MonsterPicker({
               monster doesn't nudge everything downstream of this button. */}
           {showCount && (
             <span className="text-muted-foreground min-w-4 text-right tabular-nums">
-              {selected.length > 0 ? selected.length : ''}
+              {selected.length > 0 ? selected.length : ""}
             </span>
           )}
         </Button>
@@ -85,11 +91,11 @@ export function MonsterPicker({
             onKeyDown={(event) => {
               // Enter takes the top match, so a name you can type in full never
               // needs the mouse.
-              if (event.key === 'Enter' && matches.length > 0) {
-                event.preventDefault()
-                onToggle(matches[0].name)
-                setSearch('')
-                listRef.current?.scrollTo({ top: 0 })
+              if (event.key === "Enter" && matches.length > 0) {
+                event.preventDefault();
+                onToggle(matches[0].name);
+                setSearch("");
+                listRef.current?.scrollTo({ top: 0 });
               }
             }}
             placeholder="Search monsters…"
@@ -98,12 +104,19 @@ export function MonsterPicker({
           />
         </div>
 
-        <div ref={listRef} className="max-h-72 overflow-y-auto p-1" role="listbox" aria-multiselectable>
+        <div
+          ref={listRef}
+          className="max-h-72 overflow-y-auto p-1"
+          role="listbox"
+          aria-multiselectable
+        >
           {matches.length === 0 ? (
-            <p className="text-muted-foreground px-2 py-6 text-center text-sm">No monster by that name.</p>
+            <p className="text-muted-foreground px-2 py-6 text-center text-sm">
+              No monster by that name.
+            </p>
           ) : (
             matches.map((monster) => {
-              const isChosen = chosen.has(monster.name.toLowerCase())
+              const isChosen = chosen.has(monster.name.toLowerCase());
               return (
                 <button
                   key={monster.name}
@@ -115,21 +128,27 @@ export function MonsterPicker({
                 >
                   <span
                     className={`flex size-4 shrink-0 items-center justify-center rounded border ${
-                      isChosen ? 'bg-foreground border-transparent' : 'border-muted-foreground/40'
+                      isChosen
+                        ? "bg-foreground border-transparent"
+                        : "border-muted-foreground/40"
                     }`}
                   >
-                    {isChosen && <Check className="text-background size-3" aria-hidden />}
+                    {isChosen && (
+                      <Check className="text-background size-3" aria-hidden />
+                    )}
                   </span>
-                  <span className="min-w-0 flex-1 truncate">{monster.name}</span>
+                  <span className="min-w-0 flex-1 truncate">
+                    {monster.name}
+                  </span>
                   <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
                     {monster.count}
                   </span>
                 </button>
-              )
+              );
             })
           )}
         </div>
       </PopoverContent>
     </Popover>
-  )
+  );
 }

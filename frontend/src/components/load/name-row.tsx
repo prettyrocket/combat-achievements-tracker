@@ -16,13 +16,22 @@
 // fetching is what those panes do and it differs between them -- WikiSync
 // builds a URL for you to open yourself and has nothing to press at all.
 
-import { Input } from '@/components/ui/input'
+import { Input } from "@/components/ui/input";
 
-export function NameRow({ rsn, onChange }: { rsn: string; onChange: (next: string) => void }) {
+export function NameRow({
+  rsn,
+  onChange,
+}: {
+  rsn: string;
+  onChange: (next: string) => void;
+}) {
   return (
     <div className="space-y-1.5 border-b pb-3">
       <div className="flex items-center gap-2">
-        <label className="text-muted-foreground shrink-0 text-sm" htmlFor="load-rsn">
+        <label
+          className="text-muted-foreground shrink-0 text-sm"
+          htmlFor="load-rsn"
+        >
           Your name
         </label>
         {/* Capped rather than full-bleed: a 12-character field stretched across
@@ -40,5 +49,5 @@ export function NameRow({ rsn, onChange }: { rsn: string; onChange: (next: strin
         />
       </div>
     </div>
-  )
+  );
 }

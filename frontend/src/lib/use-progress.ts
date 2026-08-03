@@ -4,7 +4,7 @@
 // of record and can change from outside React (another tab writing, an import),
 // and this is the hook that exists to keep a component honest about that.
 
-import { useCallback, useEffect, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useSyncExternalStore } from "react";
 import {
   getCompleted,
   getStorageError,
@@ -14,34 +14,34 @@ import {
   subscribe,
   toggle,
   undo,
-} from '@/lib/progress-store'
+} from "@/lib/progress-store";
 
 export interface UseProgress {
-  completed: ReadonlySet<number>
-  toggle: (wikiId: number) => void
-  setMany: (wikiIds: Iterable<number>) => void
-  reset: () => void
+  completed: ReadonlySet<number>;
+  toggle: (wikiId: number) => void;
+  setMany: (wikiIds: Iterable<number>) => void;
+  reset: () => void;
   /** Steps back one change to progress. A no-op when there's nothing to step
    *  back to, which is why nothing here reports whether there is. */
-  undo: () => void
+  undo: () => void;
   /** Non-null when progress is memory-only and will not survive the tab. */
-  storageError: string | null
+  storageError: string | null;
 }
 
 export function useProgress(): UseProgress {
-  const completed = useSyncExternalStore(subscribe, getCompleted, getCompleted)
+  const completed = useSyncExternalStore(subscribe, getCompleted, getCompleted);
 
   // The `storage` event fires only in *other* tabs, which is exactly what we want:
   // the writing tab already has the value, the listening tabs need to catch up.
   useEffect(() => {
     const onStorage = (event: StorageEvent) => {
-      if (event.key === null || event.key.startsWith('ca-tracker:progress:')) {
-        refreshFromStorage()
+      if (event.key === null || event.key.startsWith("ca-tracker:progress:")) {
+        refreshFromStorage();
       }
-    }
-    window.addEventListener('storage', onStorage)
-    return () => window.removeEventListener('storage', onStorage)
-  }, [])
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   return {
     completed,
@@ -50,5 +50,5 @@ export function useProgress(): UseProgress {
     reset: useCallback(() => reset(), []),
     undo: useCallback(() => void undo(), []),
     storageError: getStorageError(),
-  }
+  };
 }

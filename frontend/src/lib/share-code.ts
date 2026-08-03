@@ -20,13 +20,13 @@
 // profileWireLoss exists for. Export remains the lossless option, and the UI
 // says so where someone can still act on it.
 
-import { sanitizeIds } from '@/lib/progress-store'
+import { sanitizeIds } from "@/lib/progress-store";
 import {
   EMPTY_PROFILE,
   normalizeQuest,
   profileIsEmpty,
   type PlayerProfile,
-} from '@/lib/requirements'
+} from "@/lib/requirements";
 
 /**
  * Bumped only for a change that breaks old readers.
@@ -35,24 +35,24 @@ import {
  * later sections are empty", so a v1 code stays readable after a v2 section
  * exists. This moves when an existing byte changes meaning.
  */
-const VERSION = 1
+const VERSION = 1;
 
 /**
  * Ids run 0..645 with no gaps -- asserted in the tests against the real data,
  * because this is the assumption the whole format rests on.
  */
-const TASK_COUNT = 646
-const BITSET_BYTES = 32 + 49 // 81; ceil(646 / 8), written so the arithmetic shows
+const TASK_COUNT = 646;
+const BITSET_BYTES = 32 + 49; // 81; ceil(646 / 8), written so the arithmetic shows
 
 /** Version + bitset + one length byte, before any task list entries. */
-const HEADER_BYTES = 1 + BITSET_BYTES + 1
+const HEADER_BYTES = 1 + BITSET_BYTES + 1;
 
 /**
  * A task list longer than this can't state its length in one byte. It is ~10x
  * the largest plan anyone builds by hand, and truncating is better than a
  * format that can't say what it holds.
  */
-const MAX_LIST = 255
+const MAX_LIST = 255;
 
 // --- the wire orderings -----------------------------------------------------
 //
@@ -72,76 +72,80 @@ const MAX_LIST = 255
 
 /** In-game skill order, which is also where a 24th skill would naturally land. */
 const SKILL_WIRE_ORDER = [
-  'Attack',
-  'Defence',
-  'Strength',
-  'Hitpoints',
-  'Ranged',
-  'Prayer',
-  'Magic',
-  'Cooking',
-  'Woodcutting',
-  'Fletching',
-  'Fishing',
-  'Firemaking',
-  'Crafting',
-  'Smithing',
-  'Mining',
-  'Herblore',
-  'Agility',
-  'Thieving',
-  'Slayer',
-  'Farming',
-  'Runecraft',
-  'Hunter',
-  'Construction',
+  "Attack",
+  "Defence",
+  "Strength",
+  "Hitpoints",
+  "Ranged",
+  "Prayer",
+  "Magic",
+  "Cooking",
+  "Woodcutting",
+  "Fletching",
+  "Fishing",
+  "Firemaking",
+  "Crafting",
+  "Smithing",
+  "Mining",
+  "Herblore",
+  "Agility",
+  "Thieving",
+  "Slayer",
+  "Farming",
+  "Runecraft",
+  "Hunter",
+  "Construction",
   // Appended, not inserted -- the whole point of this list. Verified against
   // RuneLite's Skill enum, which is where these strings come from: WikiSync
   // writes `Skill.getName()` for every value, so the payload carries whatever
   // that enum holds. `Runecraft` above is from the same source, and `Overall`
   // is deprecated to null there, so it never appears.
-  'Sailing',
-] as const
+  "Sailing",
+] as const;
 
 /** gatedQuests() as it stood when this format was frozen. Append below, never sort. */
 const QUEST_WIRE_ORDER = [
-  'A Kingdom Divided',
-  'Beneath Cursed Sands',
-  'Children of the Sun',
-  'Desert Treasure II - The Fallen Empire',
-  'Dragon Slayer II',
-  'Monkey Madness II',
-  'Perilous Moons',
-  'Priest in Peril',
-  'Regicide',
-  'Secrets of the North',
-  'Sins of the Father',
-  'Song of the Elves',
-  'The Blood Moon Rises',
-  'The Final Dawn',
-  'The Fremennik Exiles',
-  'The Heart of Darkness',
-  'The Ides of Milk',
-  'Troubled Tortugans',
-  'While Guthix Sleeps',
-] as const
+  "A Kingdom Divided",
+  "Beneath Cursed Sands",
+  "Children of the Sun",
+  "Desert Treasure II - The Fallen Empire",
+  "Dragon Slayer II",
+  "Monkey Madness II",
+  "Perilous Moons",
+  "Priest in Peril",
+  "Regicide",
+  "Secrets of the North",
+  "Sins of the Father",
+  "Song of the Elves",
+  "The Blood Moon Rises",
+  "The Final Dawn",
+  "The Fremennik Exiles",
+  "The Heart of Darkness",
+  "The Ides of Milk",
+  "Troubled Tortugans",
+  "While Guthix Sleeps",
+] as const;
 
-export { SKILL_WIRE_ORDER, QUEST_WIRE_ORDER }
+export { SKILL_WIRE_ORDER, QUEST_WIRE_ORDER };
 
 /** Matching profile-store's ceiling, so a level that round-trips there fits here. */
-const MAX_LEVEL = 126
+const MAX_LEVEL = 126;
 
-const QUEST_BYTES = Math.ceil(QUEST_WIRE_ORDER.length / 8)
+const QUEST_BYTES = Math.ceil(QUEST_WIRE_ORDER.length / 8);
 
 /** Skills are matched case-insensitively; decode emits the spelling above. */
-const SKILL_INDEX = new Map(SKILL_WIRE_ORDER.map((skill, i) => [skill.toLowerCase(), i]))
+const SKILL_INDEX = new Map(
+  SKILL_WIRE_ORDER.map((skill, i) => [skill.toLowerCase(), i]),
+);
 
 /** Quests go through normalizeQuest, so an en dash still finds its slot. */
-const QUEST_INDEX = new Map(QUEST_WIRE_ORDER.map((quest, i) => [normalizeQuest(quest), i]))
+const QUEST_INDEX = new Map(
+  QUEST_WIRE_ORDER.map((quest, i) => [normalizeQuest(quest), i]),
+);
 
 export interface WireLoss {
-  levels: number
-  quests: number
+  levels: number;
+  quests: number;
 }
 
 /**
@@ -153,16 +157,21 @@ export interface WireLoss {
  * so the sender is who gets told.
  */
 export function profileWireLoss(profile: PlayerProfile | null): WireLoss {
-  if (profile === null) return { levels: 0, quests: 0 }
-  let levels = 0
+  if (profile === null) return { levels: 0, quests: 0 };
+  let levels = 0;
   for (const [skill, level] of Object.entries(profile.levels)) {
-    if (typeof level === 'number' && level >= 1 && !SKILL_INDEX.has(skill.toLowerCase())) levels++
+    if (
+      typeof level === "number" &&
+      level >= 1 &&
+      !SKILL_INDEX.has(skill.toLowerCase())
+    )
+      levels++;
   }
-  let quests = 0
+  let quests = 0;
   for (const quest of profile.quests) {
-    if (!QUEST_INDEX.has(normalizeQuest(quest))) quests++
+    if (!QUEST_INDEX.has(normalizeQuest(quest))) quests++;
   }
-  return { levels, quests }
+  return { levels, quests };
 }
 
 // --- base64url --------------------------------------------------------------
@@ -172,25 +181,28 @@ export function profileWireLoss(profile: PlayerProfile | null): WireLoss {
 // substitution is the standard one (RFC 4648 §5) and is its own inverse.
 
 function toBase64Url(bytes: Uint8Array): string {
-  let binary = ''
-  for (const byte of bytes) binary += String.fromCharCode(byte)
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 }
 
 function fromBase64Url(code: string): Uint8Array {
-  const binary = atob(code.replace(/-/g, '+').replace(/_/g, '/'))
-  const bytes = new Uint8Array(binary.length)
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
-  return bytes
+  const binary = atob(code.replace(/-/g, "+").replace(/_/g, "/"));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
 }
 
 // --- encode -----------------------------------------------------------------
 
 export interface Shareable {
-  completed: Iterable<number>
-  list: readonly number[]
+  completed: Iterable<number>;
+  list: readonly number[];
   /** Omitted or empty means the code carries no profile section at all. */
-  profile?: PlayerProfile | null
+  profile?: PlayerProfile | null;
 }
 
 /**
@@ -214,29 +226,30 @@ export interface Shareable {
  * declined.
  */
 function encodeProfile(profile: PlayerProfile): Uint8Array {
-  const levels = new Uint8Array(SKILL_WIRE_ORDER.length)
+  const levels = new Uint8Array(SKILL_WIRE_ORDER.length);
   for (const [skill, level] of Object.entries(profile.levels)) {
-    const at = SKILL_INDEX.get(skill.toLowerCase())
+    const at = SKILL_INDEX.get(skill.toLowerCase());
     // Not on the wire ordering: it cannot travel. profileWireLoss counts these
     // for the sender, which is the only place the fact is still knowable.
-    if (at === undefined) continue
-    if (typeof level !== 'number' || !Number.isFinite(level) || level < 1) continue
-    levels[at] = Math.min(Math.floor(level), MAX_LEVEL)
+    if (at === undefined) continue;
+    if (typeof level !== "number" || !Number.isFinite(level) || level < 1)
+      continue;
+    levels[at] = Math.min(Math.floor(level), MAX_LEVEL);
   }
 
-  const quests = new Uint8Array(QUEST_BYTES)
+  const quests = new Uint8Array(QUEST_BYTES);
   for (const quest of profile.quests) {
-    const at = QUEST_INDEX.get(normalizeQuest(quest))
-    if (at === undefined) continue
-    quests[at >> 3] |= 1 << (at & 7)
+    const at = QUEST_INDEX.get(normalizeQuest(quest));
+    if (at === undefined) continue;
+    quests[at >> 3] |= 1 << (at & 7);
   }
 
-  const out = new Uint8Array(1 + levels.length + 1 + quests.length)
-  out[0] = levels.length
-  out.set(levels, 1)
-  out[1 + levels.length] = quests.length
-  out.set(quests, 2 + levels.length)
-  return out
+  const out = new Uint8Array(1 + levels.length + 1 + quests.length);
+  out[0] = levels.length;
+  out.set(levels, 1);
+  out[1 + levels.length] = quests.length;
+  out.set(quests, 2 + levels.length);
+  return out;
 }
 
 /**
@@ -263,47 +276,54 @@ function encodeProfile(profile: PlayerProfile): Uint8Array {
  * byte-identical to one made before this section existed, which is the cheapest
  * possible proof that appending it broke nothing.
  */
-export function encodeShareCode({ completed, list, profile }: Shareable): string {
-  const trimmed = list.slice(0, MAX_LIST)
-  const tail = profile && !profileIsEmpty(profile) ? encodeProfile(profile) : null
-  const bytes = new Uint8Array(HEADER_BYTES + trimmed.length * 2 + (tail?.length ?? 0))
+export function encodeShareCode({
+  completed,
+  list,
+  profile,
+}: Shareable): string {
+  const trimmed = list.slice(0, MAX_LIST);
+  const tail =
+    profile && !profileIsEmpty(profile) ? encodeProfile(profile) : null;
+  const bytes = new Uint8Array(
+    HEADER_BYTES + trimmed.length * 2 + (tail?.length ?? 0),
+  );
 
-  bytes[0] = VERSION
+  bytes[0] = VERSION;
   for (const id of completed) {
     // Guard rather than trust: an id outside the universe would corrupt a
     // neighbouring task's bit, or silently write past the bitset into the
     // length byte. Dropping it matches what sanitizeIds does on the way in.
-    if (!Number.isInteger(id) || id < 0 || id >= TASK_COUNT) continue
-    bytes[1 + (id >> 3)] |= 1 << (id & 7)
+    if (!Number.isInteger(id) || id < 0 || id >= TASK_COUNT) continue;
+    bytes[1 + (id >> 3)] |= 1 << (id & 7);
   }
 
-  bytes[1 + BITSET_BYTES] = trimmed.length
+  bytes[1 + BITSET_BYTES] = trimmed.length;
   trimmed.forEach((id, i) => {
-    const at = HEADER_BYTES + i * 2
-    bytes[at] = (id >> 8) & 0xff
-    bytes[at + 1] = id & 0xff
-  })
+    const at = HEADER_BYTES + i * 2;
+    bytes[at] = (id >> 8) & 0xff;
+    bytes[at + 1] = id & 0xff;
+  });
 
-  if (tail) bytes.set(tail, HEADER_BYTES + trimmed.length * 2)
+  if (tail) bytes.set(tail, HEADER_BYTES + trimmed.length * 2);
 
-  return toBase64Url(bytes)
+  return toBase64Url(bytes);
 }
 
 // --- decode -----------------------------------------------------------------
 
 export interface ShareCodeResult {
-  completed: number[]
-  list: number[]
+  completed: number[];
+  list: number[];
   /** Ids the code named that this build doesn't know -- retired, or from a newer release. */
-  dropped: number
+  dropped: number;
   /** Levels and quests the code carried. Empty when it carried no profile section. */
-  profile: PlayerProfile
+  profile: PlayerProfile;
   /**
    * Entries the section held at positions this build can't name -- a code from a
    * newer release with a skill or quest appended since. Not the same thing as
    * profileWireLoss, which is what never made it into the code in the first place.
    */
-  profileDropped: WireLoss
+  profileDropped: WireLoss;
 }
 
 /**
@@ -314,49 +334,59 @@ export interface ShareCodeResult {
  * returns an empty profile rather than throwing. A section that is *present but
  * truncated* is a different thing, and throws like any other cut-off code.
  */
-function decodeProfile(bytes: Uint8Array, at: number): { profile: PlayerProfile; dropped: WireLoss } {
-  const absent = { profile: EMPTY_PROFILE, dropped: { levels: 0, quests: 0 } }
-  if (at >= bytes.length) return absent
+function decodeProfile(
+  bytes: Uint8Array,
+  at: number,
+): { profile: PlayerProfile; dropped: WireLoss } {
+  const absent = { profile: EMPTY_PROFILE, dropped: { levels: 0, quests: 0 } };
+  if (at >= bytes.length) return absent;
 
-  const skillCount = bytes[at]
+  const skillCount = bytes[at];
   // The count byte, the levels, and the quest-length byte all have to be there.
   if (at + 1 + skillCount + 1 > bytes.length) {
-    throw new Error('That share code is incomplete -- it may have been cut off when copied.')
+    throw new Error(
+      "That share code is incomplete -- it may have been cut off when copied.",
+    );
   }
 
-  const levels: Record<string, number> = {}
-  let droppedLevels = 0
+  const levels: Record<string, number> = {};
+  let droppedLevels = 0;
   for (let i = 0; i < skillCount; i++) {
-    const level = bytes[at + 1 + i]
-    if (level === 0) continue
-    const skill = SKILL_WIRE_ORDER[i]
+    const level = bytes[at + 1 + i];
+    if (level === 0) continue;
+    const skill = SKILL_WIRE_ORDER[i];
     // Past the end of our ordering: a skill appended after this build shipped.
     if (skill === undefined) {
-      droppedLevels++
-      continue
+      droppedLevels++;
+      continue;
     }
-    levels[skill] = Math.min(level, MAX_LEVEL)
+    levels[skill] = Math.min(level, MAX_LEVEL);
   }
 
-  const questAt = at + 1 + skillCount
-  const questBytes = bytes[questAt]
+  const questAt = at + 1 + skillCount;
+  const questBytes = bytes[questAt];
   if (questAt + 1 + questBytes > bytes.length) {
-    throw new Error('That share code is incomplete -- it may have been cut off when copied.')
+    throw new Error(
+      "That share code is incomplete -- it may have been cut off when copied.",
+    );
   }
 
-  const quests: string[] = []
-  let droppedQuests = 0
+  const quests: string[] = [];
+  let droppedQuests = 0;
   for (let i = 0; i < questBytes * 8; i++) {
-    if (!(bytes[questAt + 1 + (i >> 3)] & (1 << (i & 7)))) continue
-    const quest = QUEST_WIRE_ORDER[i]
+    if (!(bytes[questAt + 1 + (i >> 3)] & (1 << (i & 7)))) continue;
+    const quest = QUEST_WIRE_ORDER[i];
     if (quest === undefined) {
-      droppedQuests++
-      continue
+      droppedQuests++;
+      continue;
     }
-    quests.push(quest)
+    quests.push(quest);
   }
 
-  return { profile: { levels, quests }, dropped: { levels: droppedLevels, quests: droppedQuests } }
+  return {
+    profile: { levels, quests },
+    dropped: { levels: droppedLevels, quests: droppedQuests },
+  };
 }
 
 /**
@@ -368,8 +398,8 @@ function decodeProfile(bytes: Uint8Array, at: number): { profile: PlayerProfile;
  * there is exactly one answer in the codebase to "is this a real task id".
  */
 export function decodeShareCode(code: string): ShareCodeResult {
-  const trimmed = code.trim()
-  if (trimmed === '') throw new Error('That share code is empty.')
+  const trimmed = code.trim();
+  if (trimmed === "") throw new Error("That share code is empty.");
 
   // Checked before atob rather than relying on it to throw: atob quietly
   // ignores whitespace, so "hello there" decodes to seven junk bytes and would
@@ -377,55 +407,59 @@ export function decodeShareCode(code: string): ShareCodeResult {
   // the reader off looking for the missing half of something that was never a
   // code at all.
   if (!/^[A-Za-z0-9_-]+$/.test(trimmed)) {
-    throw new Error("That doesn't look like a share code.")
+    throw new Error("That doesn't look like a share code.");
   }
 
-  let bytes: Uint8Array
+  let bytes: Uint8Array;
   try {
-    bytes = fromBase64Url(trimmed)
+    bytes = fromBase64Url(trimmed);
   } catch {
-    throw new Error("That doesn't look like a share code.")
+    throw new Error("That doesn't look like a share code.");
   }
 
   if (bytes.length < HEADER_BYTES) {
-    throw new Error('That share code is incomplete -- it may have been cut off when copied.')
+    throw new Error(
+      "That share code is incomplete -- it may have been cut off when copied.",
+    );
   }
   if (bytes[0] !== VERSION) {
     throw new Error(
       `That share code was made by a different version of this app (format ${bytes[0]}, this build reads ${VERSION}).`,
-    )
+    );
   }
 
   // Loop to TASK_COUNT, not to the end of the bitset: bits 646 and 647 are
   // padding in the last byte and mean nothing.
-  const rawCompleted: number[] = []
+  const rawCompleted: number[] = [];
   for (let id = 0; id < TASK_COUNT; id++) {
-    if (bytes[1 + (id >> 3)] & (1 << (id & 7))) rawCompleted.push(id)
+    if (bytes[1 + (id >> 3)] & (1 << (id & 7))) rawCompleted.push(id);
   }
 
-  const listLength = bytes[1 + BITSET_BYTES]
-  const expected = HEADER_BYTES + listLength * 2
+  const listLength = bytes[1 + BITSET_BYTES];
+  const expected = HEADER_BYTES + listLength * 2;
   if (bytes.length < expected) {
-    throw new Error('That share code is incomplete -- it may have been cut off when copied.')
+    throw new Error(
+      "That share code is incomplete -- it may have been cut off when copied.",
+    );
   }
 
-  const rawList: number[] = []
+  const rawList: number[] = [];
   for (let i = 0; i < listLength; i++) {
-    const at = HEADER_BYTES + i * 2
-    rawList.push((bytes[at] << 8) | bytes[at + 1])
+    const at = HEADER_BYTES + i * 2;
+    rawList.push((bytes[at] << 8) | bytes[at + 1]);
   }
 
-  const { profile, dropped: profileDropped } = decodeProfile(bytes, expected)
+  const { profile, dropped: profileDropped } = decodeProfile(bytes, expected);
 
-  const completed = sanitizeIds(rawCompleted)
-  const list = sanitizeIds(rawList)
+  const completed = sanitizeIds(rawCompleted);
+  const list = sanitizeIds(rawList);
   return {
     completed: completed.ids,
     list: list.ids,
     dropped: completed.dropped + list.dropped,
     profile,
     profileDropped,
-  }
+  };
 }
 
 // --- the URL ----------------------------------------------------------------
@@ -436,7 +470,7 @@ export function decodeShareCode(code: string): ShareCodeResult {
 // headers on a host we don't control. The second is that use-task-query owns
 // the search half and preserves the hash, so the two never fight.
 
-const SHARE_KEY = 's'
+const SHARE_KEY = "s";
 
 /**
  * The link, deliberately without the current filters.
@@ -445,14 +479,17 @@ const SHARE_KEY = 's'
  * copied it -- carrying the query string too would mean the recipient opens your
  * progress filtered to whatever boss you happened to be reading about.
  */
-export function buildShareUrl(shareable: Shareable, location: Location): string {
-  return `${location.origin}${location.pathname}#${SHARE_KEY}=${encodeShareCode(shareable)}`
+export function buildShareUrl(
+  shareable: Shareable,
+  location: Location,
+): string {
+  return `${location.origin}${location.pathname}#${SHARE_KEY}=${encodeShareCode(shareable)}`;
 }
 
 /** The share code in a URL fragment, or null when there isn't one. */
 export function readShareCode(hash: string): string | null {
-  if (!hash.startsWith('#')) return null
-  return new URLSearchParams(hash.slice(1)).get(SHARE_KEY)
+  if (!hash.startsWith("#")) return null;
+  return new URLSearchParams(hash.slice(1)).get(SHARE_KEY);
 }
 
 /**
@@ -463,7 +500,7 @@ export function readShareCode(hash: string): string | null {
  * later reload could offer to overwrite progress made since.
  */
 export function clearShareCode(): void {
-  if (typeof window === 'undefined') return
-  const { pathname, search } = window.location
-  window.history.replaceState(null, '', `${pathname}${search}`)
+  if (typeof window === "undefined") return;
+  const { pathname, search } = window.location;
+  window.history.replaceState(null, "", `${pathname}${search}`);
 }

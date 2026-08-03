@@ -16,55 +16,60 @@
 // one shape would mean either a preview step for typing a number, or a silent
 // write for an import, and both are worse than the seam.
 
-import { useEffect, useState } from 'react'
-import { NameRow } from '@/components/load/name-row'
+import { useEffect, useState } from "react";
+import { NameRow } from "@/components/load/name-row";
 import {
   DEFAULT_LOAD_SOURCE,
   LOAD_SOURCES,
   readLastSource,
   writeLastSource,
   type LoadSourceId,
-} from '@/lib/load-source'
-import type { PlayerProfile } from '@/lib/requirements'
-import type { ProfileSource } from '@/lib/profile-store'
-import { WikiSyncPanel } from '@/components/load/wikisync-panel'
-import { RuneProfilePanel } from '@/components/load/runeprofile-panel'
-import { WiseOldManPanel } from '@/components/load/wiseoldman-panel'
-import { FilePanel } from '@/components/load/file-panel'
-import { ManualPanel } from '@/components/load/manual-panel'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+} from "@/lib/load-source";
+import type { PlayerProfile } from "@/lib/requirements";
+import type { ProfileSource } from "@/lib/profile-store";
+import { WikiSyncPanel } from "@/components/load/wikisync-panel";
+import { RuneProfilePanel } from "@/components/load/runeprofile-panel";
+import { WiseOldManPanel } from "@/components/load/wiseoldman-panel";
+import { FilePanel } from "@/components/load/file-panel";
+import { ManualPanel } from "@/components/load/manual-panel";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export interface LoadDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   /**
    * Which source to show when it opens. Null means "whatever was used last" --
    * the requirement filter passes 'manual' to land somebody straight on the
    * form when it has nothing to filter on.
    */
-  initialSource?: LoadSourceId | null
+  initialSource?: LoadSourceId | null;
 
-  completed: ReadonlySet<number>
-  listCount: number
-  lastRsn: string | null
+  completed: ReadonlySet<number>;
+  listCount: number;
+  lastRsn: string | null;
   onImportApply: (
     ids: number[],
     rsn: string,
     clearList: boolean,
     profile: PlayerProfile | null,
     source: ProfileSource,
-  ) => void
-  onImportLevels: (levels: Record<string, number>) => void
-  onImportFile: (file: File) => Promise<void>
+  ) => void;
+  onImportLevels: (levels: Record<string, number>) => void;
+  onImportFile: (file: File) => Promise<void>;
   /** The name, on close. Typing it counts -- it's who this browser tracks. */
-  onRsnCommit: (rsn: string) => void
+  onRsnCommit: (rsn: string) => void;
 
-  profile: PlayerProfile
-  profileIsEmpty: boolean
-  profileSource: ProfileSource
-  onSetLevel: (skill: string, level: number) => void
-  onSetQuest: (quest: string, finished: boolean) => void
-  onClearProfile: () => void
+  profile: PlayerProfile;
+  profileIsEmpty: boolean;
+  profileSource: ProfileSource;
+  onSetLevel: (skill: string, level: number) => void;
+  onSetQuest: (quest: string, finished: boolean) => void;
+  onClearProfile: () => void;
 }
 
 export function LoadDialog({
@@ -85,18 +90,18 @@ export function LoadDialog({
   onSetQuest,
   onClearProfile,
 }: LoadDialogProps) {
-  const [active, setActive] = useState<LoadSourceId>(DEFAULT_LOAD_SOURCE)
-  const [rsn, setRsn] = useState('')
+  const [active, setActive] = useState<LoadSourceId>(DEFAULT_LOAD_SOURCE);
+  const [rsn, setRsn] = useState("");
 
   // Chosen on open rather than held between openings: the remembered source is
   // a fact about the last import, and reading it fresh each time means another
   // tab's import is honoured too. The name is seeded from the account this
   // browser already tracks, so a returning player opens this and presses go.
   useEffect(() => {
-    if (!open) return
-    setActive(initialSource ?? readLastSource())
-    setRsn(lastRsn ?? '')
-  }, [open, initialSource, lastRsn])
+    if (!open) return;
+    setActive(initialSource ?? readLastSource());
+    setRsn(lastRsn ?? "");
+  }, [open, initialSource, lastRsn]);
 
   /**
    * Closing commits the name.
@@ -108,9 +113,9 @@ export function LoadDialog({
    * mid-session still gets caught, and is then remembered.
    */
   function close() {
-    const name = rsn.trim()
-    if (name !== '') onRsnCommit(name)
-    onOpenChange(false)
+    const name = rsn.trim();
+    if (name !== "") onRsnCommit(name);
+    onOpenChange(false);
   }
 
   /**
@@ -121,8 +126,8 @@ export function LoadDialog({
    * yet, are not preferences about where this dialog should open next time.
    */
   function finish(remember: boolean) {
-    if (remember) writeLastSource(active)
-    close()
+    if (remember) writeLastSource(active);
+    close();
   }
 
   return (
@@ -131,8 +136,8 @@ export function LoadDialog({
       onOpenChange={(next) => {
         // Escape, the X, and clicking outside all land here. Each is still a
         // close, so each still commits the name.
-        if (next) onOpenChange(true)
-        else close()
+        if (next) onOpenChange(true);
+        else close();
       }}
     >
       {/* Taller and wider than the panes strictly need, because the rail sets a
@@ -157,25 +162,27 @@ export function LoadDialog({
             className="w-44 shrink-0 space-y-0.5 border-r pr-3"
           >
             {LOAD_SOURCES.map((source) => {
-              const selected = source.id === active
+              const selected = source.id === active;
               return (
                 <button
                   key={source.id}
                   type="button"
-                  aria-current={selected ? 'true' : undefined}
+                  aria-current={selected ? "true" : undefined}
                   onClick={() => setActive(source.id)}
                   className={`w-full rounded-md px-2.5 py-2 text-left transition-colors ${
-                    selected ? 'bg-muted' : 'hover:bg-muted/60'
+                    selected ? "bg-muted" : "hover:bg-muted/60"
                   }`}
                 >
-                  <span className={`block text-sm ${selected ? 'font-semibold' : ''}`}>
+                  <span
+                    className={`block text-sm ${selected ? "font-semibold" : ""}`}
+                  >
                     {source.label}
                   </span>
                   <span className="text-muted-foreground mt-0.5 block text-xs leading-tight">
                     {source.carries}
                   </span>
                 </button>
-              )
+              );
             })}
           </nav>
 
@@ -187,37 +194,41 @@ export function LoadDialog({
               while the `truncate` on the URL never gets to do anything because
               nothing ever asked it to be narrower. */}
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-            {active === 'wikisync' && (
+            {active === "wikisync" && (
               <WikiSyncPanel
                 rsn={rsn}
                 completed={completed}
                 listCount={listCount}
                 lastRsn={lastRsn}
                 onApply={(ids, name, clear, imported) =>
-                  onImportApply(ids, name, clear, imported, 'wikisync')
+                  onImportApply(ids, name, clear, imported, "wikisync")
                 }
                 onFinished={finish}
               />
             )}
-            {active === 'runeprofile' && (
+            {active === "runeprofile" && (
               <RuneProfilePanel
                 rsn={rsn}
                 completed={completed}
                 listCount={listCount}
                 lastRsn={lastRsn}
                 onApply={(ids, name, clear, imported) =>
-                  onImportApply(ids, name, clear, imported, 'runeprofile')
+                  onImportApply(ids, name, clear, imported, "runeprofile")
                 }
                 onFinished={finish}
               />
             )}
-            {active === 'wiseoldman' && (
-              <WiseOldManPanel rsn={rsn} onApply={onImportLevels} onFinished={finish} />
+            {active === "wiseoldman" && (
+              <WiseOldManPanel
+                rsn={rsn}
+                onApply={onImportLevels}
+                onFinished={finish}
+              />
             )}
-            {active === 'file' && (
+            {active === "file" && (
               <FilePanel onImport={onImportFile} onFinished={finish} />
             )}
-            {active === 'manual' && (
+            {active === "manual" && (
               <ManualPanel
                 profile={profile}
                 isEmpty={profileIsEmpty}
@@ -231,5 +242,5 @@ export function LoadDialog({
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

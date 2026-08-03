@@ -16,22 +16,22 @@
 // so adding a gate on Runecrafting puts a Runecrafting box in this form and
 // nobody has to remember to come and add it.
 
-import { useState } from 'react'
-import { Trash2 } from 'lucide-react'
+import { useState } from "react";
+import { Trash2 } from "lucide-react";
 import {
   GATED_SKILLS,
   gatedQuests,
   normalizeQuest,
   questLabel,
   type PlayerProfile,
-} from '@/lib/requirements'
-import type { ProfileSource } from '@/lib/profile-store'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Input } from '@/components/ui/input'
-import { DialogClose } from '@/components/ui/dialog'
+} from "@/lib/requirements";
+import type { ProfileSource } from "@/lib/profile-store";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { DialogClose } from "@/components/ui/dialog";
 
-const QUESTS = gatedQuests()
+const QUESTS = gatedQuests();
 
 /**
  * One skill's level.
@@ -45,11 +45,11 @@ function LevelInput({
   level,
   onSetLevel,
 }: {
-  skill: string
-  level: number | undefined
-  onSetLevel: (skill: string, level: number) => void
+  skill: string;
+  level: number | undefined;
+  onSetLevel: (skill: string, level: number) => void;
 }) {
-  const [text, setText] = useState(level === undefined ? '' : String(level))
+  const [text, setText] = useState(level === undefined ? "" : String(level));
 
   return (
     <label className="flex items-center justify-between gap-2 text-sm">
@@ -58,26 +58,26 @@ function LevelInput({
         value={text}
         inputMode="numeric"
         onChange={(event) => {
-          const next = event.target.value.replace(/[^0-9]/g, '').slice(0, 3)
-          setText(next)
+          const next = event.target.value.replace(/[^0-9]/g, "").slice(0, 3);
+          setText(next);
           // An empty box means "I haven't said", which is a 1 to every gate --
           // the same as not having the skill, which is the safe reading.
-          onSetLevel(skill, next === '' ? 0 : Number(next))
+          onSetLevel(skill, next === "" ? 0 : Number(next));
         }}
         aria-label={`${skill} level`}
         className="h-8 w-16 text-center tabular-nums"
       />
     </label>
-  )
+  );
 }
 
 export interface ManualPanelProps {
-  profile: PlayerProfile
-  isEmpty: boolean
-  source: ProfileSource
-  onSetLevel: (skill: string, level: number) => void
-  onSetQuest: (quest: string, finished: boolean) => void
-  onClear: () => void
+  profile: PlayerProfile;
+  isEmpty: boolean;
+  source: ProfileSource;
+  onSetLevel: (skill: string, level: number) => void;
+  onSetQuest: (quest: string, finished: boolean) => void;
+  onClear: () => void;
 }
 
 export function ManualPanel({
@@ -88,28 +88,32 @@ export function ManualPanel({
   onSetQuest,
   onClear,
 }: ManualPanelProps) {
-  const finished = new Set(profile.quests.map(normalizeQuest))
-  const doneCount = QUESTS.filter((quest) => finished.has(normalizeQuest(quest))).length
+  const finished = new Set(profile.quests.map(normalizeQuest));
+  const doneCount = QUESTS.filter((quest) =>
+    finished.has(normalizeQuest(quest)),
+  ).length;
 
   // Remounts the level boxes when the numbers behind them are replaced from
   // elsewhere. Each box keeps its text in local state so clearing it to type
   // doesn't fight a re-render (see LevelInput), which also means a level
   // arriving from another pane would leave the old number on screen. Keyed on
   // the values themselves, so any import that changes them redraws the form.
-  const levelKey = GATED_SKILLS.map((skill) => profile.levels[skill] ?? '').join(',')
+  const levelKey = GATED_SKILLS.map(
+    (skill) => profile.levels[skill] ?? "",
+  ).join(",");
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
         <p className="text-muted-foreground text-sm">
-          Used to work out which monsters you can face.{' '}
+          Used to work out which monsters you can face.{" "}
           {isEmpty
-            ? 'Any import above fills this in for you.'
-            : source === 'wikisync' || source === 'runeprofile'
-              ? `Imported from ${source === 'wikisync' ? 'WikiSync' : 'RuneProfile'} — editing anything here overrides it until the next import.`
-              : source === 'wiseoldman'
-                ? 'Levels came from Wise Old Man — quests it has no way of knowing, so those are yours to tick.'
-                : 'Type a level you haven’t earned yet to see what it would open up.'}
+            ? "Any import above fills this in for you."
+            : source === "wikisync" || source === "runeprofile"
+              ? `Imported from ${source === "wikisync" ? "WikiSync" : "RuneProfile"} — editing anything here overrides it until the next import.`
+              : source === "wiseoldman"
+                ? "Levels came from Wise Old Man — quests it has no way of knowing, so those are yours to tick."
+                : "Type a level you haven’t earned yet to see what it would open up."}
         </p>
 
         {/* Two columns on anything but a phone: ten short number fields in one
@@ -128,8 +132,8 @@ export function ManualPanel({
               ))}
             </div>
             <p className="text-muted-foreground mt-2 text-xs leading-snug">
-              Only the skills some monster actually asks for. Slayer levels can't be
-              boosted for the bosses that need them.
+              Only the skills some monster actually asks for. Slayer levels
+              can't be boosted for the bosses that need them.
             </p>
           </section>
 
@@ -142,7 +146,7 @@ export function ManualPanel({
             </h3>
             <div className="space-y-1 pr-1">
               {QUESTS.map((quest) => {
-                const done = finished.has(normalizeQuest(quest))
+                const done = finished.has(normalizeQuest(quest));
                 return (
                   <label
                     key={quest}
@@ -150,11 +154,13 @@ export function ManualPanel({
                   >
                     <Checkbox
                       checked={done}
-                      onCheckedChange={(next) => onSetQuest(quest, next === true)}
+                      onCheckedChange={(next) =>
+                        onSetQuest(quest, next === true)
+                      }
                     />
                     <span className="min-w-0 flex-1">{questLabel(quest)}</span>
                   </label>
-                )
+                );
               })}
             </div>
           </section>
@@ -179,5 +185,5 @@ export function ManualPanel({
         </DialogClose>
       </div>
     </div>
-  )
+  );
 }

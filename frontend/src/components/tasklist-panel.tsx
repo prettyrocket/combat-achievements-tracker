@@ -6,28 +6,40 @@
 // next", and stays readable at a third of the width because it doesn't try to
 // answer any of the others.
 
-import { useDroppable } from '@dnd-kit/core'
-import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import { ChevronLeft, ChevronRight, GripVertical, ListChecks, ListPlus, Swords, X } from 'lucide-react'
-import { TASKLIST_DROPPABLE, dragId } from '@/lib/dnd'
-import { percent } from '@/lib/progress-summary'
-import { projectRewards, type RewardTier } from '@/lib/rewards'
-import { summarize, type TaskListEntry } from '@/lib/tasklist'
-import { TierBadge } from '@/components/tier-badge'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
+import { useDroppable } from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
+  ChevronLeft,
+  ChevronRight,
+  GripVertical,
+  ListChecks,
+  ListPlus,
+  Swords,
+  X,
+} from "lucide-react";
+import { TASKLIST_DROPPABLE, dragId } from "@/lib/dnd";
+import { percent } from "@/lib/progress-summary";
+import { projectRewards, type RewardTier } from "@/lib/rewards";
+import { summarize, type TaskListEntry } from "@/lib/tasklist";
+import { TierBadge } from "@/components/tier-badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 
 function Entry({
   entry,
   onToggleCompleted,
   onRemove,
 }: {
-  entry: TaskListEntry
-  onToggleCompleted: (wikiId: number) => void
-  onRemove: (wikiId: number) => void
+  entry: TaskListEntry;
+  onToggleCompleted: (wikiId: number) => void;
+  onRemove: (wikiId: number) => void;
 }) {
-  const { task, position, completed } = entry
+  const { task, position, completed } = entry;
   const {
     attributes,
     listeners,
@@ -36,7 +48,7 @@ function Entry({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: dragId('list', task.wikiId) })
+  } = useSortable({ id: dragId("list", task.wikiId) });
 
   return (
     <li
@@ -45,7 +57,7 @@ function Entry({
       className={`bg-card flex items-start gap-2 rounded-md border p-2 ${
         // Left in place but faded while it's being dragged, so the gap you're
         // aiming at stays where you expect it.
-        isDragging ? 'opacity-40' : ''
+        isDragging ? "opacity-40" : ""
       }`}
     >
       {/* The handle, not the whole row: the row holds a checkbox and a remove
@@ -70,18 +82,22 @@ function Entry({
       <Checkbox
         checked={completed}
         onCheckedChange={() => onToggleCompleted(task.wikiId)}
-        aria-label={`Mark "${task.name}" as ${completed ? 'not completed' : 'completed'}`}
+        aria-label={`Mark "${task.name}" as ${completed ? "not completed" : "completed"}`}
         className="mt-0.5"
       />
 
       <div className="min-w-0 flex-1">
-        <p className={`text-sm font-medium ${completed ? 'text-muted-foreground line-through' : ''}`}>
+        <p
+          className={`text-sm font-medium ${completed ? "text-muted-foreground line-through" : ""}`}
+        >
           {task.name}
         </p>
         <p className="mt-0.5 flex items-center gap-2 text-xs">
           <TierBadge tier={task.tier} />
           {task.monster && (
-            <span className="text-muted-foreground truncate">{task.monster}</span>
+            <span className="text-muted-foreground truncate">
+              {task.monster}
+            </span>
           )}
         </p>
       </div>
@@ -95,7 +111,7 @@ function Entry({
         <X className="size-3.5" aria-hidden />
       </button>
     </li>
-  )
+  );
 }
 
 /**
@@ -108,39 +124,40 @@ function PlanReward({
   pointsEarned,
   outstanding,
 }: {
-  rewardTiers: readonly RewardTier[]
-  pointsEarned: number
-  outstanding: number
+  rewardTiers: readonly RewardTier[];
+  pointsEarned: number;
+  outstanding: number;
 }) {
   // Nothing outstanding is nothing to project: an empty or all-done list has
   // already had its say in the header.
-  if (outstanding === 0) return null
+  if (outstanding === 0) return null;
 
-  const { status, unlocks } = projectRewards(rewardTiers, pointsEarned, outstanding)
+  const { status, unlocks } = projectRewards(
+    rewardTiers,
+    pointsEarned,
+    outstanding,
+  );
 
-  const body = unlocks.length > 0
-    ? (
-        <>
-          Finishing this list unlocks{' '}
-          <span className="text-foreground font-medium">
-            {unlocks.map((tier) => tier.hilt).join(' and ')}
-          </span>
-        </>
-      )
-    : status.next
-      ? (
-          <>
-            Leaves you{' '}
-            <span className="text-foreground font-medium tabular-nums">
-              {status.pointsToNext}
-            </span>{' '}
-            short of{' '}
-            <span className="text-foreground font-medium">{status.next.hilt}</span>
-          </>
-        )
-      : null
+  const body =
+    unlocks.length > 0 ? (
+      <>
+        Finishing this list unlocks{" "}
+        <span className="text-foreground font-medium">
+          {unlocks.map((tier) => tier.hilt).join(" and ")}
+        </span>
+      </>
+    ) : status.next ? (
+      <>
+        Leaves you{" "}
+        <span className="text-foreground font-medium tabular-nums">
+          {status.pointsToNext}
+        </span>{" "}
+        short of{" "}
+        <span className="text-foreground font-medium">{status.next.hilt}</span>
+      </>
+    ) : null;
 
-  if (!body) return null
+  if (!body) return null;
 
   return (
     <p
@@ -150,20 +167,20 @@ function PlanReward({
       <Swords className="mt-0.5 size-3.5 shrink-0" aria-hidden />
       <span>{body}</span>
     </p>
-  )
+  );
 }
 
 export interface TaskListPanelProps {
-  entries: readonly TaskListEntry[]
+  entries: readonly TaskListEntry[];
   /** The reward thresholds, and the points already banked against them, so the
    *  panel can say what the plan is worth on top of what it costs. */
-  rewardTiers: readonly RewardTier[]
-  pointsEarned: number
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onToggleCompleted: (wikiId: number) => void
-  onRemove: (wikiId: number) => void
-  onClear: () => void
+  rewardTiers: readonly RewardTier[];
+  pointsEarned: number;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onToggleCompleted: (wikiId: number) => void;
+  onRemove: (wikiId: number) => void;
+  onClear: () => void;
 }
 
 export function TaskListPanel({
@@ -176,10 +193,10 @@ export function TaskListPanel({
   onRemove,
   onClear,
 }: TaskListPanelProps) {
-  const summary = summarize(entries)
+  const summary = summarize(entries);
   // Registered even while collapsed, so dragging a row toward a closed panel
   // still has something to hit -- see the rail below.
-  const { setNodeRef, isOver } = useDroppable({ id: TASKLIST_DROPPABLE })
+  const { setNodeRef, isOver } = useDroppable({ id: TASKLIST_DROPPABLE });
 
   if (!open) {
     // One element, two shapes: a narrow rail beside the table on wide screens, a
@@ -191,22 +208,28 @@ export function TaskListPanel({
     // count -- both legible the normal way up -- with the words kept for the bar,
     // where there is room for them.
     return (
-      <aside ref={setNodeRef} aria-label="My list" className="w-full shrink-0 lg:h-full lg:w-12">
+      <aside
+        ref={setNodeRef}
+        aria-label="My list"
+        className="w-full shrink-0 lg:h-full lg:w-12"
+      >
         <button
           type="button"
           onClick={() => onOpenChange(true)}
           aria-expanded={false}
           title={
             isOver
-              ? 'Drop to add'
+              ? "Drop to add"
               : `My list — ${summary.completed}/${summary.total} done, ${summary.pointsEarned}/${summary.pointsTotal} points`
           }
           className={`hover:bg-muted flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2 transition-colors lg:h-full lg:flex-col lg:justify-start lg:px-0 lg:py-3 ${
-            isOver ? 'border-foreground bg-muted' : ''
+            isOver ? "border-foreground bg-muted" : ""
           }`}
         >
           <ListChecks className="size-4 shrink-0" aria-hidden />
-          <span className="text-xs font-medium tabular-nums">{summary.total}</span>
+          <span className="text-xs font-medium tabular-nums">
+            {summary.total}
+          </span>
           {/* What the queue is worth, kept even on the 48px rail: it's the figure
               that decides whether the list is a session or a fortnight, and it
               fits at this size where a second fraction wouldn't. */}
@@ -216,14 +239,17 @@ export function TaskListPanel({
             </span>
           )}
           <span className="text-muted-foreground text-xs lg:hidden">
-            {isOver ? 'Drop to add' : 'My list'}
+            {isOver ? "Drop to add" : "My list"}
           </span>
           {/* The rail's own affordance: a chevron pointing back the way the panel
               will come from, instead of a word lying on its side. */}
-          <ChevronLeft className="text-muted-foreground hidden size-4 lg:block" aria-hidden />
+          <ChevronLeft
+            className="text-muted-foreground hidden size-4 lg:block"
+            aria-hidden
+          />
         </button>
       </aside>
-    )
+    );
   }
 
   return (
@@ -231,7 +257,7 @@ export function TaskListPanel({
       <div
         ref={setNodeRef}
         className={`flex max-h-[45vh] flex-col rounded-lg border transition-colors lg:max-h-full lg:h-full ${
-          isOver ? 'border-foreground bg-muted/40' : ''
+          isOver ? "border-foreground bg-muted/40" : ""
         }`}
       >
         <div className="flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2">
@@ -242,7 +268,7 @@ export function TaskListPanel({
                 Points are the half that survives when the panel is narrow, so
                 they read as "of 34 pts" rather than a bare second fraction. */}
             <span className="text-muted-foreground truncate font-normal tabular-nums">
-              {summary.completed}/{summary.total} done ·{' '}
+              {summary.completed}/{summary.total} done ·{" "}
               <span className="whitespace-nowrap">
                 {summary.pointsEarned}/{summary.pointsTotal} pts
               </span>
@@ -276,15 +302,16 @@ export function TaskListPanel({
 
         {entries.length === 0 ? (
           <p className="text-muted-foreground px-3 py-8 text-center text-sm">
-            Drag tasks here to plan your next session — or use the{' '}
+            Drag tasks here to plan your next session — or use the{" "}
             {/* The icon an unlisted row actually shows, so this reads as an
                 instruction rather than a riddle. */}
-            <ListPlus className="inline size-3.5" aria-hidden /> button on any row.
+            <ListPlus className="inline size-3.5" aria-hidden /> button on any
+            row.
           </p>
         ) : (
           <>
             <SortableContext
-              items={entries.map((entry) => dragId('list', entry.task.wikiId))}
+              items={entries.map((entry) => dragId("list", entry.task.wikiId))}
               strategy={verticalListSortingStrategy}
             >
               {/* The one part of the panel that scrolls: the header, the meter
@@ -302,7 +329,12 @@ export function TaskListPanel({
             </SortableContext>
 
             <div className="flex shrink-0 justify-end border-t px-2 py-1.5">
-              <Button variant="ghost" size="sm" onClick={onClear} className="h-6 px-2 text-xs">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClear}
+                className="h-6 px-2 text-xs"
+              >
                 <X className="size-3" aria-hidden />
                 Clear list
               </Button>
@@ -311,5 +343,5 @@ export function TaskListPanel({
         )}
       </div>
     </aside>
-  )
+  );
 }

@@ -11,22 +11,29 @@
 // load-dialog.tsx). Share is still a menu, because copying a link and saving a
 // file are two acts rather than two sources for one.
 
-import { useState } from 'react'
-import { Download, ChevronDown, Link2, Upload, RotateCcw, Share2 } from 'lucide-react'
-import { buildBackup, importBackup } from '@/lib/backup'
-import { buildShareUrl, profileWireLoss } from '@/lib/share-code'
-import type { PlayerProfile } from '@/lib/requirements'
-import type { ProfileSource } from '@/lib/profile-store'
-import type { LoadSourceId } from '@/lib/load-source'
-import { LoadDialog } from '@/components/load-dialog'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
+import { useState } from "react";
+import {
+  Download,
+  ChevronDown,
+  Link2,
+  Upload,
+  RotateCcw,
+  Share2,
+} from "lucide-react";
+import { buildBackup, importBackup } from "@/lib/backup";
+import { buildShareUrl, profileWireLoss } from "@/lib/share-code";
+import type { PlayerProfile } from "@/lib/requirements";
+import type { ProfileSource } from "@/lib/profile-store";
+import type { LoadSourceId } from "@/lib/load-source";
+import { LoadDialog } from "@/components/load-dialog";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,25 +44,29 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
+} from "@/components/ui/alert-dialog";
 
-type Notice = { tone: 'ok' | 'error'; message: string }
+type Notice = { tone: "ok" | "error"; message: string };
 
 /** What Reset is allowed to clear, ticked one by one. */
 interface ResetTargets {
-  completed: boolean
-  list: boolean
-  profile: boolean
+  completed: boolean;
+  list: boolean;
+  profile: boolean;
 }
 
 // Progress only, because that's what Reset has always meant and it's the one
 // with an undo. Levels and the list are opt-in every time.
-const DEFAULT_RESET_TARGETS: ResetTargets = { completed: true, list: false, profile: false }
+const DEFAULT_RESET_TARGETS: ResetTargets = {
+  completed: true,
+  list: false,
+  profile: false,
+};
 
 /** "a", "a and b", "a, b and c" -- for a sentence, not a table. */
 function formatList(parts: readonly string[]): string {
-  if (parts.length <= 1) return parts[0] ?? ''
-  return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`
+  if (parts.length <= 1) return parts[0] ?? "";
+  return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
 }
 
 /** One tickable thing Reset can clear, with how much of it there is. */
@@ -66,16 +77,18 @@ function ResetOption({
   disabled,
   onChange,
 }: {
-  label: string
-  detail: string
-  checked: boolean
-  disabled: boolean
-  onChange: (checked: boolean) => void
+  label: string;
+  detail: string;
+  checked: boolean;
+  disabled: boolean;
+  onChange: (checked: boolean) => void;
 }) {
   return (
     <label
       className={`flex items-center gap-2.5 rounded px-1.5 py-1.5 text-sm ${
-        disabled ? 'opacity-50' : 'hover:bg-muted cursor-pointer transition-colors'
+        disabled
+          ? "opacity-50"
+          : "hover:bg-muted cursor-pointer transition-colors"
       }`}
     >
       <Checkbox
@@ -84,34 +97,36 @@ function ResetOption({
         onCheckedChange={(next) => onChange(next === true)}
       />
       <span className="flex-1">{label}</span>
-      <span className="text-muted-foreground text-xs tabular-nums">{detail}</span>
+      <span className="text-muted-foreground text-xs tabular-nums">
+        {detail}
+      </span>
     </label>
-  )
+  );
 }
 
 function exportFilename(): string {
   // Local date, not ISO: this filename is for a human sorting their own backups.
-  const now = new Date()
+  const now = new Date();
   const stamp = [
     now.getFullYear(),
-    String(now.getMonth() + 1).padStart(2, '0'),
-    String(now.getDate()).padStart(2, '0'),
-  ].join('-')
-  return `combat-achievements-${stamp}.json`
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0"),
+  ].join("-");
+  return `combat-achievements-${stamp}.json`;
 }
 
 export interface ProgressToolbarProps {
-  completed: ReadonlySet<number>
-  completedCount: number
+  completed: ReadonlySet<number>;
+  completedCount: number;
   /** The plan itself, in order -- the share link carries it, not just its size. */
-  list: readonly number[]
+  list: readonly number[];
   /** Entries on the plan, for the export message and the import warning. */
-  listCount: number
+  listCount: number;
   /** The account the last WikiSync import came from, if any. */
-  lastRsn: string | null
+  lastRsn: string | null;
   /** Clears completed tasks. Reset picks which of these three it calls. */
-  onReset: () => void
-  onClearList: () => void
+  onReset: () => void;
+  onClearList: () => void;
   /**
    * One callback for both import doors. They differ only in where the data came
    * from, which the profile editor wants to name back at you -- the progress
@@ -123,22 +138,22 @@ export interface ProgressToolbarProps {
     clearList: boolean,
     profile: PlayerProfile | null,
     source: ProfileSource,
-  ) => void
+  ) => void;
   /** The levels and quests behind the requirement filter, and its editor. */
-  profile: PlayerProfile
-  profileIsEmpty: boolean
-  profileSource: ProfileSource
+  profile: PlayerProfile;
+  profileIsEmpty: boolean;
+  profileSource: ProfileSource;
   /** Owned by App: the requirement filter opens this dialog too. */
-  loadOpen: boolean
-  onLoadOpenChange: (open: boolean) => void
+  loadOpen: boolean;
+  onLoadOpenChange: (open: boolean) => void;
   /** Which pane to land on, or null for whichever was used last. */
-  loadSource: LoadSourceId | null
+  loadSource: LoadSourceId | null;
   /** The name the Load dialog closed with. Typing it counts as saying so. */
-  onRsnCommit: (rsn: string) => void
-  onSetLevel: (skill: string, level: number) => void
-  onImportLevels: (levels: Record<string, number>) => void
-  onSetQuest: (quest: string, finished: boolean) => void
-  onClearProfile: () => void
+  onRsnCommit: (rsn: string) => void;
+  onSetLevel: (skill: string, level: number) => void;
+  onImportLevels: (levels: Record<string, number>) => void;
+  onSetQuest: (quest: string, finished: boolean) => void;
+  onClearProfile: () => void;
 }
 
 export function ProgressToolbar({
@@ -162,83 +177,93 @@ export function ProgressToolbar({
   onSetQuest,
   onClearProfile,
 }: ProgressToolbarProps) {
-  const [notice, setNotice] = useState<Notice | null>(null)
+  const [notice, setNotice] = useState<Notice | null>(null);
 
   // Reset asks what to reset. Three separate stores, three separate answers --
   // wiping your levels because you wanted to re-tick your tasks was never
   // something anyone asked for, and the levels are the slowest to type back in.
-  const [resetOpen, setResetOpen] = useState(false)
-  const [resetTargets, setResetTargets] = useState<ResetTargets>(DEFAULT_RESET_TARGETS)
-  const nothingToReset = completedCount === 0 && listCount === 0 && profileIsEmpty
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetTargets, setResetTargets] = useState<ResetTargets>(
+    DEFAULT_RESET_TARGETS,
+  );
+  const nothingToReset =
+    completedCount === 0 && listCount === 0 && profileIsEmpty;
   const willReset =
     (resetTargets.completed && completedCount > 0) ||
     (resetTargets.list && listCount > 0) ||
-    (resetTargets.profile && !profileIsEmpty)
+    (resetTargets.profile && !profileIsEmpty);
 
   function handleReset() {
-    const done: string[] = []
+    const done: string[] = [];
     if (resetTargets.completed && completedCount > 0) {
-      onReset()
-      done.push(`${completedCount} completed tasks`)
+      onReset();
+      done.push(`${completedCount} completed tasks`);
     }
     if (resetTargets.list && listCount > 0) {
-      onClearList()
-      done.push(`your list of ${listCount}`)
+      onClearList();
+      done.push(`your list of ${listCount}`);
     }
     if (resetTargets.profile && !profileIsEmpty) {
-      onClearProfile()
-      done.push('your levels and quests')
+      onClearProfile();
+      done.push("your levels and quests");
     }
-    setNotice({ tone: 'ok', message: `Cleared ${formatList(done)}.` })
+    setNotice({ tone: "ok", message: `Cleared ${formatList(done)}.` });
   }
 
   function handleExport() {
     const blob = new Blob([JSON.stringify(buildBackup(), null, 2)], {
-      type: 'application/json',
-    })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = exportFilename()
-    link.click()
-    URL.revokeObjectURL(url)
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = exportFilename();
+    link.click();
+    URL.revokeObjectURL(url);
     setNotice({
-      tone: 'ok',
+      tone: "ok",
       message:
         `Exported ${completedCount} completed tasks` +
-        (listCount > 0 ? ` and ${listCount} on your list.` : '.'),
-    })
+        (listCount > 0 ? ` and ${listCount} on your list.` : "."),
+    });
   }
 
   async function handleCopyLink() {
-    const url = buildShareUrl({ completed, list, profile }, window.location)
+    const url = buildShareUrl({ completed, list, profile }, window.location);
     // Said here or nowhere: a link that never carried your other 200 quests looks
     // exactly like one made by someone who hasn't finished them, so the moment
     // the sender can still choose Export instead is the only moment worth
     // mentioning it.
-    const loss = profileWireLoss(profile)
+    const loss = profileWireLoss(profile);
     const lost = [
-      loss.levels > 0 ? `${loss.levels} skill${loss.levels === 1 ? '' : 's'}` : null,
-      loss.quests > 0 ? `${loss.quests} quest${loss.quests === 1 ? '' : 's'}` : null,
-    ].filter((part) => part !== null)
+      loss.levels > 0
+        ? `${loss.levels} skill${loss.levels === 1 ? "" : "s"}`
+        : null,
+      loss.quests > 0
+        ? `${loss.quests} quest${loss.quests === 1 ? "" : "s"}`
+        : null,
+    ].filter((part) => part !== null);
     try {
-      await navigator.clipboard.writeText(url)
+      await navigator.clipboard.writeText(url);
       setNotice({
-        tone: 'ok',
+        tone: "ok",
         message:
           `Link copied — ${completedCount} completed tasks` +
-          (listCount > 0 ? `, ${listCount} on your list` : '') +
-          (profileIsEmpty ? '.' : ', and your levels and quests.') +
-          ' Opening it replaces whatever that browser holds.' +
+          (listCount > 0 ? `, ${listCount} on your list` : "") +
+          (profileIsEmpty ? "." : ", and your levels and quests.") +
+          " Opening it replaces whatever that browser holds." +
           (lost.length > 0
-            ? ` ${lost.join(' and ')} can't fit in a link — export a file if you need those too.`
-            : ''),
-      })
+            ? ` ${lost.join(" and ")} can't fit in a link — export a file if you need those too.`
+            : ""),
+      });
     } catch {
       // Denied permission, or an insecure origin. The link is the useful thing,
       // not the copying, so hand it over rather than reporting a failure the
       // player can do nothing about.
-      setNotice({ tone: 'error', message: `Couldn't reach the clipboard. The link is: ${url}` })
+      setNotice({
+        tone: "error",
+        message: `Couldn't reach the clipboard. The link is: ${url}`,
+      });
     }
   }
 
@@ -249,17 +274,21 @@ export function ProgressToolbar({
    * stores at once and is worth reading after the dialog has gone.
    */
   async function handleImportFile(file: File) {
-    const result = importBackup(await file.text())
+    const result = importBackup(await file.text());
     setNotice({
-      tone: 'ok',
+      tone: "ok",
       message:
         `Imported ${result.imported} completed tasks` +
-        (result.listImported > 0 ? ` and ${result.listImported} on your list.` : '.') +
-        (result.profileImported ? ' Your levels and quests came with it.' : '') +
+        (result.listImported > 0
+          ? ` and ${result.listImported} on your list.`
+          : ".") +
+        (result.profileImported
+          ? " Your levels and quests came with it."
+          : "") +
         (result.dropped + result.listDropped > 0
           ? ` Ignored ${result.dropped + result.listDropped} unrecognised entries.`
-          : ''),
-    })
+          : ""),
+    });
   }
 
   return (
@@ -268,7 +297,11 @@ export function ProgressToolbar({
         {/* One button, because there is one question -- where should this come
             from -- and the dialog is where it gets asked. A menu here would be
             the same five options with nowhere to say what any of them carry. */}
-        <Button variant="outline" size="sm" onClick={() => onLoadOpenChange(true)}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onLoadOpenChange(true)}
+        >
           <Upload className="size-4" aria-hidden />
           Load
         </Button>
@@ -296,15 +329,14 @@ export function ProgressToolbar({
           </DropdownMenuContent>
         </DropdownMenu>
 
-
         <AlertDialog
           open={resetOpen}
           onOpenChange={(next) => {
-            setResetOpen(next)
+            setResetOpen(next);
             // Back to defaults on the way in, not on the way out: a dialog that
             // reopens still holding "and my levels" from last time is how you
             // clear something you didn't mean to.
-            if (next) setResetTargets(DEFAULT_RESET_TARGETS)
+            if (next) setResetTargets(DEFAULT_RESET_TARGETS);
           }}
         >
           <AlertDialogTrigger asChild>
@@ -317,9 +349,10 @@ export function ProgressToolbar({
             <AlertDialogHeader>
               <AlertDialogTitle>Reset what?</AlertDialogTitle>
               <AlertDialogDescription>
-                Nothing here is kept on a server, so nothing comes back from one — export
-                first if you might want it. Ctrl+Z can bring completed tasks back until you
-                reload the page; your levels and your list can't be undone.
+                Nothing here is kept on a server, so nothing comes back from one
+                — export first if you might want it. Ctrl+Z can bring completed
+                tasks back until you reload the page; your levels and your list
+                can't be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
 
@@ -328,23 +361,32 @@ export function ProgressToolbar({
             <div className="space-y-1">
               <ResetOption
                 label="Completed tasks"
-                detail={completedCount === 0 ? 'none ticked' : `${completedCount} ticked`}
+                detail={
+                  completedCount === 0
+                    ? "none ticked"
+                    : `${completedCount} ticked`
+                }
                 checked={resetTargets.completed}
                 disabled={completedCount === 0}
                 onChange={(next) =>
-                  setResetTargets((targets) => ({ ...targets, completed: next }))
+                  setResetTargets((targets) => ({
+                    ...targets,
+                    completed: next,
+                  }))
                 }
               />
               <ResetOption
                 label="My list"
-                detail={listCount === 0 ? 'empty' : `${listCount} planned`}
+                detail={listCount === 0 ? "empty" : `${listCount} planned`}
                 checked={resetTargets.list}
                 disabled={listCount === 0}
-                onChange={(next) => setResetTargets((targets) => ({ ...targets, list: next }))}
+                onChange={(next) =>
+                  setResetTargets((targets) => ({ ...targets, list: next }))
+                }
               />
               <ResetOption
                 label="My levels and quests"
-                detail={profileIsEmpty ? 'not entered' : 'entered'}
+                detail={profileIsEmpty ? "not entered" : "entered"}
                 checked={resetTargets.profile}
                 disabled={profileIsEmpty}
                 onChange={(next) =>
@@ -388,11 +430,11 @@ export function ProgressToolbar({
       {notice && (
         <p
           role="status"
-          className={`text-xs ${notice.tone === 'error' ? 'text-red-400' : 'text-muted-foreground'}`}
+          className={`text-xs ${notice.tone === "error" ? "text-red-400" : "text-muted-foreground"}`}
         >
           {notice.message}
         </p>
       )}
     </div>
-  )
+  );
 }

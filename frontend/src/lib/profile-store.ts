@@ -9,19 +9,23 @@
 // React binding in use-profile.ts, so the rules can be tested without mounting
 // anything.
 
-import { readJson, writeJson } from '@/lib/local-store'
-import { EMPTY_PROFILE, normalizeQuest, type PlayerProfile } from '@/lib/requirements'
+import { readJson, writeJson } from "@/lib/local-store";
+import {
+  EMPTY_PROFILE,
+  normalizeQuest,
+  type PlayerProfile,
+} from "@/lib/requirements";
 
-const STORAGE_KEY = 'ca-tracker:profile:v1'
-const SCHEMA_VERSION = 1
+const STORAGE_KEY = "ca-tracker:profile:v1";
+const SCHEMA_VERSION = 1;
 
 export interface StoredProfile {
-  version: number
-  savedAt: string
-  levels: Record<string, number>
-  quests: string[]
+  version: number;
+  savedAt: string;
+  levels: Record<string, number>;
+  quests: string[];
   /** Where it came from, so the editor can say "imported from WikiSync". */
-  source: ProfileSource
+  source: ProfileSource;
 }
 
 /**
@@ -31,14 +35,15 @@ export interface StoredProfile {
  * They are not equal in what they know: a paste and a RuneProfile lookup both
  * speak for the whole account, a Wise Old Man lookup only ever knows levels.
  */
-export type ProfileSource = 'manual' | 'wikisync' | 'wiseoldman' | 'runeprofile'
+export type ProfileSource =
+  "manual" | "wikisync" | "wiseoldman" | "runeprofile";
 
 const SOURCES: ReadonlySet<string> = new Set<ProfileSource>([
-  'manual',
-  'wikisync',
-  'wiseoldman',
-  'runeprofile',
-])
+  "manual",
+  "wikisync",
+  "wiseoldman",
+  "runeprofile",
+]);
 
 /**
  * Levels are clamped to 1..126 rather than merely type-checked: the file is
@@ -48,87 +53,98 @@ const SOURCES: ReadonlySet<string> = new Set<ProfileSource>([
  * worse than one that is merely generous.
  */
 export function sanitizeLevels(input: unknown): Record<string, number> {
-  const out: Record<string, number> = {}
-  if (input === null || typeof input !== 'object' || Array.isArray(input)) return out
-  for (const [skill, value] of Object.entries(input as Record<string, unknown>)) {
-    if (typeof value !== 'number' || !Number.isFinite(value)) continue
-    const level = Math.floor(value)
-    if (level < 1) continue
-    out[skill] = Math.min(level, 126)
+  const out: Record<string, number> = {};
+  if (input === null || typeof input !== "object" || Array.isArray(input))
+    return out;
+  for (const [skill, value] of Object.entries(
+    input as Record<string, unknown>,
+  )) {
+    if (typeof value !== "number" || !Number.isFinite(value)) continue;
+    const level = Math.floor(value);
+    if (level < 1) continue;
+    out[skill] = Math.min(level, 126);
   }
-  return out
+  return out;
 }
 
 /** Deduped by normalized name, keeping the first spelling seen. */
 export function sanitizeQuests(input: unknown): string[] {
-  if (!Array.isArray(input)) return []
-  const seen = new Set<string>()
-  const out: string[] = []
+  if (!Array.isArray(input)) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
   for (const value of input) {
-    if (typeof value !== 'string') continue
-    const trimmed = value.trim()
-    if (trimmed === '') continue
-    const key = normalizeQuest(trimmed)
-    if (seen.has(key)) continue
-    seen.add(key)
-    out.push(trimmed)
+    if (typeof value !== "string") continue;
+    const trimmed = value.trim();
+    if (trimmed === "") continue;
+    const key = normalizeQuest(trimmed);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(trimmed);
   }
-  return out
+  return out;
 }
 
 export function sanitizeProfile(input: unknown): PlayerProfile {
-  const raw = (input ?? {}) as { levels?: unknown; quests?: unknown }
-  return { levels: sanitizeLevels(raw.levels), quests: sanitizeQuests(raw.quests) }
+  const raw = (input ?? {}) as { levels?: unknown; quests?: unknown };
+  return {
+    levels: sanitizeLevels(raw.levels),
+    quests: sanitizeQuests(raw.quests),
+  };
 }
 
 function load(): PlayerProfile {
-  const stored = readJson(STORAGE_KEY)
-  return stored === null ? EMPTY_PROFILE : sanitizeProfile(stored)
+  const stored = readJson(STORAGE_KEY);
+  return stored === null ? EMPTY_PROFILE : sanitizeProfile(stored);
 }
 
 function loadSource(): ProfileSource {
-  const stored = (readJson(STORAGE_KEY) as { source?: unknown } | null)?.source
-  return typeof stored === 'string' && SOURCES.has(stored) ? (stored as ProfileSource) : 'manual'
+  const stored = (readJson(STORAGE_KEY) as { source?: unknown } | null)?.source;
+  return typeof stored === "string" && SOURCES.has(stored)
+    ? (stored as ProfileSource)
+    : "manual";
 }
 
 // Cached rather than rebuilt per read: useSyncExternalStore compares snapshots
 // by identity, and a fresh object each call is an infinite render loop.
-let current: PlayerProfile = load()
-let currentSource: ProfileSource = loadSource()
-const listeners = new Set<() => void>()
+let current: PlayerProfile = load();
+let currentSource: ProfileSource = loadSource();
+const listeners = new Set<() => void>();
 
 function commit(next: PlayerProfile, source: ProfileSource): void {
-  current = next
-  currentSource = source
+  current = next;
+  currentSource = source;
   const payload: StoredProfile = {
     version: SCHEMA_VERSION,
     savedAt: new Date().toISOString(),
     levels: { ...next.levels },
     quests: [...next.quests],
     source,
-  }
-  writeJson(STORAGE_KEY, payload)
-  for (const listener of listeners) listener()
+  };
+  writeJson(STORAGE_KEY, payload);
+  for (const listener of listeners) listener();
 }
 
 export function subscribe(listener: () => void): () => void {
-  listeners.add(listener)
-  return () => listeners.delete(listener)
+  listeners.add(listener);
+  return () => listeners.delete(listener);
 }
 
 /** Stable identity between changes -- safe for useSyncExternalStore. */
 export function getProfile(): PlayerProfile {
-  return current
+  return current;
 }
 
 export function getSource(): ProfileSource {
-  return currentSource
+  return currentSource;
 }
 
 // --- mutations --------------------------------------------------------------
 
-export function setProfile(profile: PlayerProfile, source: ProfileSource = 'manual'): void {
-  commit(sanitizeProfile(profile), source)
+export function setProfile(
+  profile: PlayerProfile,
+  source: ProfileSource = "manual",
+): void {
+  commit(sanitizeProfile(profile), source);
 }
 
 /**
@@ -141,48 +157,54 @@ export function setProfile(profile: PlayerProfile, source: ProfileSource = 'manu
  * themselves *are* replaced -- asking for a lookup is asking for the account's
  * numbers, including over a hypothetical you typed earlier.
  */
-export function setLevels(levels: Record<string, number>, source: ProfileSource): void {
-  commit({ levels: sanitizeLevels(levels), quests: current.quests }, source)
+export function setLevels(
+  levels: Record<string, number>,
+  source: ProfileSource,
+): void {
+  commit({ levels: sanitizeLevels(levels), quests: current.quests }, source);
 }
 
 /** One skill, from the manual form. A level of 0 or below removes it. */
 export function setLevel(skill: string, level: number): void {
-  const levels = { ...current.levels }
-  if (!Number.isFinite(level) || level < 1) delete levels[skill]
-  else levels[skill] = Math.min(Math.floor(level), 126)
-  commit({ levels, quests: current.quests }, 'manual')
+  const levels = { ...current.levels };
+  if (!Number.isFinite(level) || level < 1) delete levels[skill];
+  else levels[skill] = Math.min(Math.floor(level), 126);
+  commit({ levels, quests: current.quests }, "manual");
 }
 
 /** One quest, from the manual form's checklist. */
 export function setQuest(quest: string, finished: boolean): void {
-  const key = normalizeQuest(quest)
-  const without = current.quests.filter((q) => normalizeQuest(q) !== key)
+  const key = normalizeQuest(quest);
+  const without = current.quests.filter((q) => normalizeQuest(q) !== key);
   commit(
-    { levels: current.levels, quests: finished ? [...without, quest] : without },
-    'manual',
-  )
+    {
+      levels: current.levels,
+      quests: finished ? [...without, quest] : without,
+    },
+    "manual",
+  );
 }
 
 export function clearProfile(): void {
-  commit(EMPTY_PROFILE, 'manual')
+  commit(EMPTY_PROFILE, "manual");
 }
 
 /** Re-read from disk. For the `storage` event: another tab already wrote. */
 export function refreshFromStorage(): void {
-  const next = load()
-  if (sameProfile(next, current)) return
-  current = next
-  currentSource = loadSource()
-  for (const listener of listeners) listener()
+  const next = load();
+  if (sameProfile(next, current)) return;
+  current = next;
+  currentSource = loadSource();
+  for (const listener of listeners) listener();
 }
 
 function sameProfile(a: PlayerProfile, b: PlayerProfile): boolean {
-  const aLevels = Object.entries(a.levels)
-  if (aLevels.length !== Object.keys(b.levels).length) return false
-  if (aLevels.some(([skill, level]) => b.levels[skill] !== level)) return false
-  if (a.quests.length !== b.quests.length) return false
-  const bQuests = new Set(b.quests.map(normalizeQuest))
-  return a.quests.every((quest) => bQuests.has(normalizeQuest(quest)))
+  const aLevels = Object.entries(a.levels);
+  if (aLevels.length !== Object.keys(b.levels).length) return false;
+  if (aLevels.some(([skill, level]) => b.levels[skill] !== level)) return false;
+  if (a.quests.length !== b.quests.length) return false;
+  const bQuests = new Set(b.quests.map(normalizeQuest));
+  return a.quests.every((quest) => bQuests.has(normalizeQuest(quest)));
 }
 
-export { STORAGE_KEY as PROFILE_STORAGE_KEY }
+export { STORAGE_KEY as PROFILE_STORAGE_KEY };

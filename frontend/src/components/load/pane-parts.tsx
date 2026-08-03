@@ -11,11 +11,11 @@
 // Nothing here holds state. Panes own their own flow; these just make five of
 // them look like one app.
 
-import type { ReactNode } from 'react'
-import { Loader2, Search } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { DialogClose } from '@/components/ui/dialog'
+import type { ReactNode } from "react";
+import { Loader2, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DialogClose } from "@/components/ui/dialog";
 
 /**
  * The bottom of every pane, so five flows end in the same shape.
@@ -27,24 +27,24 @@ import { DialogClose } from '@/components/ui/dialog'
  */
 export interface ImportFooterProps {
   /** What applying would do, or what went wrong. Null shows nothing. */
-  status: ReactNode
+  status: ReactNode;
   /** Tailwind text colour for the status line. */
-  tone?: string
+  tone?: string;
   /** Failures announce; everything else merely updates. */
-  alert?: boolean
-  label: string
-  disabled?: boolean
-  variant?: 'default' | 'success' | 'destructive'
-  onApply: () => void
+  alert?: boolean;
+  label: string;
+  disabled?: boolean;
+  variant?: "default" | "success" | "destructive";
+  onApply: () => void;
 }
 
 export function ImportFooter({
   status,
-  tone = '',
+  tone = "",
   alert = false,
   label,
   disabled = false,
-  variant = 'default',
+  variant = "default",
   onApply,
 }: ImportFooterProps) {
   return (
@@ -52,7 +52,7 @@ export function ImportFooter({
       {/* alert for a failure, status otherwise: one is news that interrupts,
           the other is confirmation of something you just asked for. */}
       <p
-        role={alert ? 'alert' : 'status'}
+        role={alert ? "alert" : "status"}
         className={`text-xs leading-snug text-balance sm:flex-1 sm:pr-2 ${tone}`}
       >
         {status}
@@ -67,7 +67,7 @@ export function ImportFooter({
         </Button>
       </div>
     </div>
-  )
+  );
 }
 
 /**
@@ -83,10 +83,10 @@ export function DifferentAccountNotice({
   clearList,
   onChange,
 }: {
-  listCount: number
-  lastRsn: string | null
-  clearList: boolean
-  onChange: (next: boolean) => void
+  listCount: number;
+  lastRsn: string | null;
+  clearList: boolean;
+  onChange: (next: boolean) => void;
 }) {
   return (
     <label className="flex cursor-pointer items-start gap-2.5 rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm">
@@ -100,20 +100,23 @@ export function DifferentAccountNotice({
           This is a different account from your last import.
         </span>
         <span className="text-muted-foreground block text-xs">
-          Your {listCount} planned task{listCount === 1 ? ' was' : 's were'} added while you
-          were syncing <span className="text-foreground">{lastRsn}</span>. Tick to clear the
+          Your {listCount} planned task{listCount === 1 ? " was" : "s were"}{" "}
+          added while you were syncing{" "}
+          <span className="text-foreground">{lastRsn}</span>. Tick to clear the
           list too; leave it to keep it.
         </span>
       </span>
     </label>
-  )
+  );
 }
 
 /** The numbered instructions above every fetch-or-paste pane. */
 export function Steps({ children }: { children: ReactNode }) {
   return (
-    <ol className="text-muted-foreground list-decimal space-y-1.5 pl-5 text-sm">{children}</ol>
-  )
+    <ol className="text-muted-foreground list-decimal space-y-1.5 pl-5 text-sm">
+      {children}
+    </ol>
+  );
 }
 
 /**
@@ -128,9 +131,9 @@ export function LookUpButton({
   disabled,
   onClick,
 }: {
-  busy: boolean
-  disabled: boolean
-  onClick: () => void
+  busy: boolean;
+  disabled: boolean;
+  onClick: () => void;
 }) {
   return (
     <Button variant="outline" disabled={busy || disabled} onClick={onClick}>
@@ -139,7 +142,7 @@ export function LookUpButton({
       ) : (
         <Search className="size-4" aria-hidden />
       )}
-      {busy ? 'Looking' : 'Look up'}
+      {busy ? "Looking" : "Look up"}
     </Button>
-  )
+  );
 }

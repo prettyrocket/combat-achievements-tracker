@@ -7,7 +7,7 @@
 // which the wiki follows on its own. So the task's own name is a usable key and
 // nothing here needs a lookup table.
 
-const WIKI = 'https://oldschool.runescape.wiki/w/'
+const WIKI = "https://oldschool.runescape.wiki/w/";
 
 /**
  * MediaWiki titles use underscores for spaces; everything else still needs
@@ -15,21 +15,24 @@ const WIKI = 'https://oldschool.runescape.wiki/w/'
  * `Chambers of Xeric/Challenge Mode`, so slashes are put back.
  */
 function wikiUrl(title: string): string {
-  return WIKI + encodeURIComponent(title.trim().replace(/\s+/g, '_')).replace(/%2F/g, '/')
+  return (
+    WIKI +
+    encodeURIComponent(title.trim().replace(/\s+/g, "_")).replace(/%2F/g, "/")
+  );
 }
 
 export function monsterWikiUrl(monster: string): string {
-  return wikiUrl(monster)
+  return wikiUrl(monster);
 }
 
 export function taskWikiUrl(taskName: string): string {
-  return wikiUrl(taskName)
+  return wikiUrl(taskName);
 }
 
 /** For the reward items -- `Ghommal's hilt 4` and the like. Same builder; a
  *  separate name because check-links reports what kind of link broke. */
 export function itemWikiUrl(item: string): string {
-  return wikiUrl(item)
+  return wikiUrl(item);
 }
 
 /**
@@ -42,8 +45,8 @@ export function itemWikiUrl(item: string): string {
  * for all 646 rows. Breaking after the colon lets those columns size to the rest.
  */
 export function splitAtColon(value: string): [string, string | null] {
-  const at = value.indexOf(':')
-  if (at === -1) return [value, null]
-  const tail = value.slice(at + 1).trim()
-  return tail === '' ? [value, null] : [value.slice(0, at), tail]
+  const at = value.indexOf(":");
+  if (at === -1) return [value, null];
+  const tail = value.slice(at + 1).trim();
+  return tail === "" ? [value, null] : [value.slice(0, at), tail];
 }

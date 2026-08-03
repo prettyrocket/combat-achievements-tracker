@@ -8,32 +8,32 @@
 // away: the full form is worth its height while you're planning, and the one-line
 // form is what you want above a table you're working down.
 
-import { ChevronDown, ChevronUp, Swords } from 'lucide-react'
-import { percent } from '@/lib/progress-summary'
-import type { RewardStatus } from '@/lib/rewards'
-import { itemWikiUrl } from '@/lib/wiki'
-import type { ProgressSummary, Tier, TierProgress } from '@/lib/types'
+import { ChevronDown, ChevronUp, Swords } from "lucide-react";
+import { percent } from "@/lib/progress-summary";
+import type { RewardStatus } from "@/lib/rewards";
+import { itemWikiUrl } from "@/lib/wiki";
+import type { ProgressSummary, Tier, TierProgress } from "@/lib/types";
 
 const TIER_LABEL: Record<Tier, string> = {
-  EASY: 'Easy',
-  MEDIUM: 'Medium',
-  HARD: 'Hard',
-  ELITE: 'Elite',
-  MASTER: 'Master',
-  GRANDMASTER: 'Grandmaster',
-}
+  EASY: "Easy",
+  MEDIUM: "Medium",
+  HARD: "Hard",
+  ELITE: "Elite",
+  MASTER: "Master",
+  GRANDMASTER: "Grandmaster",
+};
 
 // Matches the tier colours used by the table's TierBadge, at low opacity: the
 // fill *behind* a chip's text has to sit under type without fighting it, which
 // the solid badge colours would.
 const TIER_FILL: Record<Tier, string> = {
-  EASY: 'bg-emerald-400/25',
-  MEDIUM: 'bg-sky-400/25',
-  HARD: 'bg-violet-400/25',
-  ELITE: 'bg-amber-400/25',
-  MASTER: 'bg-rose-400/25',
-  GRANDMASTER: 'bg-fuchsia-400/25',
-}
+  EASY: "bg-emerald-400/25",
+  MEDIUM: "bg-sky-400/25",
+  HARD: "bg-violet-400/25",
+  ELITE: "bg-amber-400/25",
+  MASTER: "bg-rose-400/25",
+  GRANDMASTER: "bg-fuchsia-400/25",
+};
 
 /**
  * Half chip, half meter: the tier's full name and count, with the chip filling
@@ -44,7 +44,7 @@ const TIER_FILL: Record<Tier, string> = {
  * needing its own row.
  */
 function TierChip({ tier }: { tier: TierProgress }) {
-  const value = percent(tier.completed, tier.total)
+  const value = percent(tier.completed, tier.total);
   return (
     <li
       className="relative isolate overflow-hidden rounded-full border px-2.5 py-0.5"
@@ -62,7 +62,7 @@ function TierChip({ tier }: { tier: TierProgress }) {
         </span>
       </span>
     </li>
-  )
+  );
 }
 
 /**
@@ -81,7 +81,7 @@ function TierChips({ perTier }: { perTier: readonly TierProgress[] }) {
         <TierChip key={tier.tier} tier={tier} />
       ))}
     </ul>
-  )
+  );
 }
 
 /**
@@ -98,19 +98,26 @@ function TierChips({ perTier }: { perTier: readonly TierProgress[] }) {
  * actually closing is still legible.
  */
 function RewardStat({ status }: { status: RewardStatus }) {
-  const { unlocked, next, pointsToNext, percentToNext } = status
+  const { unlocked, next, pointsToNext, percentToNext } = status;
 
   return (
     <div>
       <p className="flex items-baseline gap-1.5 text-lg font-semibold">
-        <Swords className="text-muted-foreground size-4 shrink-0 self-center" aria-hidden />
+        <Swords
+          className="text-muted-foreground size-4 shrink-0 self-center"
+          aria-hidden
+        />
         {unlocked ? (
           <>
             <HiltLink hilt={unlocked.hilt} />
-            <span className="text-muted-foreground text-sm font-normal">unlocked</span>
+            <span className="text-muted-foreground text-sm font-normal">
+              unlocked
+            </span>
           </>
         ) : (
-          <span className="text-muted-foreground text-base font-normal">No reward tier yet</span>
+          <span className="text-muted-foreground text-base font-normal">
+            No reward tier yet
+          </span>
         )}
       </p>
 
@@ -120,11 +127,13 @@ function RewardStat({ status }: { status: RewardStatus }) {
         aria-valuenow={Math.round(percentToNext)}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label={next ? `Progress to ${next.hilt}` : 'All reward tiers unlocked'}
+        aria-label={
+          next ? `Progress to ${next.hilt}` : "All reward tiers unlocked"
+        }
         title={
           next
             ? `${next.hilt} needs ${next.required} points, from tasks of any tier — it also unlocks ${next.alsoUnlocks}.`
-            : 'Every reward tier claimed.'
+            : "Every reward tier claimed."
         }
       >
         <Meter value={percentToNext} className="bg-muted-foreground" />
@@ -133,9 +142,9 @@ function RewardStat({ status }: { status: RewardStatus }) {
       <p className="text-muted-foreground mt-1.5 text-xs tabular-nums">
         {next ? (
           <>
-            <span className="text-foreground font-medium">{pointsToNext}</span>{' '}
-            {pointsToNext === 1 ? 'point' : 'points'} to <HiltLink hilt={next.hilt} /> (
-            {next.label})
+            <span className="text-foreground font-medium">{pointsToNext}</span>{" "}
+            {pointsToNext === 1 ? "point" : "points"} to{" "}
+            <HiltLink hilt={next.hilt} /> ({next.label})
           </>
         ) : (
           // Nothing left to work towards is worth saying outright -- an empty
@@ -144,7 +153,7 @@ function RewardStat({ status }: { status: RewardStatus }) {
         )}
       </p>
     </div>
-  )
+  );
 }
 
 function HiltLink({ hilt }: { hilt: string }) {
@@ -157,7 +166,7 @@ function HiltLink({ hilt }: { hilt: string }) {
     >
       {hilt}
     </a>
-  )
+  );
 }
 
 function Meter({ value, className }: { value: number; className: string }) {
@@ -168,7 +177,7 @@ function Meter({ value, className }: { value: number; className: string }) {
         style={{ width: `${value}%` }}
       />
     </div>
-  )
+  );
 }
 
 // One card, one width, both states. The summary used to be full-width collapsed
@@ -177,17 +186,17 @@ function Meter({ value, className }: { value: number; className: string }) {
 // each state has to earn the same room instead: collapsed fills it with two dense
 // rows, expanded with two stat columns over the tiers. Only capped from xl up;
 // narrower screens keep today's full-width behaviour and are their own problem.
-const CARD = 'relative mt-4 rounded-lg border p-4 xl:max-w-5xl'
+const CARD = "relative mt-4 rounded-lg border p-4 xl:max-w-5xl";
 
 // Pinned to the card rather than placed in a row, so it sits in exactly the same
 // spot in both states. pr-10 on whatever shares its line keeps text clear of it.
-const TOGGLE_SLOT = 'absolute top-4 right-4'
+const TOGGLE_SLOT = "absolute top-4 right-4";
 
 export interface ProgressHeaderProps {
-  summary: ProgressSummary
-  rewards: RewardStatus
-  compact: boolean
-  onCompactChange: (compact: boolean) => void
+  summary: ProgressSummary;
+  rewards: RewardStatus;
+  compact: boolean;
+  onCompactChange: (compact: boolean) => void;
 }
 
 export function ProgressHeader({
@@ -196,24 +205,30 @@ export function ProgressHeader({
   compact,
   onCompactChange,
 }: ProgressHeaderProps) {
-  const overall = percent(summary.pointsEarned, summary.pointsTotal)
+  const overall = percent(summary.pointsEarned, summary.pointsTotal);
 
   // Two decimals, and only in the compact line: with 2671 points on the board a
   // single Easy task is 0.037%, so one decimal makes a tick you just made look
   // like it did nothing at all.
-  const headline = compact ? overall.toFixed(2) : overall.toFixed(1)
+  const headline = compact ? overall.toFixed(2) : overall.toFixed(1);
 
   const toggle = (
     <button
       type="button"
       onClick={() => onCompactChange(!compact)}
       aria-expanded={!compact}
-      aria-label={compact ? 'Show progress by tier' : 'Collapse progress summary'}
+      aria-label={
+        compact ? "Show progress by tier" : "Collapse progress summary"
+      }
       className="text-muted-foreground hover:text-foreground hover:bg-muted rounded p-1 transition-colors"
     >
-      {compact ? <ChevronDown className="size-4" aria-hidden /> : <ChevronUp className="size-4" aria-hidden />}
+      {compact ? (
+        <ChevronDown className="size-4" aria-hidden />
+      ) : (
+        <ChevronUp className="size-4" aria-hidden />
+      )}
     </button>
-  )
+  );
 
   if (compact) {
     return (
@@ -228,12 +243,20 @@ export function ProgressHeader({
           aria-valuemax={100}
           aria-label="Overall completion"
         >
-          {headline}%<span className="text-muted-foreground text-sm font-normal">complete</span>
+          {headline}%
           <span className="text-muted-foreground text-sm font-normal">
-            · <span className="text-foreground font-medium">{summary.pointsEarned}</span>/
-            {summary.pointsTotal} pts ·{' '}
-            <span className="text-foreground font-medium">{summary.completedTasks}</span>/
-            {summary.totalTasks} tasks
+            complete
+          </span>
+          <span className="text-muted-foreground text-sm font-normal">
+            ·{" "}
+            <span className="text-foreground font-medium">
+              {summary.pointsEarned}
+            </span>
+            /{summary.pointsTotal} pts ·{" "}
+            <span className="text-foreground font-medium">
+              {summary.completedTasks}
+            </span>
+            /{summary.totalTasks} tasks
           </span>
         </h2>
 
@@ -248,15 +271,23 @@ export function ProgressHeader({
             title={
               rewards.next
                 ? `${rewards.next.hilt} needs ${rewards.next.required} points, from tasks of any tier — it also unlocks ${rewards.next.alsoUnlocks}.`
-                : 'Every reward tier claimed.'
+                : "Every reward tier claimed."
             }
           >
-            <Swords className="text-muted-foreground size-3.5 shrink-0" aria-hidden />
-            <span className="font-medium">{rewards.unlocked?.hiltShort ?? 'No hilt'}</span>
+            <Swords
+              className="text-muted-foreground size-3.5 shrink-0"
+              aria-hidden
+            />
+            <span className="font-medium">
+              {rewards.unlocked?.hiltShort ?? "No hilt"}
+            </span>
             {rewards.next && (
               <span className="text-muted-foreground tabular-nums">
-                · <span className="text-foreground font-medium">{rewards.pointsToNext}</span> to{' '}
-                {rewards.next.hiltShort.toLowerCase()}
+                ·{" "}
+                <span className="text-foreground font-medium">
+                  {rewards.pointsToNext}
+                </span>{" "}
+                to {rewards.next.hiltShort.toLowerCase()}
               </span>
             )}
           </p>
@@ -266,7 +297,7 @@ export function ProgressHeader({
 
         <span className={TOGGLE_SLOT}>{toggle}</span>
       </section>
-    )
+    );
   }
 
   return (
@@ -279,7 +310,11 @@ export function ProgressHeader({
       <div className="grid gap-x-8 gap-y-5 pr-10 sm:grid-cols-2">
         <div>
           <h2 className="text-lg font-semibold tabular-nums">
-            {headline}%<span className="text-muted-foreground text-sm font-normal"> complete</span>
+            {headline}%
+            <span className="text-muted-foreground text-sm font-normal">
+              {" "}
+              complete
+            </span>
           </h2>
 
           <div
@@ -294,10 +329,14 @@ export function ProgressHeader({
           </div>
 
           <p className="text-muted-foreground mt-1.5 text-xs tabular-nums">
-            <span className="text-foreground font-medium">{summary.pointsEarned}</span> /{' '}
-            {summary.pointsTotal} points ·{' '}
-            <span className="text-foreground font-medium">{summary.completedTasks}</span> /{' '}
-            {summary.totalTasks} tasks
+            <span className="text-foreground font-medium">
+              {summary.pointsEarned}
+            </span>{" "}
+            / {summary.pointsTotal} points ·{" "}
+            <span className="text-foreground font-medium">
+              {summary.completedTasks}
+            </span>{" "}
+            / {summary.totalTasks} tasks
           </p>
         </div>
 
@@ -312,5 +351,5 @@ export function ProgressHeader({
 
       <span className={TOGGLE_SLOT}>{toggle}</span>
     </section>
-  )
+  );
 }

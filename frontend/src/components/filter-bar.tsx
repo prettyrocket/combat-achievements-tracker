@@ -7,8 +7,8 @@
 // Sort left this bar: the column headers own it now, which is where you were
 // already pointing when you decided to re-sort.
 
-import { Lock, Search, X } from 'lucide-react'
-import { isEmptyQuery } from '@/lib/task-query'
+import { Lock, Search, X } from "lucide-react";
+import { isEmptyQuery } from "@/lib/task-query";
 import {
   TIERS,
   TASK_TYPES,
@@ -16,28 +16,28 @@ import {
   type TaskQuery,
   type TaskType,
   type Tier,
-} from '@/lib/types'
-import { FacetPicker } from '@/components/facet-picker'
-import { MonsterPicker } from '@/components/monster-picker'
-import { TierBadge } from '@/components/tier-badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+} from "@/lib/types";
+import { FacetPicker } from "@/components/facet-picker";
+import { MonsterPicker } from "@/components/monster-picker";
+import { TierBadge } from "@/components/tier-badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const TYPE_LABEL: Record<TaskType, string> = {
-  KILL_COUNT: 'Kill Count',
-  RESTRICTION: 'Restriction',
-  PERFECTION: 'Perfection',
-  MECHANICAL: 'Mechanical',
-  SPEED: 'Speed',
-  STAMINA: 'Stamina',
-}
+  KILL_COUNT: "Kill Count",
+  RESTRICTION: "Restriction",
+  PERFECTION: "Perfection",
+  MECHANICAL: "Mechanical",
+  SPEED: "Speed",
+  STAMINA: "Stamina",
+};
 
 /** Adds or removes one value from a facet, returning undefined when it empties. */
 function toggleFacet<T>(current: T[] | undefined, value: T): T[] | undefined {
   const next = current?.includes(value)
     ? current.filter((v) => v !== value)
-    : [...(current ?? []), value]
-  return next.length ? next : undefined
+    : [...(current ?? []), value];
+  return next.length ? next : undefined;
 }
 
 /**
@@ -45,14 +45,14 @@ function toggleFacet<T>(current: T[] | undefined, value: T): T[] | undefined {
  * all -> only what's left to do -> only what's done.
  */
 const COMPLETED_STATES = [
-  { value: undefined, label: 'All tasks' },
-  { value: false, label: 'Not completed' },
-  { value: true, label: 'Completed only' },
-] as const
+  { value: undefined, label: "All tasks" },
+  { value: false, label: "Not completed" },
+  { value: true, label: "Completed only" },
+] as const;
 
 function nextCompleted(current: boolean | undefined) {
-  const at = COMPLETED_STATES.findIndex((state) => state.value === current)
-  return COMPLETED_STATES[(at + 1) % COMPLETED_STATES.length].value
+  const at = COMPLETED_STATES.findIndex((state) => state.value === current);
+  return COMPLETED_STATES[(at + 1) % COMPLETED_STATES.length].value;
 }
 
 /**
@@ -65,14 +65,17 @@ function nextCompleted(current: boolean | undefined) {
  * training for".
  */
 const REQUIREMENT_STATES = [
-  { value: undefined, label: 'Any monster' },
-  { value: 'met', label: 'Can face' },
-  { value: 'unmet', label: "Can't face yet" },
-] as const satisfies readonly { value: RequirementFilter | undefined; label: string }[]
+  { value: undefined, label: "Any monster" },
+  { value: "met", label: "Can face" },
+  { value: "unmet", label: "Can't face yet" },
+] as const satisfies readonly {
+  value: RequirementFilter | undefined;
+  label: string;
+}[];
 
 function nextRequirement(current: RequirementFilter | undefined) {
-  const at = REQUIREMENT_STATES.findIndex((state) => state.value === current)
-  return REQUIREMENT_STATES[(at + 1) % REQUIREMENT_STATES.length].value
+  const at = REQUIREMENT_STATES.findIndex((state) => state.value === current);
+  return REQUIREMENT_STATES[(at + 1) % REQUIREMENT_STATES.length].value;
 }
 
 /**
@@ -85,36 +88,36 @@ function CycleLabel<T>({
   states,
   current,
 }: {
-  states: readonly { readonly value: T; readonly label: string }[]
-  current: T
+  states: readonly { readonly value: T; readonly label: string }[];
+  current: T;
 }) {
   return (
     <span className="grid">
       {states.map((state) => (
         <span
           key={state.label}
-          className={`col-start-1 row-start-1 ${state.value === current ? '' : 'invisible'}`}
+          className={`col-start-1 row-start-1 ${state.value === current ? "" : "invisible"}`}
         >
           {state.label}
         </span>
       ))}
     </span>
-  )
+  );
 }
 
 export interface FilterBarProps {
-  query: TaskQuery
-  onChange: (next: TaskQuery) => void
-  onClear: () => void
+  query: TaskQuery;
+  onChange: (next: TaskQuery) => void;
+  onClear: () => void;
   /** Every monster with its task count, for the picker. */
-  monsters: readonly { name: string; count: number }[]
-  onToggleMonster: (monster: string) => void
-  resultCount: number
-  totalCount: number
+  monsters: readonly { name: string; count: number }[];
+  onToggleMonster: (monster: string) => void;
+  resultCount: number;
+  totalCount: number;
   /** True while there are no levels or quests to check requirements against. */
-  profileIsEmpty: boolean
+  profileIsEmpty: boolean;
   /** Opens the levels dialog, for the state where there's nothing to filter on. */
-  onEditProfile: () => void
+  onEditProfile: () => void;
 }
 
 export function FilterBar({
@@ -128,8 +131,9 @@ export function FilterBar({
   profileIsEmpty,
   onEditProfile,
 }: FilterBarProps) {
-  const patch = (partial: Partial<TaskQuery>) => onChange({ ...query, ...partial })
-  const selected = query.monster ?? []
+  const patch = (partial: Partial<TaskQuery>) =>
+    onChange({ ...query, ...partial });
+  const selected = query.monster ?? [];
 
   return (
     <section aria-label="Filters" className="mt-4 space-y-2.5">
@@ -142,7 +146,7 @@ export function FilterBar({
             aria-hidden
           />
           <Input
-            value={query.q ?? ''}
+            value={query.q ?? ""}
             onChange={(event) => patch({ q: event.target.value || undefined })}
             placeholder="Search name, description or monster…"
             aria-label="Search tasks"
@@ -187,7 +191,7 @@ export function FilterBar({
             current state rather than opening a list. Filled when it is doing
             something, outlined when it is letting everything through. */}
         <Button
-          variant={query.completed === undefined ? 'outline' : 'default'}
+          variant={query.completed === undefined ? "outline" : "default"}
           size="sm"
           className="h-9"
           aria-pressed={query.completed !== undefined}
@@ -201,22 +205,26 @@ export function FilterBar({
             cycling -- a disabled button here would be a filter that looks broken
             rather than one that needs a number first. */}
         <Button
-          variant={query.reqs === undefined || profileIsEmpty ? 'outline' : 'default'}
+          variant={
+            query.reqs === undefined || profileIsEmpty ? "outline" : "default"
+          }
           size="sm"
           className="h-9"
           aria-pressed={!profileIsEmpty && query.reqs !== undefined}
           title={
             profileIsEmpty
-              ? 'Enter your levels and quests to filter by what you can face'
-              : 'Filter by whether you meet the requirements to fight the monster'
+              ? "Enter your levels and quests to filter by what you can face"
+              : "Filter by whether you meet the requirements to fight the monster"
           }
           onClick={() =>
-            profileIsEmpty ? onEditProfile() : patch({ reqs: nextRequirement(query.reqs) })
+            profileIsEmpty
+              ? onEditProfile()
+              : patch({ reqs: nextRequirement(query.reqs) })
           }
         >
           <Lock className="size-3.5 opacity-60" aria-hidden />
           {profileIsEmpty ? (
-            'Requirements'
+            "Requirements"
           ) : (
             <CycleLabel states={REQUIREMENT_STATES} current={query.reqs} />
           )}
@@ -249,7 +257,7 @@ export function FilterBar({
             variant="ghost"
             size="sm"
             onClick={onClear}
-            className={`h-9 px-2 text-xs ${isEmptyQuery(query) ? 'invisible' : ''}`}
+            className={`h-9 px-2 text-xs ${isEmptyQuery(query) ? "invisible" : ""}`}
           >
             <X className="size-3" aria-hidden />
             Clear filters
@@ -262,5 +270,5 @@ export function FilterBar({
           its own ✕, and two rows of the same chips is just noise. This bar adds
           them; the breadcrumb is where they live. */}
     </section>
-  )
+  );
 }

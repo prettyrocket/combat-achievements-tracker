@@ -4,20 +4,20 @@
 // deep -- there is no hierarchy above "all tasks" -- so this is a location
 // marker with an escape hatch rather than real navigation.
 
-import { Undo2, X } from 'lucide-react'
-import { MonsterPicker } from '@/components/monster-picker'
-import type { MonsterSummary } from '@/lib/types'
+import { Undo2, X } from "lucide-react";
+import { MonsterPicker } from "@/components/monster-picker";
+import type { MonsterSummary } from "@/lib/types";
 
 export interface MonsterBreadcrumbProps {
-  summaries: readonly MonsterSummary[]
-  onClear: () => void
-  onRemove: (monster: string) => void
+  summaries: readonly MonsterSummary[];
+  onClear: () => void;
+  onRemove: (monster: string) => void;
   /** Every monster with its task count, for the inline picker. */
-  monsters: readonly { name: string; count: number }[]
-  onToggleMonster: (monster: string) => void
+  monsters: readonly { name: string; count: number }[];
+  onToggleMonster: (monster: string) => void;
   /** Search text the pivot set aside, if any -- offered back rather than lost. */
-  parkedSearch?: string | null
-  onRestoreSearch?: () => void
+  parkedSearch?: string | null;
+  onRestoreSearch?: () => void;
 }
 
 export function MonsterBreadcrumb({
@@ -29,14 +29,17 @@ export function MonsterBreadcrumb({
   parkedSearch,
   onRestoreSearch,
 }: MonsterBreadcrumbProps) {
-  const total = summaries.reduce((sum, s) => sum + s.total, 0)
-  const completed = summaries.reduce((sum, s) => sum + s.completed, 0)
+  const total = summaries.reduce((sum, s) => sum + s.total, 0);
+  const completed = summaries.reduce((sum, s) => sum + s.completed, 0);
   // A monster typed into the URL that matches nothing: say so, rather than
   // showing a confident "0 / 0 done" over an empty table.
-  const known = total > 0
+  const known = total > 0;
 
   return (
-    <nav aria-label="Breadcrumb" className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1">
+    <nav
+      aria-label="Breadcrumb"
+      className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1"
+    >
       <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
         <li>
           <button
@@ -85,10 +88,11 @@ export function MonsterBreadcrumb({
       <p className="text-muted-foreground text-sm tabular-nums">
         {known ? (
           <>
-            <span className="text-foreground font-medium">{completed}</span> / {total} done here
+            <span className="text-foreground font-medium">{completed}</span> /{" "}
+            {total} done here
           </>
         ) : (
-          'No tasks for that monster'
+          "No tasks for that monster"
         )}
       </p>
 
@@ -106,5 +110,5 @@ export function MonsterBreadcrumb({
         </button>
       )}
     </nav>
-  )
+  );
 }

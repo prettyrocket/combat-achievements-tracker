@@ -10,72 +10,76 @@
 // what it will take away, and the quest checklist stays somebody else's job --
 // the hiscores have never heard of a quest.
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from "react";
 import {
   fetchWomLevels,
   updatedLabel,
   WISE_OLD_MAN_URL,
   WomLookupError,
   type WomLookup,
-} from '@/lib/wiseoldman'
-import { ImportFooter, LookUpButton } from '@/components/load/pane-parts'
+} from "@/lib/wiseoldman";
+import { ImportFooter, LookUpButton } from "@/components/load/pane-parts";
 
 export interface WiseOldManPanelProps {
   /** Owned by the dialog: who this browser is tracking, not this pane's input. */
-  rsn: string
+  rsn: string;
   /** Replaces every level, leaving quests alone -- this source has none. */
-  onApply: (levels: Record<string, number>) => void
-  onFinished: (remember: boolean) => void
+  onApply: (levels: Record<string, number>) => void;
+  onFinished: (remember: boolean) => void;
 }
 
-export function WiseOldManPanel({ rsn, onApply, onFinished }: WiseOldManPanelProps) {
-  const [busy, setBusy] = useState(false)
-  const [found, setFound] = useState<WomLookup | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const inFlight = useRef<AbortController | null>(null)
+export function WiseOldManPanel({
+  rsn,
+  onApply,
+  onFinished,
+}: WiseOldManPanelProps) {
+  const [busy, setBusy] = useState(false);
+  const [found, setFound] = useState<WomLookup | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const inFlight = useRef<AbortController | null>(null);
 
-  useEffect(() => () => inFlight.current?.abort(), [])
+  useEffect(() => () => inFlight.current?.abort(), []);
 
   // Editing the name invalidates the last result. Runs on mount too, harmlessly.
   useEffect(() => {
-    setFound(null)
-    setError(null)
-  }, [rsn])
+    setFound(null);
+    setError(null);
+  }, [rsn]);
 
   async function run() {
-    if (busy || rsn.trim() === '') return
-    inFlight.current?.abort()
-    const controller = new AbortController()
-    inFlight.current = controller
+    if (busy || rsn.trim() === "") return;
+    inFlight.current?.abort();
+    const controller = new AbortController();
+    inFlight.current = controller;
 
-    setBusy(true)
-    setError(null)
-    setFound(null)
+    setBusy(true);
+    setError(null);
+    setFound(null);
     try {
       // Found, not applied. Every other pane previews before it writes, and a
       // lookup that silently overwrote levels the moment it resolved was the
       // one thing in the old dialog that didn't ask first.
-      setFound(await fetchWomLevels(rsn, controller.signal))
+      setFound(await fetchWomLevels(rsn, controller.signal));
     } catch (err) {
-      if (err instanceof DOMException && err.name === 'AbortError') return
+      if (err instanceof DOMException && err.name === "AbortError") return;
       setError(
         err instanceof WomLookupError
           ? err.message
-          : 'That lookup failed. Try again in a moment.',
-      )
+          : "That lookup failed. Try again in a moment.",
+      );
     } finally {
-      if (!controller.signal.aborted) setBusy(false)
+      if (!controller.signal.aborted) setBusy(false);
     }
   }
 
-  const stale = found === null ? null : updatedLabel(found.updatedAt)
-  const count = found === null ? 0 : Object.keys(found.levels).length
+  const stale = found === null ? null : updatedLabel(found.updatedAt);
+  const count = found === null ? 0 : Object.keys(found.levels).length;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
         <p className="text-muted-foreground text-sm">
-          Lookup skill levels on{' '}
+          Lookup skill levels on{" "}
           <a
             href={WISE_OLD_MAN_URL}
             target="_blank"
@@ -87,24 +91,36 @@ export function WiseOldManPanel({ rsn, onApply, onFinished }: WiseOldManPanelPro
           .
         </p>
 
-        <LookUpButton busy={busy} disabled={rsn.trim() === ''} onClick={() => void run()} />
+        <LookUpButton
+          busy={busy}
+          disabled={rsn.trim() === ""}
+          onClick={() => void run()}
+        />
 
         {found && (
           <div className="space-y-1 text-sm">
             <p>
               <span className="font-medium">{found.displayName}</span>
-              {found.accountType !== null && found.accountType !== 'regular' && (
-                <span className="text-muted-foreground"> · {found.accountType}</span>
+              {found.accountType !== null &&
+                found.accountType !== "regular" && (
+                  <span className="text-muted-foreground">
+                    {" "}
+                    · {found.accountType}
+                  </span>
+                )}
+              {stale !== null && (
+                <span className="text-muted-foreground"> · {stale}</span>
               )}
-              {stale !== null && <span className="text-muted-foreground"> · {stale}</span>}
             </p>
             {/* The date matters here more than anywhere: WOM holds whatever
                 snapshot was last taken, and somebody who trained since then
                 should see why the number is old rather than distrust the
                 requirement filter. */}
             <p className="text-muted-foreground text-xs leading-snug">
-              Carries <span className="text-foreground">{count} skill levels</span>. Your
-              quests aren't on the hiscores, so those stay as you left them.
+              Carries{" "}
+              <span className="text-foreground">{count} skill levels</span>.
+              Your quests aren't on the hiscores, so those stay as you left
+              them.
             </p>
           </div>
         )}
@@ -115,22 +131,25 @@ export function WiseOldManPanel({ rsn, onApply, onFinished }: WiseOldManPanelPro
           error ??
           (found === null ? null : (
             <>
-              This will set <span className="font-semibold text-emerald-400">{count} levels</span>{' '}
+              This will set{" "}
+              <span className="font-semibold text-emerald-400">
+                {count} levels
+              </span>{" "}
               from {found.displayName}.
             </>
           ))
         }
-        tone={error === null ? 'text-foreground' : 'text-red-400'}
+        tone={error === null ? "text-foreground" : "text-red-400"}
         alert={error !== null}
         label="Import"
         disabled={found === null}
-        variant={found === null ? 'default' : 'success'}
+        variant={found === null ? "default" : "success"}
         onApply={() => {
-          if (!found) return
-          onApply(found.levels)
-          onFinished(true)
+          if (!found) return;
+          onApply(found.levels);
+          onFinished(true);
         }}
       />
     </div>
-  )
+  );
 }

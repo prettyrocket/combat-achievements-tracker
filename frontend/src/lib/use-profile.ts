@@ -4,7 +4,7 @@
 // change from outside React -- another tab writing, a WikiSync import -- so
 // useSyncExternalStore rather than useState and an effect.
 
-import { useCallback, useEffect, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useSyncExternalStore } from "react";
 import {
   clearProfile,
   getProfile,
@@ -16,34 +16,34 @@ import {
   setQuest,
   subscribe,
   type ProfileSource,
-} from '@/lib/profile-store'
-import { profileIsEmpty, type PlayerProfile } from '@/lib/requirements'
+} from "@/lib/profile-store";
+import { profileIsEmpty, type PlayerProfile } from "@/lib/requirements";
 
 export interface UseProfile {
-  profile: PlayerProfile
+  profile: PlayerProfile;
   /** True until there is anything to check requirements against. */
-  isEmpty: boolean
-  source: ProfileSource
-  setProfile: (profile: PlayerProfile, source?: ProfileSource) => void
+  isEmpty: boolean;
+  source: ProfileSource;
+  setProfile: (profile: PlayerProfile, source?: ProfileSource) => void;
   /** Levels from a Wise Old Man lookup. Quests are left alone -- it has none. */
-  importLevels: (levels: Record<string, number>) => void
-  setLevel: (skill: string, level: number) => void
-  setQuest: (quest: string, finished: boolean) => void
-  clear: () => void
+  importLevels: (levels: Record<string, number>) => void;
+  setLevel: (skill: string, level: number) => void;
+  setQuest: (quest: string, finished: boolean) => void;
+  clear: () => void;
 }
 
 export function useProfile(): UseProfile {
-  const profile = useSyncExternalStore(subscribe, getProfile, getProfile)
+  const profile = useSyncExternalStore(subscribe, getProfile, getProfile);
 
   useEffect(() => {
     const onStorage = (event: StorageEvent) => {
-      if (event.key === null || event.key.startsWith('ca-tracker:profile:')) {
-        refreshFromStorage()
+      if (event.key === null || event.key.startsWith("ca-tracker:profile:")) {
+        refreshFromStorage();
       }
-    }
-    window.addEventListener('storage', onStorage)
-    return () => window.removeEventListener('storage', onStorage)
-  }, [])
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   return {
     profile,
@@ -58,11 +58,17 @@ export function useProfile(): UseProfile {
     // Bound to its one source here rather than taking it as an argument: the
     // dialog knows it looked something up, not what the store calls that.
     importLevels: useCallback(
-      (levels: Record<string, number>) => setLevels(levels, 'wiseoldman'),
+      (levels: Record<string, number>) => setLevels(levels, "wiseoldman"),
       [],
     ),
-    setLevel: useCallback((skill: string, level: number) => setLevel(skill, level), []),
-    setQuest: useCallback((quest: string, finished: boolean) => setQuest(quest, finished), []),
+    setLevel: useCallback(
+      (skill: string, level: number) => setLevel(skill, level),
+      [],
+    ),
+    setQuest: useCallback(
+      (quest: string, finished: boolean) => setQuest(quest, finished),
+      [],
+    ),
     clear: useCallback(() => clearProfile(), []),
-  }
+  };
 }

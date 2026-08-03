@@ -30,65 +30,67 @@
 // Relative, not the usual `@/lib/types`: check-links.ts loads this module in
 // bare Node to build the six reward links, and Node doesn't read the alias out
 // of tsconfig. types.ts imports nothing, so the graph stops here.
-import { TIERS, type TaskRow, type Tier } from './types.ts'
+import { TIERS, type TaskRow, type Tier } from "./types.ts";
 
 export interface RewardTier {
-  tier: Tier
-  label: string
+  tier: Tier;
+  label: string;
   /** Cumulative points needed, earned from tasks of any tier. */
-  required: number
+  required: number;
   /** The item the tier is known by -- an exact wiki page title. */
-  hilt: string
+  hilt: string;
   /** The same item where there's no room for it: "Hilt 3". */
-  hiltShort: string
+  hiltShort: string;
   /** One more thing the tier grants, for the tooltip. Not the full list: the
    *  wiki has a dozen per tier, and this is a tracker, not the wiki. */
-  alsoUnlocks: string
+  alsoUnlocks: string;
 }
 
 const TIER_LABEL: Record<Tier, string> = {
-  EASY: 'Easy',
-  MEDIUM: 'Medium',
-  HARD: 'Hard',
-  ELITE: 'Elite',
-  MASTER: 'Master',
-  GRANDMASTER: 'Grandmaster',
-}
+  EASY: "Easy",
+  MEDIUM: "Medium",
+  HARD: "Hard",
+  ELITE: "Elite",
+  MASTER: "Master",
+  GRANDMASTER: "Grandmaster",
+};
 
 // The headline reward per tier. These are stable -- the *thresholds* move with
 // each release, the hilts don't -- so unlike the numbers they are safe to name.
-const REWARD: Record<Tier, Omit<RewardTier, 'tier' | 'label' | 'required'>> = {
+const REWARD: Record<Tier, Omit<RewardTier, "tier" | "label" | "required">> = {
   EASY: {
     hilt: "Ghommal's hilt 1",
-    hiltShort: 'Hilt 1',
-    alsoUnlocks: 'a 5,000 xp antique lamp and three daily God Wars Dungeon teleports',
+    hiltShort: "Hilt 1",
+    alsoUnlocks:
+      "a 5,000 xp antique lamp and three daily God Wars Dungeon teleports",
   },
   MEDIUM: {
     hilt: "Ghommal's hilt 2",
-    hiltShort: 'Hilt 2',
-    alsoUnlocks: 'a 10,000 xp antique lamp and no Prayer drain at Barrows',
+    hiltShort: "Hilt 2",
+    alsoUnlocks: "a 10,000 xp antique lamp and no Prayer drain at Barrows",
   },
   HARD: {
     hilt: "Ghommal's hilt 3",
-    hiltShort: 'Hilt 3',
-    alsoUnlocks: 'a 15,000 xp antique lamp and unlimited God Wars Dungeon teleports',
+    hiltShort: "Hilt 3",
+    alsoUnlocks:
+      "a 15,000 xp antique lamp and unlimited God Wars Dungeon teleports",
   },
   ELITE: {
     hilt: "Ghommal's hilt 4",
-    hiltShort: 'Hilt 4',
-    alsoUnlocks: 'a 25,000 xp antique lamp and the Tztok slayer helmet',
+    hiltShort: "Hilt 4",
+    alsoUnlocks: "a 25,000 xp antique lamp and the Tztok slayer helmet",
   },
   MASTER: {
     hilt: "Ghommal's hilt 5",
-    hiltShort: 'Hilt 5',
+    hiltShort: "Hilt 5",
     alsoUnlocks: "Ghommal's lucky penny and the avernic defender 5",
   },
   GRANDMASTER: {
     hilt: "Ghommal's hilt 6",
-    hiltShort: 'Hilt 6',
-    alsoUnlocks: 'the avernic defender 6 and a 50,000 xp antique lamp',
+    hiltShort: "Hilt 6",
+    alsoUnlocks: "the avernic defender 6 and a 50,000 xp antique lamp",
   },
-}
+};
 
 /**
  * The six tiers with their point requirements, cheapest first.
@@ -98,28 +100,33 @@ const REWARD: Record<Tier, Omit<RewardTier, 'tier' | 'label' | 'required'>> = {
  * tasks contributes nothing and simply shares the previous threshold.
  */
 export function rewardTiers(tasks: readonly TaskRow[]): RewardTier[] {
-  const pointsInTier = new Map<Tier, number>(TIERS.map((tier) => [tier, 0]))
+  const pointsInTier = new Map<Tier, number>(TIERS.map((tier) => [tier, 0]));
   for (const task of tasks) {
-    pointsInTier.set(task.tier, pointsInTier.get(task.tier)! + task.points)
+    pointsInTier.set(task.tier, pointsInTier.get(task.tier)! + task.points);
   }
 
-  let running = 0
+  let running = 0;
   return TIERS.map((tier) => {
-    running += pointsInTier.get(tier)!
-    return { tier, label: TIER_LABEL[tier], required: running, ...REWARD[tier] }
-  })
+    running += pointsInTier.get(tier)!;
+    return {
+      tier,
+      label: TIER_LABEL[tier],
+      required: running,
+      ...REWARD[tier],
+    };
+  });
 }
 
 export interface RewardStatus {
   /** The best tier already claimed, or null before the first one. */
-  unlocked: RewardTier | null
+  unlocked: RewardTier | null;
   /** The one being worked towards, or null once they're all claimed. */
-  next: RewardTier | null
+  next: RewardTier | null;
   /** Points still needed for `next`. 0 when there is no next. */
-  pointsToNext: number
+  pointsToNext: number;
   /** 0-100 across the gap between the last threshold and the next, so the meter
    *  measures the stretch you're on rather than restarting the whole game. */
-  percentToNext: number
+  percentToNext: number;
 }
 
 /**
@@ -127,36 +134,43 @@ export interface RewardStatus {
  *
  * `>=` throughout: a threshold is met *at* the number, not past it.
  */
-export function rewardStatus(tiers: readonly RewardTier[], points: number): RewardStatus {
-  let unlocked: RewardTier | null = null
-  let next: RewardTier | null = null
+export function rewardStatus(
+  tiers: readonly RewardTier[],
+  points: number,
+): RewardStatus {
+  let unlocked: RewardTier | null = null;
+  let next: RewardTier | null = null;
 
   for (const tier of tiers) {
-    if (points >= tier.required) unlocked = tier
-    else if (next === null) next = tier
+    if (points >= tier.required) unlocked = tier;
+    else if (next === null) next = tier;
   }
 
-  if (next === null) return { unlocked, next: null, pointsToNext: 0, percentToNext: 100 }
+  if (next === null)
+    return { unlocked, next: null, pointsToNext: 0, percentToNext: 100 };
 
   // The floor of the current stretch. Not `unlocked.required`: a tier with no
   // tasks of its own shares its predecessor's threshold, which would make the
   // gap zero-width and the meter a division by zero.
-  const floor = unlocked?.required ?? 0
-  const span = next.required - floor
+  const floor = unlocked?.required ?? 0;
+  const span = next.required - floor;
   return {
     unlocked,
     next,
     pointsToNext: next.required - points,
-    percentToNext: span <= 0 ? 100 : Math.min(100, Math.max(0, ((points - floor) / span) * 100)),
-  }
+    percentToNext:
+      span <= 0
+        ? 100
+        : Math.min(100, Math.max(0, ((points - floor) / span) * 100)),
+  };
 }
 
 export interface RewardProjection {
   /** What finishing the plan would leave you on. */
-  status: RewardStatus
+  status: RewardStatus;
   /** Tiers the plan would carry you across, cheapest first. Empty if it doesn't
    *  reach the next threshold -- which is worth saying just as plainly. */
-  unlocks: RewardTier[]
+  unlocks: RewardTier[];
 }
 
 /**
@@ -176,7 +190,9 @@ export function projectRewards(
   points: number,
   planned: number,
 ): RewardProjection {
-  const status = rewardStatus(tiers, points + planned)
-  const unlocks = tiers.filter((tier) => tier.required > points && tier.required <= points + planned)
-  return { status, unlocks }
+  const status = rewardStatus(tiers, points + planned);
+  const unlocks = tiers.filter(
+    (tier) => tier.required > points && tier.required <= points + planned,
+  );
+  return { status, unlocks };
 }
