@@ -133,6 +133,8 @@ export interface ProgressToolbarProps {
   onLoadOpenChange: (open: boolean) => void
   /** Which pane to land on, or null for whichever was used last. */
   loadSource: LoadSourceId | null
+  /** The name the Load dialog closed with. Typing it counts as saying so. */
+  onRsnCommit: (rsn: string) => void
   onSetLevel: (skill: string, level: number) => void
   onImportLevels: (levels: Record<string, number>) => void
   onSetQuest: (quest: string, finished: boolean) => void
@@ -154,6 +156,7 @@ export function ProgressToolbar({
   loadOpen,
   onLoadOpenChange,
   loadSource,
+  onRsnCommit,
   onSetLevel,
   onImportLevels,
   onSetQuest,
@@ -373,6 +376,7 @@ export function ProgressToolbar({
         onImportApply={onImportApply}
         onImportLevels={onImportLevels}
         onImportFile={handleImportFile}
+        onRsnCommit={onRsnCommit}
         profile={profile}
         profileIsEmpty={profileIsEmpty}
         profileSource={profileSource}

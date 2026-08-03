@@ -299,6 +299,21 @@ export default function App() {
   }, [])
 
   /**
+   * The account this browser tracks.
+   *
+   * Set by an import, and also by simply typing the name into Load and closing
+   * it -- saying who you are is saying who you are, whether or not anything was
+   * fetched. It's what the different-account warning compares against, so a
+   * player who enters levels by hand gets that protection too.
+   */
+  const rememberRsn = useCallback((rsn: string) => {
+    const name = rsn.replace(/_/g, ' ').replace(/\s+/g, ' ').trim()
+    if (name === '') return
+    setLastRsn(name)
+    writeJson(RSN_KEY, name)
+  }, [])
+
+  /**
    * An import replaces progress outright -- the account is the authority on
    * what's done. The planned list is not the account's to overwrite, so it
    * survives unless the import is for a different player and you say so.
@@ -320,13 +335,9 @@ export default function App() {
       // Only when the import actually carried levels. A payload without them
       // must not wipe a profile the player typed in by hand.
       if (imported) setProfile(imported, source)
-      const name = rsn.replace(/_/g, ' ').replace(/\s+/g, ' ').trim()
-      if (name) {
-        setLastRsn(name)
-        writeJson(RSN_KEY, name)
-      }
+      rememberRsn(rsn)
     },
-    [setMany, taskList, setProfile],
+    [setMany, taskList, setProfile, rememberRsn],
   )
 
   // Distance-activated, so a press that turns into a click still reaches the
@@ -400,6 +411,7 @@ export default function App() {
             loadOpen={loadOpen}
             onLoadOpenChange={onLoadOpenChange}
             loadSource={loadSource}
+            onRsnCommit={rememberRsn}
             onSetLevel={profile.setLevel}
             onImportLevels={profile.importLevels}
             onSetQuest={profile.setQuest}

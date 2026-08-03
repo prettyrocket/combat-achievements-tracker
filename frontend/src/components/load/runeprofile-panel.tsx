@@ -21,7 +21,12 @@ import {
 } from '@/lib/runeprofile'
 import { useImportFlow } from '@/lib/use-import-flow'
 import { gatedQuests, normalizeQuest, type PlayerProfile } from '@/lib/requirements'
-import { DifferentAccountNotice, ImportFooter, Steps } from '@/components/load/import-footer'
+import {
+  DifferentAccountNotice,
+  ImportFooter,
+  LookUpButton,
+  Steps,
+} from '@/components/load/import-footer'
 
 const GATE_QUESTS = gatedQuests().map(normalizeQuest)
 
@@ -31,12 +36,8 @@ function countGateQuests(profile: PlayerProfile): number {
 }
 
 export interface RuneProfilePanelProps {
-  /** Owned by the dialog and shared with the other account-shaped sources. */
+  /** Owned by the dialog: who this browser is tracking, not this pane's input. */
   rsn: string
-  /** Incremented by the dialog's Look up button. Zero means "not yet". */
-  submitToken: number
-  /** Lifted so the dialog's button can spin while this pane is fetching. */
-  onBusyChange: (busy: boolean) => void
   completed: ReadonlySet<number>
   listCount: number
   lastRsn: string | null
@@ -51,8 +52,6 @@ export interface RuneProfilePanelProps {
 
 export function RuneProfilePanel({
   rsn,
-  submitToken,
-  onBusyChange,
   completed,
   listCount,
   lastRsn,
@@ -95,7 +94,6 @@ export function RuneProfilePanel({
     inFlight.current = controller
 
     setBusy(true)
-    onBusyChange(true)
     setError(null)
     setFound(null)
     flow.clear()
@@ -111,21 +109,9 @@ export function RuneProfilePanel({
           : { message: 'That lookup failed. Try again in a moment.', code: 'BAD_RESPONSE' },
       )
     } finally {
-      if (!controller.signal.aborted) {
-        setBusy(false)
-        onBusyChange(false)
-      }
+      if (!controller.signal.aborted) setBusy(false)
     }
   }
-
-  // The dialog's Look up button lives above this pane, so it asks by bumping a
-  // counter rather than calling in. Zero is the "nobody has pressed it" state
-  // the dialog resets to whenever the source changes.
-  useEffect(() => {
-    if (submitToken === 0) return
-    void run()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [submitToken])
 
   const synced = found === null ? null : syncedLabel(found.updatedAt)
 
@@ -181,7 +167,18 @@ export function RuneProfilePanel({
             </a>
             .
           </li>
-          <li>Enter your name above and press Look up.</li>
+          <li>
+            <div className="space-y-2">
+              <span>Fetch it, with the name above.</span>
+              <div>
+                <LookUpButton
+                  busy={busy}
+                  disabled={rsn.trim() === ''}
+                  onClick={() => void run()}
+                />
+              </div>
+            </div>
+          </li>
         </Steps>
 
         {/* What arrived, and how old it is. The date is not decoration: only the

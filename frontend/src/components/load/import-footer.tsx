@@ -6,6 +6,7 @@
 // is next to the thing that does it.
 
 import type { ReactNode } from 'react'
+import { Loader2, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -103,67 +104,73 @@ export function Steps({ children }: { children: ReactNode }) {
 }
 
 /**
- * The name, asked once.
+ * Who this browser is tracking.
  *
- * Owned by the dialog rather than by the three panes that need it, because it
- * is a fact about *you*, not about which door you picked -- typing it into
- * WikiSync and then retyping it into RuneProfile was the tell that it had been
- * put in the wrong place. It sits above the pane and outlives switching between
- * them; the two sources with no account behind them simply don't render it.
+ * Not an input to importing -- the identity of the profile being built, which
+ * is why it sits above the rail, shows on every source including the two that
+ * never send it anywhere, and holds no button. It went through two worse
+ * versions first: one per pane, which meant typing it twice, and then one
+ * shared field that appeared and vanished as you moved down the rail with a
+ * Look up button that came and went with it. Both were symptoms of treating it
+ * as a step rather than as a fact.
  *
- * `action` is optional because the panes differ in what to do with a name:
- * RuneProfile and Wise Old Man fetch, so they get a button, while WikiSync
- * builds a URL for you to open yourself and has nothing to press here.
+ * So: no action here, ever. The panes that fetch own their own button, because
+ * fetching is what those panes do and it differs between them -- WikiSync
+ * builds a URL for you to open yourself and has nothing to press at all.
  */
-export function NameRow({
-  rsn,
-  onChange,
-  onSubmit,
-  busy = false,
-  action,
+export function NameRow({ rsn, onChange }: { rsn: string; onChange: (next: string) => void }) {
+  return (
+    <div className="space-y-1.5 border-b pb-3">
+      <div className="flex items-center gap-2">
+        <label className="text-muted-foreground shrink-0 text-sm" htmlFor="load-rsn">
+          Your name
+        </label>
+        {/* Capped rather than full-bleed: a 12-character field stretched across
+            the whole dialog looks like it wants an essay. */}
+        <Input
+          id="load-rsn"
+          className="max-w-64"
+          value={rsn}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder="Your RuneScape name"
+          aria-label="RuneScape name"
+          maxLength={12}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </div>
+      <p className="text-muted-foreground text-xs leading-snug">
+        Kept with your progress, so this browser knows whose account it holds — and can
+        warn you before an import for somebody else lands on top of your plan.
+      </p>
+    </div>
+  )
+}
+
+/**
+ * A pane's own fetch button.
+ *
+ * Lives in the pane rather than beside the name, because only two of the five
+ * sources fetch and a control that appears when you change source reads as the
+ * layout twitching rather than as the source differing.
+ */
+export function LookUpButton({
+  busy,
+  disabled,
+  onClick,
 }: {
-  rsn: string
-  onChange: (next: string) => void
-  /** Enter, and the action button. Absent for panes that don't fetch. */
-  onSubmit?: () => void
-  busy?: boolean
-  action?: { label: string; icon: ReactNode }
+  busy: boolean
+  disabled: boolean
+  onClick: () => void
 }) {
   return (
-    // Capped rather than full-bleed: it spans the dialog now, and a 12-character
-    // field stretched across three columns of width looks like it wants an essay.
-    <div className="flex items-center gap-2 border-b pb-3">
-      <label className="text-muted-foreground shrink-0 text-sm" htmlFor="load-rsn">
-        Your name
-      </label>
-      <Input
-        id="load-rsn"
-        className="max-w-64"
-        value={rsn}
-        onChange={(event) => onChange(event.target.value)}
-        onKeyDown={(event) => {
-          // Enter would otherwise find the footer button and fire the import.
-          if (event.key !== 'Enter' || !onSubmit) return
-          event.preventDefault()
-          onSubmit()
-        }}
-        placeholder="Your RuneScape name"
-        aria-label="RuneScape name"
-        maxLength={12}
-        autoComplete="off"
-        spellCheck={false}
-      />
-      {action && (
-        <Button
-          variant="outline"
-          className="shrink-0"
-          disabled={busy || rsn.trim() === ''}
-          onClick={onSubmit}
-        >
-          {action.icon}
-          {busy ? 'Looking' : action.label}
-        </Button>
+    <Button variant="outline" disabled={busy || disabled} onClick={onClick}>
+      {busy ? (
+        <Loader2 className="size-4 animate-spin" aria-hidden />
+      ) : (
+        <Search className="size-4" aria-hidden />
       )}
-    </div>
+      {busy ? 'Looking' : 'Look up'}
+    </Button>
   )
 }
