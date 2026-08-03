@@ -178,9 +178,11 @@ export function LoadDialog({
                   >
                     {source.label}
                   </span>
-                  <span className="text-muted-foreground mt-0.5 block text-xs leading-tight">
-                    {source.carries}
-                  </span>
+                  {source.carries && (
+                    <span className="text-muted-foreground mt-0.5 block text-xs leading-tight">
+                      {source.carries}
+                    </span>
+                  )}
                 </button>
               );
             })}

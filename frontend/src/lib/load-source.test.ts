@@ -25,19 +25,37 @@ afterEach(() => {
 });
 
 describe("the source list", () => {
-  it("leads with the source most people can use", async () => {
-    // Install count, not preference: WikiSync has roughly 335k Plugin Hub
-    // installs to RuneProfile's 92k, and the rail order says so.
+  it("leads with the one that needs nothing, and defaults elsewhere", async () => {
+    // Two different questions. Manual tops the rail because it asks nothing of
+    // you; the default is still WikiSync, because somebody opening this for the
+    // first time would rather import than type.
     const { LOAD_SOURCES, DEFAULT_LOAD_SOURCE } = await load();
-    expect(LOAD_SOURCES[0].id).toBe("wikisync");
+    expect(LOAD_SOURCES[0].id).toBe("manual");
     expect(DEFAULT_LOAD_SOURCE).toBe("wikisync");
   });
 
-  it("says what every source carries", async () => {
+  it("orders the importing sources by reach", async () => {
+    // Install count, not preference: WikiSync has roughly 335k Plugin Hub
+    // installs to RuneProfile's 92k, and the rail order says so.
+    const { LOAD_SOURCES } = await load();
+    const importing = LOAD_SOURCES.filter((s) => s.id !== "manual").map(
+      (s) => s.id,
+    );
+    expect(importing).toEqual([
+      "wikisync",
+      "runeprofile",
+      "wiseoldman",
+      "file",
+    ]);
+  });
+
+  it("says what every importing source carries", async () => {
+    // Manual is exempt: it doesn't bring anything, it *is* the form.
     const { LOAD_SOURCES } = await load();
     for (const source of LOAD_SOURCES) {
-      expect(source.carries.trim()).not.toBe("");
       expect(source.label.trim()).not.toBe("");
+      if (source.id === "manual") expect(source.carries).toBeUndefined();
+      else expect(source.carries?.trim()).not.toBe("");
     }
   });
 });
