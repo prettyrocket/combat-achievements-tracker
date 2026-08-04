@@ -22,12 +22,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { TaskTable } from "@/components/task-table";
-import { ProgressToolbar } from "@/components/progress-toolbar";
+import { ProgressToolbar } from "@/components/toolbar";
+import { LoadDialog } from "@/components/load-dialog";
 import { ProgressHeader } from "@/components/progress-header";
 import { FilterBar } from "@/components/filter-bar";
 import { MonsterBreadcrumb } from "@/components/monster-breadcrumb";
 import { TaskListPanel } from "@/components/tasklist-panel";
+import { importBackup } from "@/lib/backup";
 import { TASKLIST_DROPPABLE, parseDragId } from "@/lib/dnd";
+import type { Notice } from "@/lib/notice";
 import { readJson, writeJson } from "@/lib/local-store";
 import { summarize, summarizeMonster } from "@/lib/progress-summary";
 import {
@@ -124,9 +127,40 @@ export default function App() {
   const [loadOpen, setLoadOpen] = useState(false);
   const [loadSource, setLoadSource] = useState<LoadSourceId | null>(null);
 
+  // Lives here rather than in the toolbar because a file import finishes after
+  // its dialog has closed: the message describes three stores at once and is
+  // worth reading once the thing that produced it has gone.
+  const [notice, setNotice] = useState<Notice | null>(null);
+
   const openProfileEditor = useCallback(() => {
     setLoadSource("manual");
     setLoadOpen(true);
+  }, []);
+
+  const openLoad = useCallback(() => setLoadOpen(true), []);
+
+  /**
+   * Rethrows rather than swallowing: the file pane shows the failure beside its
+   * own button, where the person who picked the file is looking. Only a success
+   * reaches the notice line, because that message describes three stores at once
+   * and is worth reading after the dialog has gone.
+   */
+  const handleImportFile = useCallback(async (file: File) => {
+    const result = importBackup(await file.text());
+    setNotice({
+      tone: "ok",
+      message:
+        `Imported ${result.imported} completed tasks` +
+        (result.listImported > 0
+          ? ` and ${result.listImported} on your list.`
+          : ".") +
+        (result.profileImported
+          ? " Your levels and quests came with it."
+          : "") +
+        (result.dropped + result.listDropped > 0
+          ? ` Ignored ${result.dropped + result.listDropped} unrecognised entries.`
+          : ""),
+    });
   }, []);
 
   const onLoadOpenChange = useCallback((open: boolean) => {
@@ -413,20 +447,14 @@ export default function App() {
             completedCount={completed.size}
             list={taskList.list}
             listCount={taskList.list.length}
-            lastRsn={lastRsn}
-            onReset={reset}
-            onClearList={taskList.clear}
-            onImportApply={applyImport}
             profile={profile.profile}
             profileIsEmpty={profile.isEmpty}
-            loadOpen={loadOpen}
-            onLoadOpenChange={onLoadOpenChange}
-            loadSource={loadSource}
-            onRsnCommit={rememberRsn}
-            onSetLevel={profile.setLevel}
-            onImportLevels={profile.importLevels}
-            onSetQuest={profile.setQuest}
+            onReset={reset}
+            onClearList={taskList.clear}
             onClearProfile={profile.clear}
+            onLoadOpen={openLoad}
+            notice={notice}
+            onNotice={setNotice}
           />
         </header>
 
@@ -516,6 +544,28 @@ export default function App() {
           </main>
         </div>
       </div>
+
+      {/* Owned here rather than by the toolbar: the requirement filter opens it
+          too -- straight onto the by-hand pane when it has nothing to run on --
+          and routing that through the toolbar meant seven of its props existed
+          only to be forwarded here. */}
+      <LoadDialog
+        open={loadOpen}
+        onOpenChange={onLoadOpenChange}
+        initialSource={loadSource}
+        completed={completed}
+        listCount={taskList.list.length}
+        lastRsn={lastRsn}
+        onImportApply={applyImport}
+        onImportLevels={profile.importLevels}
+        onImportFile={handleImportFile}
+        onRsnCommit={rememberRsn}
+        profile={profile.profile}
+        profileIsEmpty={profile.isEmpty}
+        onSetLevel={profile.setLevel}
+        onSetQuest={profile.setQuest}
+        onClearProfile={profile.clear}
+      />
 
       {/* Opening a link is a replace, exactly like an import, so it asks first
           and says what it would cost. Undo covers it afterwards, but only until
