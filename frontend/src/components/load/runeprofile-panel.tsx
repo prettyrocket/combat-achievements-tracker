@@ -16,16 +16,14 @@ import {
   RUNEPROFILE_PLUGIN_URL,
   RUNEPROFILE_URL,
   RuneProfileError,
-  syncedLabel,
   type RuneProfileImport,
 } from "@/lib/runeprofile";
 import { useImportFlow } from "@/lib/use-import-flow";
 import type { PlayerProfile } from "@/lib/requirements";
 import {
-  Carries,
   DifferentAccountNotice,
-  FoundAccount,
   ImportFooter,
+  ImportSummary,
   LookUpButton,
   Steps,
 } from "@/components/load/pane-parts";
@@ -113,8 +111,6 @@ export function RuneProfilePanel({
     }
   }
 
-  const synced = found === null ? null : syncedLabel(found.updatedAt);
-
   const footer = error
     ? {
         // Stale gets amber and a fix, not red and a dead end -- the account is
@@ -173,17 +169,8 @@ export function RuneProfilePanel({
           />
         </Steps>
 
-        {/* What arrived, and how old it is. The date is not decoration: only the
-            player can refresh a RuneProfile, so somebody importing a month-old
-            snapshot needs to know before they trust the numbers. */}
-        {found && (
-          <FoundAccount
-            displayName={found.displayName}
-            accountType={found.accountType}
-            updated={synced}
-          >
-            {found.profile && <Carries name={found.displayName} quests />}
-          </FoundAccount>
+        {found?.profile && (
+          <ImportSummary name={found.displayName} quests lastRsn={lastRsn} />
         )}
 
         {flow.differentAccount(rsn) && (

@@ -20,7 +20,6 @@ import {
   type WikiSyncDiff,
 } from "@/lib/wikisync";
 import type { PlayerProfile } from "@/lib/requirements";
-import { OverwriteNote } from "@/components/load/pane-parts";
 
 /** The three things every import produces, whatever fetched them. */
 export interface ImportPayload {
@@ -77,7 +76,6 @@ export function useImportFlow({
   onApplied,
 }: ImportFlowOptions): ImportFlow {
   const [diff, setDiff] = useState<WikiSyncDiff | null>(null);
-  const [carriesProfile, setCarriesProfile] = useState(false);
   const [clearList, setClearList] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
@@ -95,7 +93,6 @@ export function useImportFlow({
       // An armed destructive apply belongs to one specific diff. A new read has
       // to be looked at and armed again.
       setConfirming(false);
-      setCarriesProfile(payload.profile !== null);
       setDiff(diffAgainst(payload, completed));
     },
     [completed],
@@ -103,7 +100,6 @@ export function useImportFlow({
 
   const clear = useCallback(() => {
     setDiff(null);
-    setCarriesProfile(false);
     setConfirming(false);
     // Never inherited: throwing away a plan is a decision made once, about one
     // import, not a preference the dialog keeps on your behalf.
@@ -132,18 +128,10 @@ export function useImportFlow({
     (rsn: string): ReactNode => {
       if (!diff) return null;
 
-      // Anything that changes achievements is described by what it does to the
-      // profile, not by counting ticks. The count that used to be here read as
-      // arithmetic homework; the button beside it already says Replace, in red,
-      // when something is coming off.
-      //
-      // Silent when the payload carried no profile -- a bare list of ids has no
-      // levels to overwrite, and saying otherwise would be a lie about the one
-      // thing this sentence exists to warn about.
-      if (!diffIsNoop(diff))
-        return carriesProfile ? (
-          <OverwriteNote rsn={rsn} lastRsn={lastRsn} />
-        ) : null;
+      // What an import does is said once, up beside what it brings, rather
+      // than again down here -- see ImportSummary. The footer is left with the
+      // two things that aren't about the profile at all.
+      if (!diffIsNoop(diff)) return null;
 
       // The plan is not the profile. Throwing it away is its own destructive
       // act, and the overwrite sentence doesn't cover it.
@@ -163,7 +151,7 @@ export function useImportFlow({
         </>
       );
     },
-    [diff, carriesProfile, lastRsn, clearList, differentAccount, listCount],
+    [diff, clearList, differentAccount, listCount],
   );
 
   const label = useCallback(

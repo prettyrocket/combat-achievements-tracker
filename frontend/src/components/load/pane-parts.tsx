@@ -72,99 +72,61 @@ export function ImportFooter({
 }
 
 /**
- * The profile half of an import, in one sentence for all three sources.
+ * Everything a pane says about a successful read, in two sentences.
  *
- * Says what will land rather than counting it. The counts this used to quote
- * were answering a question nobody asked -- "24 skill levels" is not a fact
- * anybody checks, and the one number that does matter (what happens to your
- * achievements) is the footer's job, next to the button that does it.
+ * What lands, then what it costs, in that order and in that place for all
+ * three sources. They used to be a pane apart -- one above the fold, one down
+ * beside the button -- which made "is this safe" a question you answered by
+ * looking in two places, and made the answer look different in each pane.
  *
- * The only thing that varies is quests, which the hiscores have never heard of.
+ * What varies is quests, which the hiscores have never heard of, and whose
+ * levels are being written over. Nothing else: no counts, no account badge, no
+ * date. Rendered only when a profile is actually coming, because both
+ * sentences are about levels and a bare list of ids has none.
  */
-export function Carries({
+export function ImportSummary({
   name,
   quests,
+  lastRsn,
 }: {
-  /** Whose levels these are. Empty when the pane has no name to show. */
+  /** The account being imported. Empty when the pane has no name for it. */
   name: string;
   /** False for the levels-only sources. */
   quests: boolean;
-}) {
-  return (
-    <p className="text-muted-foreground text-xs leading-snug">
-      Imports all skill levels{quests && " and quest completions"} required for
-      combat achievements
-      {name !== "" && (
-        <>
-          {" "}
-          for <span className="text-foreground">{name}</span>
-        </>
-      )}
-      .
-    </p>
-  );
-}
-
-/**
- * What applying is about to do to the levels already stored.
- *
- * Names the account being written over only when that is somebody else --
- * "overwrite skill levels for Zezima" is a warning, and turning it into one
- * every time you re-import your own account is how a warning stops being read.
- */
-export function OverwriteNote({
-  rsn,
-  lastRsn,
-}: {
-  /** The account being imported. */
-  rsn: string;
   /** The account already stored, or null on a first import. */
   lastRsn: string | null;
 }) {
-  if (lastRsn === null || lastRsn === "" || sameAccount(rsn, lastRsn))
-    return <>This will overwrite your skill levels.</>;
+  // Named only when it's somebody else. "Overwrite skill levels for Zezima" is
+  // a warning, and one that fires every time you re-import your own account is
+  // one you stop reading.
+  const overwriting =
+    lastRsn === null || lastRsn === "" || sameAccount(name, lastRsn)
+      ? null
+      : lastRsn;
 
   return (
-    <>
-      This will overwrite skill levels for{" "}
-      <span className="font-semibold">{lastRsn}</span>.
-    </>
-  );
-}
-
-/**
- * Who a lookup found, above what it carries.
- *
- * Both fetching panes render this identically -- name, account type when it
- * isn't a regular account, and how old the data is -- so the two of them can't
- * drift apart on which of those is worth a badge. What sits under it is the
- * caller's business: a Carries for the panes that looked an account up, and
- * nothing at all for a paste, which has no account to name.
- */
-export function FoundAccount({
-  displayName,
-  accountType,
-  updated,
-  children,
-}: {
-  displayName: string;
-  accountType: string | null;
-  /** How stale the source's snapshot is, or null when it doesn't say. */
-  updated: string | null;
-  children: ReactNode;
-}) {
-  return (
-    <div className="space-y-1 text-sm">
+    <div className="text-muted-foreground space-y-1 text-xs leading-snug">
       <p>
-        <span className="font-medium">{displayName}</span>
-        {accountType !== null && accountType !== "regular" && (
-          <span className="text-muted-foreground"> · {accountType}</span>
+        Imports all skill levels{quests && " and quest completions"} required
+        for combat achievements
+        {name !== "" && (
+          <>
+            {" "}
+            for <span className="text-foreground">{name}</span>
+          </>
         )}
-        {updated !== null && (
-          <span className="text-muted-foreground"> · {updated}</span>
+        .
+      </p>
+      <p>
+        {overwriting === null ? (
+          "This will overwrite your skill levels."
+        ) : (
+          <>
+            This will overwrite skill levels for{" "}
+            <span className="text-foreground">{overwriting}</span>.
+          </>
         )}
       </p>
-      {children}
     </div>
   );
 }

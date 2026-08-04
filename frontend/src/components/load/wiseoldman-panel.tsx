@@ -13,17 +13,14 @@
 import { useEffect, useRef, useState } from "react";
 import {
   fetchWomLevels,
-  updatedLabel,
   WISE_OLD_MAN_URL,
   WomLookupError,
   type WomLookup,
 } from "@/lib/wiseoldman";
 import {
-  Carries,
-  FoundAccount,
   ImportFooter,
+  ImportSummary,
   LookUpButton,
-  OverwriteNote,
 } from "@/components/load/pane-parts";
 
 export interface WiseOldManPanelProps {
@@ -81,8 +78,6 @@ export function WiseOldManPanel({
     }
   }
 
-  const stale = found === null ? null : updatedLabel(found.updatedAt);
-
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
@@ -105,28 +100,17 @@ export function WiseOldManPanel({
           onClick={() => void run()}
         />
 
-        {/* The date matters here more than anywhere: WOM holds whatever
-            snapshot was last taken, and somebody who trained since then should
-            see why the number is old rather than distrust the requirement
-            filter. */}
         {found && (
-          <FoundAccount
-            displayName={found.displayName}
-            accountType={found.accountType}
-            updated={stale}
-          >
-            <Carries name={found.displayName} quests={false} />
-          </FoundAccount>
+          <ImportSummary
+            name={found.displayName}
+            quests={false}
+            lastRsn={lastRsn}
+          />
         )}
       </div>
 
       <ImportFooter
-        status={
-          error ??
-          (found === null ? null : (
-            <OverwriteNote rsn={rsn} lastRsn={lastRsn} />
-          ))
-        }
+        status={error}
         tone={error === null ? "text-foreground" : "text-red-400"}
         alert={error !== null}
         label="Import"
