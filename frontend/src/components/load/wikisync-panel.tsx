@@ -12,7 +12,7 @@
 // to OSRS" that an account with genuinely zero completions deserves.
 
 import { useEffect, useRef, useState } from "react";
-import { Check, CircleHelp, Copy, ExternalLink } from "lucide-react";
+import { Check, Copy, ExternalLink } from "lucide-react";
 import {
   buildSyncUrl,
   displayRsn,
@@ -28,11 +28,6 @@ import {
   type PlayerProfile,
 } from "@/lib/requirements";
 import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import {
   DifferentAccountNotice,
@@ -43,9 +38,6 @@ import {
 const GATE_QUESTS = gatedQuests().map(normalizeQuest);
 
 const PLUGIN_HUB_URL = "https://runelite.net/plugin-hub/show/wikisync";
-
-const WHY_PASTE =
-  "This app never contacts the WikiSync API — you fetch your own data and paste it here.";
 
 function countGateQuests(profile: PlayerProfile): number {
   const finished = new Set(profile.quests.map(normalizeQuest));
@@ -190,31 +182,18 @@ export function WikiSyncPanel({
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
-        <div className="flex items-start justify-between gap-2">
-          <p className="text-muted-foreground text-sm">
-            Lookup combat achievements, skill levels and quests on{" "}
-            <a
-              href="https://oldschool.runescape.wiki/w/RuneScape:WikiSync"
-              target="_blank"
-              rel="noreferrer noopener"
-              className="text-foreground font-medium underline underline-offset-2"
-            >
-              WikiSync
-            </a>
-            .
-          </p>
-          <Popover>
-            <PopoverTrigger
-              className="text-muted-foreground hover:text-foreground focus-visible:ring-ring mt-0.5 shrink-0 rounded-full transition-colors focus-visible:ring-2 focus-visible:outline-none"
-              aria-label="Why you have to paste this yourself"
-            >
-              <CircleHelp className="size-4" aria-hidden />
-            </PopoverTrigger>
-            <PopoverContent className="p-3 text-sm font-normal">
-              {WHY_PASTE}
-            </PopoverContent>
-          </Popover>
-        </div>
+        <p className="text-muted-foreground text-sm">
+          Lookup combat achievements, skill levels and quests on{" "}
+          <a
+            href="https://oldschool.runescape.wiki/w/RuneScape:WikiSync"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="text-foreground font-medium underline underline-offset-2"
+          >
+            WikiSync
+          </a>
+          .
+        </p>
 
         <Steps>
           <li>
