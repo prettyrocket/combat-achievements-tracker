@@ -112,7 +112,7 @@ export function WiseOldManPanel({
             accountType={found.accountType}
             updated={stale}
           >
-            <Carries levels={count} />
+            <Carries name={found.displayName} quests={false} />
           </FoundAccount>
         )}
       </div>

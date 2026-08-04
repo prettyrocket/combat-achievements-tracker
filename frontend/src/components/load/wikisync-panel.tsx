@@ -22,7 +22,7 @@ import {
   type WikiSyncParse,
 } from "@/lib/wikisync";
 import { useImportFlow } from "@/lib/use-import-flow";
-import { countGatedQuests, type PlayerProfile } from "@/lib/requirements";
+import type { PlayerProfile } from "@/lib/requirements";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -285,12 +285,7 @@ export function WikiSyncPanel({
             diagnostic: the quest count is joined by name against the gate table,
             so "0 of 19" is how you find out WikiSync started spelling quests
             differently, rather than by wondering why nothing is locked. */}
-        {parse?.profile && (
-          <Carries
-            levels={Object.keys(parse.profile.levels).length}
-            quests={countGatedQuests(parse.profile)}
-          />
-        )}
+        {parse?.profile && <Carries name={displayRsn(rsn)} quests />}
 
         {flow.differentAccount(rsn) && (
           <DifferentAccountNotice

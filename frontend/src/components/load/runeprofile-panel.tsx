@@ -20,7 +20,7 @@ import {
   type RuneProfileImport,
 } from "@/lib/runeprofile";
 import { useImportFlow } from "@/lib/use-import-flow";
-import { countGatedQuests, type PlayerProfile } from "@/lib/requirements";
+import type { PlayerProfile } from "@/lib/requirements";
 import {
   Carries,
   DifferentAccountNotice,
@@ -182,17 +182,7 @@ export function RuneProfilePanel({
             accountType={found.accountType}
             updated={synced}
           >
-            <Carries
-              tasks={found.ids.length}
-              levels={
-                found.profile === null
-                  ? null
-                  : Object.keys(found.profile.levels).length
-              }
-              quests={
-                found.profile === null ? null : countGatedQuests(found.profile)
-              }
-            />
+            {found.profile && <Carries name={found.displayName} quests />}
           </FoundAccount>
         )}
 
