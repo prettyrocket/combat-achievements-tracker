@@ -262,16 +262,22 @@ export function ProgressHeader({
           <span className="text-muted-foreground text-sm font-normal">
             complete
           </span>
+          {/* What's left to earn rather than what's banked: the two running
+              totals were the same fact the percentage in front of them already
+              carries, and the distance to the next hilt is the figure you act
+              on. Both totals still live in the expanded form. */}
           <span className="text-muted-foreground text-sm font-normal">
             ·{" "}
-            <span className="text-foreground font-medium">
-              {summary.pointsEarned}
-            </span>
-            /{summary.pointsTotal} pts ·{" "}
-            <span className="text-foreground font-medium">
-              {summary.completedTasks}
-            </span>
-            /{summary.totalTasks} tasks
+            {rewards.next ? (
+              <>
+                <span className="text-foreground font-medium">
+                  {rewards.pointsToNext}
+                </span>{" "}
+                {rewards.pointsToNext === 1 ? "point" : "points"} to next reward
+              </>
+            ) : (
+              <>Every reward tier claimed.</>
+            )}
           </span>
         </h2>
 
