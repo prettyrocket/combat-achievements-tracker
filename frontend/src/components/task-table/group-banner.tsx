@@ -1,5 +1,10 @@
-import { ChevronDown, ChevronRight, ListPlus } from "lucide-react";
+import { ChevronDown, ChevronRight, ListPlus, Lock } from "lucide-react";
 import type { GroupItem } from "@/components/task-table/use-row-items";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 /**
  * A monster's banner: collapses its rows, and puts the whole group on the plan
@@ -19,6 +24,7 @@ export function GroupBanner({
   onToggleCollapsed,
   completed,
   onList,
+  requires,
   onAddManyToList,
 }: {
   group: GroupItem;
@@ -29,6 +35,9 @@ export function GroupBanner({
   onToggleCollapsed: (monster: string | null) => void;
   completed: ReadonlySet<number>;
   onList: ReadonlySet<number>;
+  /** Why this monster can't go on the plan, or null when it can. Bulk-adding is
+   *  the row control twenty times over, so it locks on the same condition. */
+  requires: string | null;
   onAddManyToList: (wikiIds: number[]) => void;
 }) {
   const name = group.monster ?? "Any monster";
@@ -63,22 +72,42 @@ export function GroupBanner({
             </span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => onAddManyToList(toAdd)}
-            disabled={toAdd.length === 0}
-            title={
-              toAdd.length === 0
-                ? `Nothing left to plan for ${name} — every task is done or already on your list`
-                : `Add ${toAdd.length} unfinished ${name} task${toAdd.length === 1 ? "" : "s"} to my list`
-            }
-            className="text-muted-foreground hover:bg-background hover:text-foreground flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-xs transition-colors disabled:pointer-events-none disabled:opacity-40"
-          >
-            <ListPlus className="size-3.5" aria-hidden />
-            {/* The number is what makes this safe to click: it counts what is
-                actually about to be added, not how big the group is. */}
-            Add {toAdd.length === 0 ? "all" : toAdd.length}
-          </button>
+          {requires !== null ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                {/* Not `disabled`: a disabled button takes neither hover nor
+                    focus, and the reason is the whole point of the lock. */}
+                <button
+                  type="button"
+                  onClick={(event) => event.preventDefault()}
+                  aria-disabled
+                  aria-label={`Can't plan ${name} yet. ${requires}`}
+                  className="flex shrink-0 cursor-not-allowed items-center gap-1 rounded px-1.5 py-0.5 text-xs text-amber-500/70 hover:text-amber-500"
+                >
+                  <Lock className="size-3.5" aria-hidden />
+                  Locked
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>{requires}</TooltipContent>
+            </Tooltip>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onAddManyToList(toAdd)}
+              disabled={toAdd.length === 0}
+              title={
+                toAdd.length === 0
+                  ? `Nothing left to plan for ${name} — every task is done or already on your list`
+                  : `Add ${toAdd.length} unfinished ${name} task${toAdd.length === 1 ? "" : "s"} to my list`
+              }
+              className="text-muted-foreground hover:bg-background hover:text-foreground flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-xs transition-colors disabled:pointer-events-none disabled:opacity-40"
+            >
+              <ListPlus className="size-3.5" aria-hidden />
+              {/* The number is what makes this safe to click: it counts what is
+                  actually about to be added, not how big the group is. */}
+              Add {toAdd.length === 0 ? "all" : toAdd.length}
+            </button>
+          )}
         </div>
       </td>
     </tr>

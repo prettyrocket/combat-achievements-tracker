@@ -17,18 +17,27 @@ import { TableRow } from "@/components/ui/table";
 export function DraggableRow({
   task,
   isCompleted,
+  locked,
   index,
   measureRef,
   children,
 }: {
   task: TaskRow;
   isCompleted: boolean;
+  /**
+   * Requirements this row doesn't meet yet. Dragging is the third way onto the
+   * plan, after the row's own button and the group banner's, so it has to
+   * refuse for the same reason the other two do -- otherwise the lock is
+   * decoration you can drag straight past.
+   */
+  locked: boolean;
   index: number;
   measureRef: (node: HTMLElement | null) => void;
   children: React.ReactNode;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: dragId("table", task.wikiId),
+    disabled: locked,
   });
 
   const ref = useCallback(

@@ -362,3 +362,22 @@ export function describeMissing(missing: readonly Shortfall[]): string {
   if (parts.length <= 1) return parts[0] ?? "";
   return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
 }
+
+/**
+ * Why this monster can't go on the plan, or null when it can -- the one question
+ * every lock in the table asks, over the map `checkAll` built.
+ *
+ * Two things count as "it can". A task with no monster has nothing to stand in
+ * front of; and a gate whose status is `unknown` means no levels have been
+ * entered, where guessing "no" would lock most of the table for someone who has
+ * simply never opened Load. The app is not the authority on what you can face.
+ */
+export function gateReason(
+  gates: ReadonlyMap<string, GateCheck>,
+  monster: string | null,
+): string | null {
+  if (monster === null) return null;
+  const gate = gates.get(monster);
+  if (gate === undefined || gate.status !== "blocked") return null;
+  return `Requires ${describeMissing(gate.missing)}`;
+}

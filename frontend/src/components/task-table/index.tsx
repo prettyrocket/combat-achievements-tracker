@@ -25,7 +25,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import type { GateCheck } from "@/lib/requirements";
+import { gateReason, type GateCheck } from "@/lib/requirements";
 import type { SortKey, TaskRow } from "@/lib/types";
 import { buildColumns, type TableMeta } from "@/components/task-table/columns";
 import { DraggableRow } from "@/components/task-table/draggable-row";
@@ -190,18 +190,27 @@ export function TaskTable({
                   onToggleCollapsed={toggleCollapsed}
                   completed={completed}
                   onList={onList}
+                  requires={gateReason(gates, item.monster)}
                   onAddManyToList={onAddManyToList}
                 />
               );
             }
             const { row } = item;
+            const task = row.original;
             return (
               <DraggableRow
                 key={row.id}
-                task={row.original}
+                task={task}
                 index={virtualRow.index}
                 measureRef={virtualizer.measureElement}
-                isCompleted={completed.has(row.original.wikiId)}
+                isCompleted={completed.has(task.wikiId)}
+                // The third door onto the plan, after the row's button and the
+                // banner's. A gate that stops the other two has to stop this
+                // one, or the lock is a suggestion.
+                locked={
+                  !onList.has(task.wikiId) &&
+                  gateReason(gates, task.monster) !== null
+                }
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>

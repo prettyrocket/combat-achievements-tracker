@@ -7,11 +7,13 @@
 import { describe, expect, it } from "vitest";
 import { TASKS } from "@/data/tasks";
 import {
+  EMPTY_PROFILE,
   GATED_SKILLS,
   checkAll,
   checkGate,
   describeMissing,
   gateFor,
+  gateReason,
   gatedMonsters,
   gatedQuests,
   normalizeQuest,
@@ -231,5 +233,34 @@ describe("describeMissing", () => {
 
   it("is empty when nothing is missing, rather than a stray conjunction", () => {
     expect(describeMissing([])).toBe("");
+  });
+});
+
+describe("gateReason", () => {
+  // The question every lock in the table asks. Anything but `blocked` has to
+  // come back null, because a null here is what lets a task onto the plan.
+  const gated = gatedMonsters()[0];
+
+  it("gives the requirement for a monster you can't face yet", () => {
+    const reason = gateReason(checkAll(TASKS, FRESH), gated);
+    expect(reason).toMatch(/^Requires /);
+  });
+
+  it("is null once the profile meets the gate", () => {
+    expect(gateReason(checkAll(TASKS, MAXED), gated)).toBeNull();
+  });
+
+  it("is null with no profile, rather than locking the table on a guess", () => {
+    const gates = checkAll(TASKS, EMPTY_PROFILE);
+    expect(gates.get(gated)?.status).toBe("unknown");
+    expect(gateReason(gates, gated)).toBeNull();
+  });
+
+  it("is null for a task with no monster -- nothing to stand in front of", () => {
+    expect(gateReason(checkAll(TASKS, FRESH), null)).toBeNull();
+  });
+
+  it("is null for a monster the map has never heard of", () => {
+    expect(gateReason(new Map(), gated)).toBeNull();
   });
 });

@@ -8,8 +8,7 @@
 // instead; only the callbacks belong in the closure.
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { ListChecks, ListPlus } from "lucide-react";
-import type { GateCheck } from "@/lib/requirements";
+import { gateReason, type GateCheck } from "@/lib/requirements";
 import { TYPE_LABEL, type TaskRow } from "@/lib/types";
 import {
   COMPLETION_TONE_CLASS,
@@ -19,7 +18,7 @@ import {
 import { monsterWikiUrl, taskWikiUrl } from "@/lib/wiki";
 import { TierBadge } from "@/components/tier-badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { GateLock, SplitName, WikiLink } from "@/components/task-table/cells";
+import { ListToggle, SplitName, WikiLink } from "@/components/task-table/cells";
 
 /**
  * Row state that changes constantly, kept out of the column defs.
@@ -72,29 +71,14 @@ export function buildColumns({
       header: () => <span className="sr-only">On my list</span>,
       cell: ({ row, table }) => {
         const task = row.original;
-        const listed = (table.options.meta as TableMeta).onList.has(
-          task.wikiId,
-        );
-        const Icon = listed ? ListChecks : ListPlus;
+        const { onList, gates } = table.options.meta as TableMeta;
         return (
-          <button
-            type="button"
-            onClick={() => onToggleListed(task.wikiId)}
-            aria-pressed={listed}
-            title={listed ? "On my list" : "Add to my list"}
-            aria-label={
-              listed
-                ? `Remove "${task.name}" from my list`
-                : `Add "${task.name}" to my list`
-            }
-            className={`rounded p-1 transition-colors ${
-              listed
-                ? "text-background bg-foreground"
-                : "text-muted-foreground/50 hover:bg-muted hover:text-foreground"
-            }`}
-          >
-            <Icon className="size-4" aria-hidden />
-          </button>
+          <ListToggle
+            name={task.name}
+            listed={onList.has(task.wikiId)}
+            gateReason={gateReason(gates, task.monster)}
+            onToggle={() => onToggleListed(task.wikiId)}
+          />
         );
       },
     },
@@ -107,16 +91,13 @@ export function buildColumns({
         if (monster === null) {
           return <span className="text-muted-foreground italic">Any</span>;
         }
-        const { activeMonsters: active, gates } = table.options
-          .meta as TableMeta;
+        const { activeMonsters: active } = table.options.meta as TableMeta;
         // Already filtered to this one: clicking would be a no-op, so don't offer it.
         const isActive = active.some(
           (m) => m.toLowerCase() === monster.toLowerCase(),
         );
-        const gate = gates.get(monster);
         return (
           <span className="flex items-start gap-1.5">
-            {gate && <GateLock gate={gate} />}
             {isActive ? (
               <SplitName value={monster} />
             ) : (
