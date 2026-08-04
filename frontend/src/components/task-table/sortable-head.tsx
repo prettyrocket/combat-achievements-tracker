@@ -17,7 +17,7 @@ export function SortableHead({
 }: {
   header: Header<TaskRow, unknown>;
   sort: SortKey;
-  onSortChange?: (next: SortKey) => void;
+  onSortChange: (next: SortKey) => void;
 }) {
   // Widened from the per-column tuple: every column has its own literal pair, and
   // the union of those has no member in common for `includes` to accept.
@@ -25,7 +25,9 @@ export function SortableHead({
     readonly [SortKey, SortKey] | undefined;
   const label = flexRender(header.column.columnDef.header, header.getContext());
 
-  if (!pair || !onSortChange) return <>{label}</>;
+  // The two checkbox columns have no sort of their own -- their headers are
+  // screen-reader labels, not controls.
+  if (!pair) return <>{label}</>;
 
   const active: SortDirection | null = pair.includes(sort)
     ? sortDirection(sort)

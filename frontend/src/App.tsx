@@ -40,6 +40,11 @@ import { useTaskList } from "@/lib/use-tasklist";
 import { useTaskQuery } from "@/lib/use-task-query";
 import { useUiPrefs } from "@/lib/use-ui-prefs";
 
+// Module-level so it keeps one identity across renders. An inline `?? []` would
+// hand the table a fresh array every time, which invalidates the memo its column
+// meta depends on -- the exact thing that file goes to some trouble to avoid.
+const NO_MONSTERS: readonly string[] = [];
+
 export default function App() {
   const { completed, toggle, setMany, reset, storageError } = useProgress();
   const { query, setQuery, clear } = useTaskQuery();
@@ -290,7 +295,7 @@ export default function App() {
                 onToggle={toggle}
                 onPivotToMonster={filter.pivot}
                 onAddMonster={filter.addToPivot}
-                activeMonsters={query.monster}
+                activeMonsters={query.monster ?? NO_MONSTERS}
                 onList={listedIds}
                 onToggleListed={taskList.toggle}
                 onAddManyToList={taskList.addMany}

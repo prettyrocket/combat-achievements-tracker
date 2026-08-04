@@ -30,7 +30,7 @@ import { GateLock, SplitName, WikiLink } from "@/components/task-table/cells";
  */
 export interface TableMeta {
   completed: ReadonlySet<number>;
-  onList: ReadonlySet<number> | undefined;
+  onList: ReadonlySet<number>;
   activeMonsters: readonly string[];
   gates: ReadonlyMap<string, GateCheck>;
 }
@@ -38,9 +38,9 @@ export interface TableMeta {
 /** The callbacks a column may close over -- all stable, none row state. */
 export interface ColumnHandlers {
   onToggle: (wikiId: number) => void;
-  onPivotToMonster?: (monster: string) => void;
-  onAddMonster?: (monster: string) => void;
-  onToggleListed?: (wikiId: number) => void;
+  onPivotToMonster: (monster: string) => void;
+  onAddMonster: (monster: string) => void;
+  onToggleListed: (wikiId: number) => void;
 }
 
 export function buildColumns({
@@ -67,41 +67,37 @@ export function buildColumns({
         );
       },
     },
-    ...(onToggleListed
-      ? [
-          {
-            id: "listed",
-            header: () => <span className="sr-only">On my list</span>,
-            cell: ({ row, table }) => {
-              const task = row.original;
-              const listed =
-                (table.options.meta as TableMeta).onList?.has(task.wikiId) ??
-                false;
-              const Icon = listed ? ListChecks : ListPlus;
-              return (
-                <button
-                  type="button"
-                  onClick={() => onToggleListed(task.wikiId)}
-                  aria-pressed={listed}
-                  title={listed ? "On my list" : "Add to my list"}
-                  aria-label={
-                    listed
-                      ? `Remove "${task.name}" from my list`
-                      : `Add "${task.name}" to my list`
-                  }
-                  className={`rounded p-1 transition-colors ${
-                    listed
-                      ? "text-background bg-foreground"
-                      : "text-muted-foreground/50 hover:bg-muted hover:text-foreground"
-                  }`}
-                >
-                  <Icon className="size-4" aria-hidden />
-                </button>
-              );
-            },
-          } satisfies ColumnDef<TaskRow>,
-        ]
-      : []),
+    {
+      id: "listed",
+      header: () => <span className="sr-only">On my list</span>,
+      cell: ({ row, table }) => {
+        const task = row.original;
+        const listed = (table.options.meta as TableMeta).onList.has(
+          task.wikiId,
+        );
+        const Icon = listed ? ListChecks : ListPlus;
+        return (
+          <button
+            type="button"
+            onClick={() => onToggleListed(task.wikiId)}
+            aria-pressed={listed}
+            title={listed ? "On my list" : "Add to my list"}
+            aria-label={
+              listed
+                ? `Remove "${task.name}" from my list`
+                : `Add "${task.name}" to my list`
+            }
+            className={`rounded p-1 transition-colors ${
+              listed
+                ? "text-background bg-foreground"
+                : "text-muted-foreground/50 hover:bg-muted hover:text-foreground"
+            }`}
+          >
+            <Icon className="size-4" aria-hidden />
+          </button>
+        );
+      },
+    },
     {
       id: "monster",
       header: "Monster",
@@ -121,7 +117,7 @@ export function buildColumns({
         return (
           <span className="flex items-start gap-1.5">
             {gate && <GateLock gate={gate} />}
-            {!onPivotToMonster || isActive ? (
+            {isActive ? (
               <SplitName value={monster} />
             ) : (
               <button
@@ -129,7 +125,7 @@ export function buildColumns({
                 onClick={(event) => {
                   // Shift adds to the filter instead of replacing it, so you can
                   // hold two bosses side by side without retyping either.
-                  if (event.shiftKey && onAddMonster) onAddMonster(monster);
+                  if (event.shiftKey) onAddMonster(monster);
                   else onPivotToMonster(monster);
                 }}
                 title={`Show only ${monster} tasks — shift-click to add it alongside`}

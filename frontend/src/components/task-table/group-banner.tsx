@@ -28,15 +28,15 @@ export function GroupBanner({
   collapsed: boolean;
   onToggleCollapsed: (monster: string | null) => void;
   completed: ReadonlySet<number>;
-  onList: ReadonlySet<number> | undefined;
-  onAddManyToList?: (wikiIds: number[]) => void;
+  onList: ReadonlySet<number>;
+  onAddManyToList: (wikiIds: number[]) => void;
 }) {
   const name = group.monster ?? "Any monster";
   // A plan is what's left to do. Filtered to "All tasks" a group carries the
   // ones you've already finished, and putting those on the list is the one
   // thing this button must never quietly do.
   const toAdd = group.wikiIds.filter(
-    (id) => !completed.has(id) && !onList?.has(id),
+    (id) => !completed.has(id) && !onList.has(id),
   );
   const Chevron = collapsed ? ChevronRight : ChevronDown;
 
@@ -63,24 +63,22 @@ export function GroupBanner({
             </span>
           </button>
 
-          {onAddManyToList && (
-            <button
-              type="button"
-              onClick={() => onAddManyToList(toAdd)}
-              disabled={toAdd.length === 0}
-              title={
-                toAdd.length === 0
-                  ? `Nothing left to plan for ${name} — every task is done or already on your list`
-                  : `Add ${toAdd.length} unfinished ${name} task${toAdd.length === 1 ? "" : "s"} to my list`
-              }
-              className="text-muted-foreground hover:bg-background hover:text-foreground flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-xs transition-colors disabled:pointer-events-none disabled:opacity-40"
-            >
-              <ListPlus className="size-3.5" aria-hidden />
-              {/* The number is what makes this safe to click: it counts what is
-                  actually about to be added, not how big the group is. */}
-              Add {toAdd.length === 0 ? "all" : toAdd.length}
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => onAddManyToList(toAdd)}
+            disabled={toAdd.length === 0}
+            title={
+              toAdd.length === 0
+                ? `Nothing left to plan for ${name} — every task is done or already on your list`
+                : `Add ${toAdd.length} unfinished ${name} task${toAdd.length === 1 ? "" : "s"} to my list`
+            }
+            className="text-muted-foreground hover:bg-background hover:text-foreground flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-xs transition-colors disabled:pointer-events-none disabled:opacity-40"
+          >
+            <ListPlus className="size-3.5" aria-hidden />
+            {/* The number is what makes this safe to click: it counts what is
+                actually about to be added, not how big the group is. */}
+            Add {toAdd.length === 0 ? "all" : toAdd.length}
+          </button>
         </div>
       </td>
     </tr>

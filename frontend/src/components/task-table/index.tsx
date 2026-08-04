@@ -44,45 +44,41 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+// Every prop is required. They were optional once, "so the table stays usable
+// on its own" -- but there has only ever been one caller, it passes all of them,
+// and the fallbacks were branches no run of the app could reach. A second caller
+// that genuinely wants a read-only table can make them optional again, with the
+// benefit of knowing what it actually needs.
 export interface TaskTableProps {
   tasks: readonly TaskRow[];
   completed: ReadonlySet<number>;
   onToggle: (wikiId: number) => void;
-  /**
-   * Turns the Monster cell into the pivot control. Optional so the table stays
-   * usable on its own: without it the cell renders as plain text rather than
-   * shipping a control that goes nowhere.
-   */
-  onPivotToMonster?: (monster: string) => void;
+  /** Turns the Monster cell into the pivot control. */
+  onPivotToMonster: (monster: string) => void;
   /** Adds a monster to the filter alongside whatever's already there (shift-click). */
-  onAddMonster?: (monster: string) => void;
+  onAddMonster: (monster: string) => void;
   /** Monsters already filtered to. Their cells render as plain text. */
-  activeMonsters?: readonly string[];
+  activeMonsters: readonly string[];
   /** Ids on the plan, so a row can show it's already there. */
-  onList?: ReadonlySet<number>;
+  onList: ReadonlySet<number>;
   /**
    * Adds/removes the row from the plan. The keyboard- and touch-reachable
    * counterpart to dragging a row into the panel, which is pointer-only however
    * carefully it's built.
    */
-  onToggleListed?: (wikiId: number) => void;
+  onToggleListed: (wikiId: number) => void;
   /**
    * Puts a whole monster group on the plan at once, from its banner. Separate
    * from onToggleListed because this one only ever adds: a toggle over twenty
    * tasks would take half of them off again depending on what was already there.
    */
-  onAddManyToList?: (wikiIds: number[]) => void;
-  /**
-   * Per-monster requirement verdicts, for the lock marker. Optional so the table
-   * stays usable on its own; an absent map simply means no locks.
-   */
-  gates?: ReadonlyMap<string, GateCheck>;
+  onAddManyToList: (wikiIds: number[]) => void;
+  /** Per-monster requirement verdicts, for the lock marker. */
+  gates: ReadonlyMap<string, GateCheck>;
   /** Current sort, for the header arrows. */
   sort: SortKey;
-  onSortChange?: (next: SortKey) => void;
+  onSortChange: (next: SortKey) => void;
 }
-
-const NO_GATES: ReadonlyMap<string, GateCheck> = new Map();
 
 export function TaskTable({
   tasks,
@@ -113,12 +109,7 @@ export function TaskTable({
   const data = useMemo(() => tasks as TaskRow[], [tasks]);
 
   const meta = useMemo<TableMeta>(
-    () => ({
-      completed,
-      onList,
-      activeMonsters: activeMonsters ?? [],
-      gates: gates ?? NO_GATES,
-    }),
+    () => ({ completed, onList, activeMonsters, gates }),
     [completed, onList, activeMonsters, gates],
   );
 
@@ -211,7 +202,6 @@ export function TaskTable({
                 index={virtualRow.index}
                 measureRef={virtualizer.measureElement}
                 isCompleted={completed.has(row.original.wikiId)}
-                draggable={onToggleListed !== undefined}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>

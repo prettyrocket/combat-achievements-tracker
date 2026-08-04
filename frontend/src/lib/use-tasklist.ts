@@ -6,7 +6,6 @@
 import { useCallback, useEffect, useSyncExternalStore } from "react";
 import {
   TASKLIST_STORAGE_KEY,
-  add,
   addMany,
   clear,
   getList,
@@ -21,8 +20,14 @@ import {
 export interface UseTaskList {
   /** Task ids in the order the player arranged them. */
   list: readonly number[];
-  add: (wikiId: number) => void;
-  /** Appends a batch, skipping anything already on the list. */
+  /**
+   * Appends a batch, skipping anything already on the list.
+   *
+   * There is no single-id `add` here: nothing in the UI adds exactly one task
+   * without also being able to take it away again, so `toggle` is what the row
+   * button and the panel both want. The store still has `add` -- the tests use
+   * it to set up state, which is the one place a bare add makes sense.
+   */
   addMany: (wikiIds: Iterable<number>) => void;
   remove: (wikiId: number) => void;
   toggle: (wikiId: number) => void;
@@ -49,7 +54,6 @@ export function useTaskList(): UseTaskList {
 
   return {
     list,
-    add: useCallback((wikiId: number) => add(wikiId), []),
     addMany: useCallback((wikiIds: Iterable<number>) => addMany(wikiIds), []),
     remove: useCallback((wikiId: number) => remove(wikiId), []),
     toggle: useCallback((wikiId: number) => toggle(wikiId), []),

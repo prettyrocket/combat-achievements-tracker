@@ -17,21 +17,18 @@ import { TableRow } from "@/components/ui/table";
 export function DraggableRow({
   task,
   isCompleted,
-  draggable,
   index,
   measureRef,
   children,
 }: {
   task: TaskRow;
   isCompleted: boolean;
-  draggable: boolean;
   index: number;
   measureRef: (node: HTMLElement | null) => void;
   children: React.ReactNode;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: dragId("table", task.wikiId),
-    disabled: !draggable,
   });
 
   const ref = useCallback(
@@ -48,8 +45,8 @@ export function DraggableRow({
       data-index={index}
       data-state={isCompleted && "selected"}
       className={isDragging ? "opacity-40" : undefined}
-      {...(draggable ? attributes : {})}
-      {...(draggable ? listeners : {})}
+      {...attributes}
+      {...listeners}
       // The row is a drag surface, not a button: dnd-kit's default role would
       // tell a screen reader otherwise, and the ☰ button in the row is the
       // documented way in for anyone not using a pointer.
