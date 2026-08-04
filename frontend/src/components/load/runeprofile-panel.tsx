@@ -20,25 +20,15 @@ import {
   type RuneProfileImport,
 } from "@/lib/runeprofile";
 import { useImportFlow } from "@/lib/use-import-flow";
+import { countGatedQuests, type PlayerProfile } from "@/lib/requirements";
 import {
-  gatedQuests,
-  normalizeQuest,
-  type PlayerProfile,
-} from "@/lib/requirements";
-import {
+  Carries,
   DifferentAccountNotice,
   FoundAccount,
   ImportFooter,
   LookUpButton,
   Steps,
 } from "@/components/load/pane-parts";
-
-const GATE_QUESTS = gatedQuests().map(normalizeQuest);
-
-function countGateQuests(profile: PlayerProfile): number {
-  const finished = new Set(profile.quests.map(normalizeQuest));
-  return GATE_QUESTS.filter((quest) => finished.has(quest)).length;
-}
 
 export interface RuneProfilePanelProps {
   /** Owned by the dialog: who this browser is tracking, not this pane's input. */
@@ -192,26 +182,17 @@ export function RuneProfilePanel({
             accountType={found.accountType}
             updated={synced}
           >
-            Carries{" "}
-            <span className="text-foreground">
-              {found.ids.length} completed task
-              {found.ids.length === 1 ? "" : "s"}
-            </span>
-            {found.profile && (
-              <>
-                ,{" "}
-                <span className="text-foreground">
-                  {Object.keys(found.profile.levels).length} skill levels
-                </span>{" "}
-                and{" "}
-                <span className="text-foreground">
-                  {countGateQuests(found.profile)} of {GATE_QUESTS.length}{" "}
-                  quests
-                </span>{" "}
-                that gate a boss
-              </>
-            )}
-            .
+            <Carries
+              tasks={found.ids.length}
+              levels={
+                found.profile === null
+                  ? null
+                  : Object.keys(found.profile.levels).length
+              }
+              quests={
+                found.profile === null ? null : countGatedQuests(found.profile)
+              }
+            />
           </FoundAccount>
         )}
 

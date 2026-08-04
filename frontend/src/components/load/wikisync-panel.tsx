@@ -22,27 +22,17 @@ import {
   type WikiSyncParse,
 } from "@/lib/wikisync";
 import { useImportFlow } from "@/lib/use-import-flow";
-import {
-  gatedQuests,
-  normalizeQuest,
-  type PlayerProfile,
-} from "@/lib/requirements";
+import { countGatedQuests, type PlayerProfile } from "@/lib/requirements";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Carries,
   DifferentAccountNotice,
   ImportFooter,
   Steps,
 } from "@/components/load/pane-parts";
 
-const GATE_QUESTS = gatedQuests().map(normalizeQuest);
-
 const PLUGIN_HUB_URL = "https://runelite.net/plugin-hub/show/wikisync";
-
-function countGateQuests(profile: PlayerProfile): number {
-  const finished = new Set(profile.quests.map(normalizeQuest));
-  return GATE_QUESTS.filter((quest) => finished.has(quest)).length;
-}
 
 export interface WikiSyncPanelProps {
   /** Owned by the dialog and shared with the other account-shaped sources. */
@@ -296,17 +286,10 @@ export function WikiSyncPanel({
             so "0 of 19" is how you find out WikiSync started spelling quests
             differently, rather than by wondering why nothing is locked. */}
         {parse?.profile && (
-          <p className="text-muted-foreground text-xs leading-snug">
-            This paste also carries{" "}
-            <span className="text-foreground">
-              {Object.keys(parse.profile.levels).length} skill levels
-            </span>{" "}
-            and{" "}
-            <span className="text-foreground">
-              {countGateQuests(parse.profile)} of {GATE_QUESTS.length} quests
-            </span>{" "}
-            that gate a boss.
-          </p>
+          <Carries
+            levels={Object.keys(parse.profile.levels).length}
+            quests={countGatedQuests(parse.profile)}
+          />
         )}
 
         {flow.differentAccount(rsn) && (

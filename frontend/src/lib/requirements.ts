@@ -208,6 +208,14 @@ export function gatedQuests(): string[] {
   return [...seen].sort((a, b) => questLabel(a).localeCompare(questLabel(b)));
 }
 
+/**
+ * How many quests any gate mentions -- the denominator every pane quotes.
+ *
+ * Computed once from the table rather than written down, so a gate that starts
+ * asking for a twentieth quest moves the number everywhere it appears.
+ */
+export const GATED_QUEST_COUNT = gatedQuests().length;
+
 // --- the player -------------------------------------------------------------
 
 /**
@@ -240,6 +248,19 @@ export function normalizeQuest(quest: string): string {
       .replace(/\s+/g, " ")
       .trim()
   );
+}
+
+/**
+ * How many of the gated quests an account has finished.
+ *
+ * Joined by name, which is why both sides go through normalizeQuest: every
+ * source spells quests its own way, and "0 of 19" against a maxed account is
+ * how a spelling change announces itself.
+ */
+export function countGatedQuests(profile: PlayerProfile): number {
+  const finished = new Set(profile.quests.map(normalizeQuest));
+  return gatedQuests().filter((quest) => finished.has(normalizeQuest(quest)))
+    .length;
 }
 
 export const EMPTY_PROFILE: PlayerProfile = { levels: {}, quests: [] };

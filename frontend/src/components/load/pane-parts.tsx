@@ -11,8 +11,9 @@
 // Nothing here holds state. Panes own their own flow; these just make five of
 // them look like one app.
 
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { Loader2, Search } from "lucide-react";
+import { GATED_QUEST_COUNT } from "@/lib/requirements";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DialogClose } from "@/components/ui/dialog";
@@ -71,12 +72,81 @@ export function ImportFooter({
 }
 
 /**
+ * What an import carries, counted, in one sentence for all three sources.
+ *
+ * The counts differ -- only two sources have achievements, only two have quests
+ * -- but the sentence doesn't: same verb, same order, same emphasis on the
+ * numbers, whichever clauses are present. Three panes phrasing this three ways
+ * was three chances to say the same fact differently, which is why it takes
+ * numbers rather than children.
+ *
+ * Null means "this source doesn't carry that" and drops the clause. All three
+ * null renders nothing.
+ */
+export function Carries({
+  tasks = null,
+  levels = null,
+  quests = null,
+}: {
+  /** Completed tasks the import brings. */
+  tasks?: number | null;
+  /** Skill levels, however many the source reports. */
+  levels?: number | null;
+  /** Gated quests finished; the denominator comes from the gate table. */
+  quests?: number | null;
+}) {
+  const clauses: ReactNode[] = [];
+
+  if (tasks !== null)
+    clauses.push(
+      <span className="text-foreground">
+        {tasks} completed task{tasks === 1 ? "" : "s"}
+      </span>,
+    );
+
+  if (levels !== null)
+    clauses.push(
+      <span className="text-foreground">
+        {levels} skill level{levels === 1 ? "" : "s"}
+      </span>,
+    );
+
+  // The tail rides with the quest clause rather than the sentence, because
+  // quests are always last and "that gate a boss" qualifies only them.
+  if (quests !== null)
+    clauses.push(
+      <>
+        <span className="text-foreground">
+          {quests} of {GATED_QUEST_COUNT} quests
+        </span>{" "}
+        that gate a boss
+      </>,
+    );
+
+  if (clauses.length === 0) return null;
+
+  return (
+    <p className="text-muted-foreground text-xs leading-snug">
+      Carries{" "}
+      {clauses.map((clause, i) => (
+        <Fragment key={i}>
+          {i > 0 && (i === clauses.length - 1 ? " and " : ", ")}
+          {clause}
+        </Fragment>
+      ))}
+      .
+    </p>
+  );
+}
+
+/**
  * Who a lookup found, above what it carries.
  *
  * Both fetching panes render this identically -- name, account type when it
  * isn't a regular account, and how old the data is -- so the two of them can't
- * drift apart on which of those is worth a badge. What the import carries
- * differs per source, and comes in as children.
+ * drift apart on which of those is worth a badge. What sits under it is the
+ * caller's business: a Carries for the panes that looked an account up, and
+ * nothing at all for a paste, which has no account to name.
  */
 export function FoundAccount({
   displayName,
@@ -101,7 +171,7 @@ export function FoundAccount({
           <span className="text-muted-foreground"> · {updated}</span>
         )}
       </p>
-      <p className="text-muted-foreground text-xs leading-snug">{children}</p>
+      {children}
     </div>
   );
 }

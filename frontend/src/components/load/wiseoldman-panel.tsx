@@ -19,6 +19,7 @@ import {
   type WomLookup,
 } from "@/lib/wiseoldman";
 import {
+  Carries,
   FoundAccount,
   ImportFooter,
   LookUpButton,
@@ -111,9 +112,7 @@ export function WiseOldManPanel({
             accountType={found.accountType}
             updated={stale}
           >
-            Carries{" "}
-            <span className="text-foreground">{count} skill levels</span>. Your
-            quests aren't on the hiscores, so those stay as you left them.
+            <Carries levels={count} />
           </FoundAccount>
         )}
       </div>
