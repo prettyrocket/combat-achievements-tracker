@@ -123,12 +123,7 @@ export function RuneProfilePanel({
       }
     : {
         status: flow.status(rsn),
-        tone:
-          flow.diff === null
-            ? ""
-            : flow.variant(rsn) === "default"
-              ? "text-emerald-400"
-              : "text-foreground",
+        tone: flow.tone(rsn),
         alert: false,
       };
 

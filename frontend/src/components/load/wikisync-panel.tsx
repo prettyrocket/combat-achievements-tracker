@@ -154,15 +154,9 @@ export function WikiSyncPanel({
     }
     if (error)
       return { status: error.message, tone: "text-red-400", alert: true };
-    const text = flow.status(rsn);
     return {
-      status: text,
-      tone:
-        flow.diff === null
-          ? ""
-          : flow.variant(rsn) === "default"
-            ? "text-emerald-400"
-            : "text-foreground",
+      status: flow.status(rsn),
+      tone: flow.tone(rsn),
       alert: false,
     };
   }

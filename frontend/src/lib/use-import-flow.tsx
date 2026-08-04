@@ -66,6 +66,15 @@ export interface ImportFlow {
   label: (rsn: string) => string;
   disabled: (rsn: string) => boolean;
   variant: (rsn: string) => "default" | "success" | "destructive";
+  /**
+   * The status line's colour, for a read that succeeded.
+   *
+   * Panes still own their *errors* -- a paste with no CA field and a profile
+   * that predates per-task storage want different colours and different words.
+   * What they don't own is this: green when something is actually landing,
+   * plain otherwise. Both wrote the same ternary before it lived here.
+   */
+  tone: (rsn: string) => string;
 }
 
 export function useImportFlow({
@@ -182,6 +191,16 @@ export function useImportFlow({
     [diff, clearList, differentAccount],
   );
 
+  const tone = useCallback(
+    (rsn: string) => {
+      if (diff === null) return "";
+      return variant(rsn) === "default"
+        ? "text-emerald-400"
+        : "text-foreground";
+    },
+    [diff, variant],
+  );
+
   return {
     diff,
     clearList,
@@ -198,5 +217,6 @@ export function useImportFlow({
     label,
     disabled,
     variant,
+    tone,
   };
 }
