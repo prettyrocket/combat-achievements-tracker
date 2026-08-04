@@ -221,6 +221,7 @@ export function LoadDialog({
             {active === "wiseoldman" && (
               <WiseOldManPanel
                 rsn={rsn}
+                lastRsn={lastRsn}
                 onApply={onImportLevels}
                 onFinished={finish}
               />

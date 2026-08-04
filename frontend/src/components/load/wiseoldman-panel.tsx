@@ -23,11 +23,14 @@ import {
   FoundAccount,
   ImportFooter,
   LookUpButton,
+  OverwriteNote,
 } from "@/components/load/pane-parts";
 
 export interface WiseOldManPanelProps {
   /** Owned by the dialog: who this browser is tracking, not this pane's input. */
   rsn: string;
+  /** The account already stored, so the footer can say whose levels go. */
+  lastRsn: string | null;
   /** Replaces every level, leaving quests alone -- this source has none. */
   onApply: (levels: Record<string, number>) => void;
   onFinished: (remember: boolean) => void;
@@ -35,6 +38,7 @@ export interface WiseOldManPanelProps {
 
 export function WiseOldManPanel({
   rsn,
+  lastRsn,
   onApply,
   onFinished,
 }: WiseOldManPanelProps) {
@@ -78,7 +82,6 @@ export function WiseOldManPanel({
   }
 
   const stale = found === null ? null : updatedLabel(found.updatedAt);
-  const count = found === null ? 0 : Object.keys(found.levels).length;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
@@ -121,13 +124,7 @@ export function WiseOldManPanel({
         status={
           error ??
           (found === null ? null : (
-            <>
-              This will set{" "}
-              <span className="font-semibold text-emerald-400">
-                {count} levels
-              </span>{" "}
-              from {found.displayName}.
-            </>
+            <OverwriteNote rsn={rsn} lastRsn={lastRsn} />
           ))
         }
         tone={error === null ? "text-foreground" : "text-red-400"}

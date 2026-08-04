@@ -13,6 +13,7 @@
 
 import type { ReactNode } from "react";
 import { Loader2, Search } from "lucide-react";
+import { sameAccount } from "@/lib/wikisync";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DialogClose } from "@/components/ui/dialog";
@@ -101,6 +102,33 @@ export function Carries({
       )}
       .
     </p>
+  );
+}
+
+/**
+ * What applying is about to do to the levels already stored.
+ *
+ * Names the account being written over only when that is somebody else --
+ * "overwrite skill levels for Zezima" is a warning, and turning it into one
+ * every time you re-import your own account is how a warning stops being read.
+ */
+export function OverwriteNote({
+  rsn,
+  lastRsn,
+}: {
+  /** The account being imported. */
+  rsn: string;
+  /** The account already stored, or null on a first import. */
+  lastRsn: string | null;
+}) {
+  if (lastRsn === null || lastRsn === "" || sameAccount(rsn, lastRsn))
+    return <>This will overwrite your skill levels.</>;
+
+  return (
+    <>
+      This will overwrite skill levels for{" "}
+      <span className="font-semibold">{lastRsn}</span>.
+    </>
   );
 }
 
