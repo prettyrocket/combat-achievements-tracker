@@ -443,6 +443,7 @@ export default function App() {
           <ProgressHeader
             summary={summary}
             rewards={rewards}
+            rsn={lastRsn}
             compact={compactSummary}
             onCompactChange={toggleCompact}
           />

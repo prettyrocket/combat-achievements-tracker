@@ -195,6 +195,8 @@ const TOGGLE_SLOT = "absolute top-4 right-4";
 export interface ProgressHeaderProps {
   summary: ProgressSummary;
   rewards: RewardStatus;
+  /** Whose progress this is, or null before anything has been loaded. */
+  rsn: string | null;
   compact: boolean;
   onCompactChange: (compact: boolean) => void;
 }
@@ -202,6 +204,7 @@ export interface ProgressHeaderProps {
 export function ProgressHeader({
   summary,
   rewards,
+  rsn,
   compact,
   onCompactChange,
 }: ProgressHeaderProps) {
@@ -211,6 +214,17 @@ export function ProgressHeader({
   // single Easy task is 0.037%, so one decimal makes a tick you just made look
   // like it did nothing at all.
   const headline = compact ? overall.toFixed(2) : overall.toFixed(1);
+
+  // The figure belongs to somebody, so their name goes in front of it in both
+  // forms. Nothing at all before a first load: a blank slot where a name goes
+  // reads as a bug, and the percentage is unambiguous while there's only one
+  // account in play. Whitespace-only nodes are dropped in the compact form's
+  // flex row, which spaces its children with gap instead.
+  const who = rsn && (
+    <>
+      {rsn} <span className="text-muted-foreground font-normal">·</span>{" "}
+    </>
+  );
 
   const toggle = (
     <button
@@ -243,6 +257,7 @@ export function ProgressHeader({
           aria-valuemax={100}
           aria-label="Overall completion"
         >
+          {who}
           {headline}%
           <span className="text-muted-foreground text-sm font-normal">
             complete
@@ -310,6 +325,7 @@ export function ProgressHeader({
       <div className="grid gap-x-8 gap-y-5 pr-10 sm:grid-cols-2">
         <div>
           <h2 className="text-lg font-semibold tabular-nums">
+            {who}
             {headline}%
             <span className="text-muted-foreground text-sm font-normal">
               {" "}
