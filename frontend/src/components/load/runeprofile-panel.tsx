@@ -27,6 +27,7 @@ import {
 } from "@/lib/requirements";
 import {
   DifferentAccountNotice,
+  FoundAccount,
   ImportFooter,
   LookUpButton,
   Steps,
@@ -186,43 +187,32 @@ export function RuneProfilePanel({
             player can refresh a RuneProfile, so somebody importing a month-old
             snapshot needs to know before they trust the numbers. */}
         {found && (
-          <div className="space-y-1 text-sm">
-            <p>
-              <span className="font-medium">{found.displayName}</span>
-              {found.accountType !== null &&
-                found.accountType !== "regular" && (
-                  <span className="text-muted-foreground">
-                    {" "}
-                    · {found.accountType}
-                  </span>
-                )}
-              {synced !== null && (
-                <span className="text-muted-foreground"> · {synced}</span>
-              )}
-            </p>
-            <p className="text-muted-foreground text-xs leading-snug">
-              Carries{" "}
-              <span className="text-foreground">
-                {found.ids.length} completed task
-                {found.ids.length === 1 ? "" : "s"}
-              </span>
-              {found.profile && (
-                <>
-                  ,{" "}
-                  <span className="text-foreground">
-                    {Object.keys(found.profile.levels).length} skill levels
-                  </span>{" "}
-                  and{" "}
-                  <span className="text-foreground">
-                    {countGateQuests(found.profile)} of {GATE_QUESTS.length}{" "}
-                    quests
-                  </span>{" "}
-                  that gate a boss
-                </>
-              )}
-              .
-            </p>
-          </div>
+          <FoundAccount
+            displayName={found.displayName}
+            accountType={found.accountType}
+            updated={synced}
+          >
+            Carries{" "}
+            <span className="text-foreground">
+              {found.ids.length} completed task
+              {found.ids.length === 1 ? "" : "s"}
+            </span>
+            {found.profile && (
+              <>
+                ,{" "}
+                <span className="text-foreground">
+                  {Object.keys(found.profile.levels).length} skill levels
+                </span>{" "}
+                and{" "}
+                <span className="text-foreground">
+                  {countGateQuests(found.profile)} of {GATE_QUESTS.length}{" "}
+                  quests
+                </span>{" "}
+                that gate a boss
+              </>
+            )}
+            .
+          </FoundAccount>
         )}
 
         {flow.differentAccount(rsn) && (

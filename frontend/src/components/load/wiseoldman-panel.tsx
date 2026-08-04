@@ -18,7 +18,11 @@ import {
   WomLookupError,
   type WomLookup,
 } from "@/lib/wiseoldman";
-import { ImportFooter, LookUpButton } from "@/components/load/pane-parts";
+import {
+  FoundAccount,
+  ImportFooter,
+  LookUpButton,
+} from "@/components/load/pane-parts";
 
 export interface WiseOldManPanelProps {
   /** Owned by the dialog: who this browser is tracking, not this pane's input. */
@@ -97,32 +101,20 @@ export function WiseOldManPanel({
           onClick={() => void run()}
         />
 
+        {/* The date matters here more than anywhere: WOM holds whatever
+            snapshot was last taken, and somebody who trained since then should
+            see why the number is old rather than distrust the requirement
+            filter. */}
         {found && (
-          <div className="space-y-1 text-sm">
-            <p>
-              <span className="font-medium">{found.displayName}</span>
-              {found.accountType !== null &&
-                found.accountType !== "regular" && (
-                  <span className="text-muted-foreground">
-                    {" "}
-                    · {found.accountType}
-                  </span>
-                )}
-              {stale !== null && (
-                <span className="text-muted-foreground"> · {stale}</span>
-              )}
-            </p>
-            {/* The date matters here more than anywhere: WOM holds whatever
-                snapshot was last taken, and somebody who trained since then
-                should see why the number is old rather than distrust the
-                requirement filter. */}
-            <p className="text-muted-foreground text-xs leading-snug">
-              Carries{" "}
-              <span className="text-foreground">{count} skill levels</span>.
-              Your quests aren't on the hiscores, so those stay as you left
-              them.
-            </p>
-          </div>
+          <FoundAccount
+            displayName={found.displayName}
+            accountType={found.accountType}
+            updated={stale}
+          >
+            Carries{" "}
+            <span className="text-foreground">{count} skill levels</span>. Your
+            quests aren't on the hiscores, so those stay as you left them.
+          </FoundAccount>
         )}
       </div>
 

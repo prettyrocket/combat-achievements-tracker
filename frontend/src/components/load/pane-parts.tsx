@@ -71,6 +71,42 @@ export function ImportFooter({
 }
 
 /**
+ * Who a lookup found, above what it carries.
+ *
+ * Both fetching panes render this identically -- name, account type when it
+ * isn't a regular account, and how old the data is -- so the two of them can't
+ * drift apart on which of those is worth a badge. What the import carries
+ * differs per source, and comes in as children.
+ */
+export function FoundAccount({
+  displayName,
+  accountType,
+  updated,
+  children,
+}: {
+  displayName: string;
+  accountType: string | null;
+  /** How stale the source's snapshot is, or null when it doesn't say. */
+  updated: string | null;
+  children: ReactNode;
+}) {
+  return (
+    <div className="space-y-1 text-sm">
+      <p>
+        <span className="font-medium">{displayName}</span>
+        {accountType !== null && accountType !== "regular" && (
+          <span className="text-muted-foreground"> · {accountType}</span>
+        )}
+        {updated !== null && (
+          <span className="text-muted-foreground"> · {updated}</span>
+        )}
+      </p>
+      <p className="text-muted-foreground text-xs leading-snug">{children}</p>
+    </div>
+  );
+}
+
+/**
  * The warning that the plan on screen was built for somebody else.
  *
  * Shared because both whole-account sources can hit it, and because the offer
