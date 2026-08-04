@@ -10,9 +10,7 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { Info } from "lucide-react";
 import { TASKS } from "@/data/tasks";
-import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -85,9 +83,6 @@ const REWARD_TIERS = rewardTiers(TASKS);
 // restoring a backup shouldn't rearrange the furniture.
 const PANEL_KEY = "ca-tracker:tasklist-open:v1";
 const COMPACT_KEY = "ca-tracker:summary-compact:v1";
-// Whether the "this lives in your browser only" notice has been read. Its own
-// key for the same reason: it's furniture, not data.
-const LOCAL_NOTICE_KEY = "ca-tracker:local-notice-dismissed:v1";
 // The account the last WikiSync import came from, so a later import can tell
 // whether the planned list beside it was built for this account or another.
 const RSN_KEY = "ca-tracker:last-rsn:v1";
@@ -155,9 +150,6 @@ export default function App() {
   const [dragging, setDragging] = useState<number | null>(null);
   // What the last pivot took out of the search box, so it can be handed back.
   const [parkedSearch, setParkedSearch] = useState<string | null>(null);
-  const [localNoticeSeen, setLocalNoticeSeen] = useState(() =>
-    storedFlag(LOCAL_NOTICE_KEY, false),
-  );
   const [lastRsn, setLastRsn] = useState<string | null>(() => {
     const stored = readJson(RSN_KEY);
     return typeof stored === "string" && stored.trim() !== "" ? stored : null;
@@ -318,11 +310,6 @@ export default function App() {
     writeJson(COMPACT_KEY, compact);
   }, []);
 
-  const dismissLocalNotice = useCallback(() => {
-    setLocalNoticeSeen(true);
-    writeJson(LOCAL_NOTICE_KEY, true);
-  }, []);
-
   /**
    * The account this browser tracks.
    *
@@ -420,11 +407,6 @@ export default function App() {
             <h1 className="text-2xl font-bold tracking-tight">
               Combat Achievements Tracker
             </h1>
-            {/* The counts live in ProgressHeader now -- one place, and one that
-                reports summary.completedTasks rather than the raw set size. */}
-            <p className="text-muted-foreground mt-1 text-sm">
-              OSRS · {TASKS.length} tasks · data from the wiki Bucket API
-            </p>
           </div>
           <ProgressToolbar
             completed={completed}
@@ -447,30 +429,6 @@ export default function App() {
             onClearProfile={profile.clear}
           />
         </header>
-
-        {/* Said once, plainly, on the first visit. The honest version of this
-            app's biggest caveat is not a tooltip on an Export button: clearing
-            site data takes everything, and there is no copy anywhere else. */}
-        {!localNoticeSeen && (
-          <p className="text-muted-foreground mt-3 flex shrink-0 flex-wrap items-center gap-x-2 gap-y-1 rounded-md border border-dashed px-3 py-2 text-sm">
-            <Info className="size-4 shrink-0" aria-hidden />
-            <span>
-              Your progress is saved{" "}
-              <span className="text-foreground">in this browser only</span> —
-              there's no account and no server copy. Clearing site data erases
-              it, so use <span className="text-foreground">Export</span> to keep
-              a backup or move to another device.
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={dismissLocalNotice}
-              className="ml-auto h-6 px-2 text-xs"
-            >
-              Got it
-            </Button>
-          </p>
-        )}
 
         {storageError && (
           <p
