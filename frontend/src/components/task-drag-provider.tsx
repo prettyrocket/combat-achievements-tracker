@@ -36,7 +36,7 @@ export function TaskDragProvider({
   const [dragging, setDragging] = useState<number | null>(null);
 
   // Distance-activated, so a press that turns into a click still reaches the
-  // checkbox and the monster pivot inside the row rather than starting a drag.
+  // checkbox and the wiki links inside the row rather than starting a drag.
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, {

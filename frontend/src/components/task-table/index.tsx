@@ -53,12 +53,6 @@ export interface TaskTableProps {
   tasks: readonly TaskRow[];
   completed: ReadonlySet<number>;
   onToggle: (wikiId: number) => void;
-  /** Turns the Monster cell into the pivot control. */
-  onPivotToMonster: (monster: string) => void;
-  /** Adds a monster to the filter alongside whatever's already there (shift-click). */
-  onAddMonster: (monster: string) => void;
-  /** Monsters already filtered to. Their cells render as plain text. */
-  activeMonsters: readonly string[];
   /** Ids on the plan, so a row can show it's already there. */
   onList: ReadonlySet<number>;
   /**
@@ -84,9 +78,6 @@ export function TaskTable({
   tasks,
   completed,
   onToggle,
-  onPivotToMonster,
-  onAddMonster,
-  activeMonsters,
   onList,
   onToggleListed,
   onAddManyToList,
@@ -96,21 +87,15 @@ export function TaskTable({
 }: TaskTableProps) {
   // Deliberately does *not* depend on `completed` or `onList` -- see TableMeta.
   const columns = useMemo(
-    () =>
-      buildColumns({
-        onToggle,
-        onPivotToMonster,
-        onAddMonster,
-        onToggleListed,
-      }),
-    [onToggle, onPivotToMonster, onAddMonster, onToggleListed],
+    () => buildColumns({ onToggle, onToggleListed }),
+    [onToggle, onToggleListed],
   );
 
   const data = useMemo(() => tasks as TaskRow[], [tasks]);
 
   const meta = useMemo<TableMeta>(
-    () => ({ completed, onList, activeMonsters, gates }),
-    [completed, onList, activeMonsters, gates],
+    () => ({ completed, onList, gates }),
+    [completed, onList, gates],
   );
 
   const table = useReactTable({

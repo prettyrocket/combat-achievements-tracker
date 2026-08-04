@@ -18,7 +18,7 @@ import {
 import { monsterWikiUrl, taskWikiUrl } from "@/lib/wiki";
 import { TierBadge } from "@/components/tier-badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ListToggle, SplitName, WikiLink } from "@/components/task-table/cells";
+import { ListToggle, WikiName } from "@/components/task-table/cells";
 
 /**
  * Row state that changes constantly, kept out of the column defs.
@@ -30,22 +30,17 @@ import { ListToggle, SplitName, WikiLink } from "@/components/task-table/cells";
 export interface TableMeta {
   completed: ReadonlySet<number>;
   onList: ReadonlySet<number>;
-  activeMonsters: readonly string[];
   gates: ReadonlyMap<string, GateCheck>;
 }
 
 /** The callbacks a column may close over -- all stable, none row state. */
 export interface ColumnHandlers {
   onToggle: (wikiId: number) => void;
-  onPivotToMonster: (monster: string) => void;
-  onAddMonster: (monster: string) => void;
   onToggleListed: (wikiId: number) => void;
 }
 
 export function buildColumns({
   onToggle,
-  onPivotToMonster,
-  onAddMonster,
   onToggleListed,
 }: ColumnHandlers): ColumnDef<TaskRow>[] {
   return [
@@ -86,41 +81,12 @@ export function buildColumns({
       id: "monster",
       header: "Monster",
       accessorFn: (t) => t.monster,
-      cell: ({ row, table }) => {
+      cell: ({ row }) => {
         const { monster } = row.original;
         if (monster === null) {
           return <span className="text-muted-foreground italic">Any</span>;
         }
-        const { activeMonsters: active } = table.options.meta as TableMeta;
-        // Already filtered to this one: clicking would be a no-op, so don't offer it.
-        const isActive = active.some(
-          (m) => m.toLowerCase() === monster.toLowerCase(),
-        );
-        return (
-          <span className="flex items-start gap-1.5">
-            {isActive ? (
-              <SplitName value={monster} />
-            ) : (
-              <button
-                type="button"
-                onClick={(event) => {
-                  // Shift adds to the filter instead of replacing it, so you can
-                  // hold two bosses side by side without retyping either.
-                  if (event.shiftKey) onAddMonster(monster);
-                  else onPivotToMonster(monster);
-                }}
-                title={`Show only ${monster} tasks — shift-click to add it alongside`}
-                className="hover:text-foreground text-left underline decoration-dotted underline-offset-4 hover:decoration-solid"
-              >
-                <SplitName value={monster} />
-              </button>
-            )}
-            <WikiLink
-              href={monsterWikiUrl(monster)}
-              label={`${monster} on the wiki`}
-            />
-          </span>
-        );
+        return <WikiName value={monster} href={monsterWikiUrl(monster)} />;
       },
     },
     {
@@ -128,13 +94,11 @@ export function buildColumns({
       header: "Name",
       accessorFn: (t) => t.name,
       cell: ({ row }) => (
-        <span className="flex items-start gap-1.5">
-          <SplitName value={row.original.name} className="font-medium" />
-          <WikiLink
-            href={taskWikiUrl(row.original.name)}
-            label={`"${row.original.name}" on the wiki`}
-          />
-        </span>
+        <WikiName
+          value={row.original.name}
+          href={taskWikiUrl(row.original.name)}
+          className="font-medium"
+        />
       ),
     },
     {

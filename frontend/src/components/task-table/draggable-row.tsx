@@ -7,8 +7,8 @@ import { TableRow } from "@/components/ui/table";
 /**
  * Rows are draggable so they can be thrown at the panel. The pointer sensor is
  * distance-activated (see the drag provider), which is what keeps this from
- * swallowing clicks on the checkbox and the monster pivot living inside the
- * same row.
+ * swallowing clicks on the checkbox, the plan control and the two wiki links
+ * living inside the same row.
  *
  * `measureRef` is the virtualiser's: rows wrap to different heights (a long
  * description is three lines), so each one reports its real height rather than

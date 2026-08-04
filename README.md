@@ -2,9 +2,9 @@
 
 An interactive web app for exploring and tracking the Old School RuneScape
 [Combat Achievements](https://oldschool.runescape.wiki/w/Combat_Achievements/All_tasks)
-(646 tasks). Filter, search, sort by the wiki's global completion %, **pivot** from any
-task to every task on the same boss, and track your own completions with progress meters
-per tier.
+(646 tasks). Filter, search, sort by the wiki's global completion %, **narrow to one boss
+or several** and see every task on them together, and track your own completions with
+progress meters per tier.
 
 It is a **static single-page app — no backend, no database.** Everything runs in the
 browser.

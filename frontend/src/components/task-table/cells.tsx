@@ -1,11 +1,11 @@
-// The small pieces a cell is built from: the plan control, a wiki link, a
-// wrapped name.
+// The small pieces a cell is built from: the plan control, a linked name, a
+// wrapped one.
 //
 // All three are pure presentation over one value, with no knowledge of the table
 // around them -- which is why they live apart from columns.tsx, where the
 // question is what a column *is* rather than how one thing draws.
 
-import { ExternalLink, ListChecks, ListPlus, Lock } from "lucide-react";
+import { ListChecks, ListPlus, Lock } from "lucide-react";
 import { splitAtColon } from "@/lib/wiki";
 import {
   Tooltip,
@@ -87,19 +87,38 @@ export function ListToggle({
   );
 }
 
-/** A wiki link that doesn't take the click meant for the control next to it. */
-export function WikiLink({ href, label }: { href: string; label: string }) {
+/**
+ * A name that is also the way to its wiki page.
+ *
+ * There used to be a ↗ icon beside the name for this, and the name itself did
+ * something else -- monsters filtered the table, tasks did nothing at all. Two
+ * targets a few pixels apart doing unrelated things is a worse deal than one
+ * obvious one: the name is the page, and filtering by monster is what the
+ * filter bar's picker is for.
+ */
+export function WikiName({
+  value,
+  href,
+  className,
+}: {
+  value: string;
+  href: string;
+  className?: string;
+}) {
   return (
     <a
       href={href}
       target="_blank"
       rel="noreferrer noopener"
-      title={label}
-      aria-label={label}
-      onPointerDown={(event) => event.stopPropagation()}
-      className="text-muted-foreground/40 hover:text-foreground inline-flex shrink-0 transition-colors"
+      title={`${value} on the wiki`}
+      // Native link-dragging would race the row's own drag gesture and win:
+      // the browser starts it within a pixel or two, well before the pointer
+      // sensor's 8px threshold. Off, so a name is as draggable as the rest of
+      // the row -- which matters now that the name is most of the row.
+      draggable={false}
+      className={`hover:text-foreground text-left underline decoration-dotted underline-offset-4 hover:decoration-solid ${className ?? ""}`}
     >
-      <ExternalLink className="size-3.5" aria-hidden />
+      <SplitName value={value} />
     </a>
   );
 }
