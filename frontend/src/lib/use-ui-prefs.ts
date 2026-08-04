@@ -7,12 +7,18 @@
 // is worth an undo.
 
 import { useCallback, useState } from "react";
+import {
+  DEFAULT_LIST_POSITION,
+  isListPosition,
+  type ListPosition,
+} from "@/lib/list-position";
 import { readJson, writeJson } from "@/lib/local-store";
 import { fromAnAccount, type ProgressSource } from "@/lib/progress-store";
 
 const PANEL_KEY = "ca-tracker:tasklist-open:v1";
 const COMPACT_KEY = "ca-tracker:summary-compact:v1";
 const MANUAL_TRACKING_KEY = "ca-tracker:manual-tracking:v1";
+const LIST_POSITION_KEY = "ca-tracker:list-position:v1";
 // The account the last WikiSync import came from, so a later import can tell
 // whether the planned list beside it was built for this account or another.
 const RSN_KEY = "ca-tracker:last-rsn:v1";
@@ -70,6 +76,9 @@ export interface UiPrefs {
    */
   manualTracking: boolean;
   setManualTracking: (allowed: boolean) => void;
+  /** Where the plan sits relative to the table. */
+  listPosition: ListPosition;
+  setListPosition: (position: ListPosition) => void;
   /** The account this browser tracks, or null before anything has been loaded. */
   lastRsn: string | null;
   /**
@@ -97,6 +106,11 @@ export function useUiPrefs(progressSource: ProgressSource): UiPrefs {
     return typeof stored === "boolean" ? stored : null;
   });
 
+  const [listPosition, setListPositionState] = useState<ListPosition>(() => {
+    const stored = readJson(LIST_POSITION_KEY);
+    return isListPosition(stored) ? stored : DEFAULT_LIST_POSITION;
+  });
+
   const [lastRsn, setLastRsn] = useState<string | null>(() => {
     const stored = readJson(RSN_KEY);
     return typeof stored === "string" && stored.trim() !== "" ? stored : null;
@@ -117,6 +131,11 @@ export function useUiPrefs(progressSource: ProgressSource): UiPrefs {
     writeJson(MANUAL_TRACKING_KEY, allowed);
   }, []);
 
+  const setListPosition = useCallback((position: ListPosition) => {
+    setListPositionState(position);
+    writeJson(LIST_POSITION_KEY, position);
+  }, []);
+
   const rememberRsn = useCallback((rsn: string) => {
     const name = rsn.replace(/_/g, " ").replace(/\s+/g, " ").trim();
     if (name === "") return;
@@ -131,6 +150,8 @@ export function useUiPrefs(progressSource: ProgressSource): UiPrefs {
     setCompactSummary,
     manualTracking: resolveManualTracking(chosenManualTracking, progressSource),
     setManualTracking,
+    listPosition,
+    setListPosition,
     lastRsn,
     rememberRsn,
   };

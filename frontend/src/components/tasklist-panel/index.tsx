@@ -15,8 +15,17 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { ChevronRight, ListChecks, ListPlus, X } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  ListChecks,
+  ListPlus,
+  X,
+} from "lucide-react";
 import { TASKLIST_DROPPABLE, dragId } from "@/lib/dnd";
+import { isSideDocked, type ListPosition } from "@/lib/list-position";
 import { percent } from "@/lib/progress-summary";
 import type { RewardTier } from "@/lib/rewards";
 import { summarize, type TaskListEntry } from "@/lib/tasklist";
@@ -33,6 +42,13 @@ export interface TaskListPanelProps {
   pointsEarned: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /**
+   * Where the panel sits. It changes the shape, not just the placement: docked
+   * to a side it is a 320px full-height column, above or below it is a
+   * full-width bar with a capped height, and the chevrons point whichever way
+   * the panel will actually go.
+   */
+  position: ListPosition;
   /** Whether an entry carries a checkbox -- see Entry. */
   manualTracking: boolean;
   onToggleCompleted: (wikiId: number) => void;
@@ -46,6 +62,7 @@ export function TaskListPanel({
   pointsEarned,
   open,
   onOpenChange,
+  position,
   manualTracking,
   onToggleCompleted,
   onRemove,
@@ -55,11 +72,13 @@ export function TaskListPanel({
   // Registered even while collapsed, so dragging a row toward a closed panel
   // still has something to hit -- see the rail.
   const { setNodeRef, isOver } = useDroppable({ id: TASKLIST_DROPPABLE });
+  const docked = isSideDocked(position);
 
   if (!open) {
     return (
       <CollapsedRail
         summary={summary}
+        position={position}
         isOver={isOver}
         onOpen={() => onOpenChange(true)}
         dropRef={setNodeRef}
@@ -67,13 +86,24 @@ export function TaskListPanel({
     );
   }
 
+  // Pointing the way the panel goes when you put it away.
+  const Collapse = {
+    left: ChevronLeft,
+    right: ChevronRight,
+    above: ChevronUp,
+    below: ChevronDown,
+  }[position];
+
   return (
-    <aside aria-label="My list" className="w-full shrink-0 lg:h-full lg:w-80">
+    <aside
+      aria-label="My list"
+      className={`w-full shrink-0 ${docked ? "lg:h-full lg:w-80" : ""}`}
+    >
       <div
         ref={setNodeRef}
-        className={`flex max-h-[45vh] flex-col rounded-lg border transition-colors lg:h-full lg:max-h-full ${
-          isOver ? "border-foreground bg-muted/40" : ""
-        }`}
+        className={`flex max-h-[45vh] flex-col rounded-lg border transition-colors ${
+          docked ? "lg:h-full lg:max-h-full" : ""
+        } ${isOver ? "border-foreground bg-muted/40" : ""}`}
       >
         <div className="flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2">
           <h2 className="flex min-w-0 items-center gap-2 text-sm font-semibold">
@@ -96,7 +126,7 @@ export function TaskListPanel({
             aria-label="Collapse my list"
             className="text-muted-foreground hover:text-foreground hover:bg-muted rounded p-1"
           >
-            <ChevronRight className="size-4" aria-hidden />
+            <Collapse className="size-4" aria-hidden />
           </button>
         </div>
 

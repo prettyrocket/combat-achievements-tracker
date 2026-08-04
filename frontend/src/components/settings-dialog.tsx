@@ -10,6 +10,7 @@
 
 import { useState } from "react";
 import { Settings } from "lucide-react";
+import { LIST_POSITIONS, type ListPosition } from "@/lib/list-position";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -19,6 +20,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 /** One switch: a label you can click, and the box it belongs to. */
 function SettingRow({
@@ -41,14 +49,49 @@ function SettingRow({
   );
 }
 
+/** One choice out of a handful: a label, and the menu it belongs to. */
+function SettingChoice<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  options: readonly { id: T; label: string }[];
+  onChange: (value: T) => void;
+}) {
+  return (
+    <div className="flex items-center gap-2.5 px-1.5 py-1.5 text-sm">
+      <span className="flex-1">{label}</span>
+      <Select value={value} onValueChange={(next) => onChange(next as T)}>
+        <SelectTrigger size="sm" className="w-44">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((option) => (
+            <SelectItem key={option.id} value={option.id}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
 export interface SettingsDialogProps {
   manualTracking: boolean;
   onManualTrackingChange: (allowed: boolean) => void;
+  listPosition: ListPosition;
+  onListPositionChange: (position: ListPosition) => void;
 }
 
 export function SettingsDialog({
   manualTracking,
   onManualTrackingChange,
+  listPosition,
+  onListPositionChange,
 }: SettingsDialogProps) {
   const [open, setOpen] = useState(false);
 
@@ -69,6 +112,12 @@ export function SettingsDialog({
             label="Allow manual completion tracking"
             checked={manualTracking}
             onChange={onManualTrackingChange}
+          />
+          <SettingChoice
+            label="My list"
+            value={listPosition}
+            options={LIST_POSITIONS}
+            onChange={onListPositionChange}
           />
         </div>
       </DialogContent>

@@ -13,6 +13,7 @@
 // for one; Reset is a dialog, because it can clear three separate stores.
 
 import { Upload } from "lucide-react";
+import type { ListPosition } from "@/lib/list-position";
 import type { Notice } from "@/lib/notice";
 import type { PlayerProfile } from "@/lib/requirements";
 import { SettingsDialog } from "@/components/settings-dialog";
@@ -45,6 +46,8 @@ export interface ProgressToolbarProps {
   /** Furniture, not progress -- passed straight through to Settings. */
   manualTracking: boolean;
   onManualTrackingChange: (allowed: boolean) => void;
+  listPosition: ListPosition;
+  onListPositionChange: (position: ListPosition) => void;
 }
 
 export function ProgressToolbar({
@@ -62,6 +65,8 @@ export function ProgressToolbar({
   onNotice,
   manualTracking,
   onManualTrackingChange,
+  listPosition,
+  onListPositionChange,
 }: ProgressToolbarProps) {
   return (
     <div className="flex flex-col items-end gap-2">
@@ -97,6 +102,8 @@ export function ProgressToolbar({
         <SettingsDialog
           manualTracking={manualTracking}
           onManualTrackingChange={onManualTrackingChange}
+          listPosition={listPosition}
+          onListPositionChange={onListPositionChange}
         />
       </div>
 

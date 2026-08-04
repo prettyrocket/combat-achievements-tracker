@@ -32,12 +32,34 @@ import { resolve } from "@/lib/tasklist";
 import { DEFAULT_SORT, applyQuery } from "@/lib/task-query";
 import { useMonsterFilter } from "@/lib/use-monster-filter";
 import { useProfile } from "@/lib/use-profile";
+import { isSideDocked, type ListPosition } from "@/lib/list-position";
 import type { AccountSource, LoadSourceId } from "@/lib/load-source";
 import { useProgress } from "@/lib/use-progress";
 import { useShareCode } from "@/lib/use-share-code";
 import { useTaskList } from "@/lib/use-tasklist";
 import { useTaskQuery } from "@/lib/use-task-query";
 import { useUiPrefs } from "@/lib/use-ui-prefs";
+
+// Source order is panel-then-table, which is already "above" and is also the
+// stacked fallback the two side positions want under lg. So the side positions
+// only order themselves at lg, and the stacked ones order at every width.
+//
+// Written out in full rather than built from the position: Tailwind scans for
+// complete class names, and a string it assembled at runtime is a class that
+// was never generated.
+const PANEL_ORDER: Record<ListPosition, string> = {
+  left: "lg:order-1 lg:h-full",
+  right: "lg:order-2 lg:h-full",
+  above: "order-1",
+  below: "order-2",
+};
+
+const TABLE_ORDER: Record<ListPosition, string> = {
+  left: "lg:order-2",
+  right: "lg:order-1",
+  above: "order-2",
+  below: "order-1",
+};
 
 export default function App() {
   const {
@@ -151,6 +173,8 @@ export default function App() {
 
   const listedIds = useMemo(() => new Set(taskList.list), [taskList.list]);
 
+  const sideDocked = isSideDocked(prefs.listPosition);
+
   const { rememberRsn } = prefs;
 
   /**
@@ -225,6 +249,8 @@ export default function App() {
             onNotice={setNotice}
             manualTracking={prefs.manualTracking}
             onManualTrackingChange={prefs.setManualTracking}
+            listPosition={prefs.listPosition}
+            onListPositionChange={prefs.setListPosition}
           />
         </header>
 
@@ -273,17 +299,26 @@ export default function App() {
 
         {/* The split, and the only part allowed to grow: min-h-0 is what lets a
             flex child be *shorter* than its content so the table can scroll
-            inside it. Stacks under lg, where a 320px column would leave the
-            table unusable -- and the panel goes first there, so it can't end up
-            stranded below a table that owns the rest of the screen. */}
-        <div className="mt-3 flex min-h-0 flex-1 flex-col gap-3 lg:flex-row lg:items-stretch">
-          <div className="shrink-0 lg:order-2 lg:h-full">
+            inside it.
+
+            Left and right stack under lg, where a 320px column would leave the
+            table unusable, and the panel goes first there so it can't end up
+            stranded below a table that owns the rest of the screen. Above and
+            below are a column at every width -- that is what was asked for, and
+            a bar can't be squeezed out the way a side column can. */}
+        <div
+          className={`mt-3 flex min-h-0 flex-1 flex-col gap-3 ${
+            sideDocked ? "lg:flex-row lg:items-stretch" : ""
+          }`}
+        >
+          <div className={`shrink-0 ${PANEL_ORDER[prefs.listPosition]}`}>
             <TaskListPanel
               entries={entries}
               rewardTiers={REWARD_TIERS}
               pointsEarned={summary.pointsEarned}
               open={prefs.panelOpen}
               onOpenChange={prefs.setPanelOpen}
+              position={prefs.listPosition}
               manualTracking={prefs.manualTracking}
               onToggleCompleted={toggle}
               onRemove={taskList.remove}
@@ -291,7 +326,9 @@ export default function App() {
             />
           </div>
 
-          <main className="min-h-0 min-w-0 flex-1 lg:order-1">
+          <main
+            className={`min-h-0 min-w-0 flex-1 ${TABLE_ORDER[prefs.listPosition]}`}
+          >
             {visible.length === 0 ? (
               <p className="text-muted-foreground rounded-lg border border-dashed py-12 text-center text-sm">
                 No tasks match these filters.

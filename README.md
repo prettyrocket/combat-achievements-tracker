@@ -176,6 +176,11 @@ distinction needs `progress-store.ts` to record where the current ticks came fro
 stores beside them — a restored backup counts as your own tracking coming home, not as an
 account.
 
+**My list** puts the plan left, right, above or below the table. Left and right dock it as
+a 320px full-height column, and stack under `lg` where that column would leave the table
+unusable; above and below are a full-width bar at every width. The chevrons follow — the
+one that puts the panel away points wherever it is about to go.
+
 ## Prerequisites
 
 - **Node 20+**

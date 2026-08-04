@@ -1,13 +1,25 @@
-import { ChevronLeft, ListChecks } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  ListChecks,
+} from "lucide-react";
+import { isSideDocked, type ListPosition } from "@/lib/list-position";
 import type { TaskListSummary } from "@/lib/tasklist";
 
 /**
- * The panel put away: a narrow rail beside the table on wide screens, a
- * full-width bar where the panel stacks.
+ * The panel put away: a narrow rail beside the table, a full-width bar where
+ * the panel stacks.
  *
- * One element, two shapes. Collapsing must never be a way to lose the list --
- * there is always something to click to get it back, and the rail stays a drop
- * target so a row dragged toward a closed panel still has something to hit.
+ * One element, two shapes. Which one it takes used to be purely a matter of
+ * width -- a rail at `lg`, a bar below it. Now it is the position too: above and
+ * below are the bar at every width, because a 48px rail lying across the top of
+ * the table is nobody's idea of "above".
+ *
+ * Collapsing must never be a way to lose the list -- there is always something
+ * to click to get it back, and the rail stays a drop target so a row dragged
+ * toward a closed panel still has something to hit.
  *
  * The rail label used to be turned on its side. Sideways text for two words is a
  * party trick that reads badly, so the wide form is now the icon and the count --
@@ -16,21 +28,32 @@ import type { TaskListSummary } from "@/lib/tasklist";
  */
 export function CollapsedRail({
   summary,
+  position,
   isOver,
   onOpen,
   dropRef,
 }: {
   summary: TaskListSummary;
+  position: ListPosition;
   /** True while a dragged row is over the rail. */
   isOver: boolean;
   onOpen: () => void;
   dropRef: (node: HTMLElement | null) => void;
 }) {
+  const docked = isSideDocked(position);
+  // Pointing back the way the panel will come from.
+  const Expand = {
+    left: ChevronRight,
+    right: ChevronLeft,
+    above: ChevronDown,
+    below: ChevronUp,
+  }[position];
+
   return (
     <aside
       ref={dropRef}
       aria-label="My list"
-      className="w-full shrink-0 lg:h-full lg:w-12"
+      className={`w-full shrink-0 ${docked ? "lg:h-full lg:w-12" : ""}`}
     >
       <button
         type="button"
@@ -41,9 +64,9 @@ export function CollapsedRail({
             ? "Drop to add"
             : `My list — ${summary.completed}/${summary.total} done, ${summary.pointsEarned}/${summary.pointsTotal} points`
         }
-        className={`hover:bg-muted flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2 transition-colors lg:h-full lg:flex-col lg:justify-start lg:px-0 lg:py-3 ${
-          isOver ? "border-foreground bg-muted" : ""
-        }`}
+        className={`hover:bg-muted flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2 transition-colors ${
+          docked ? "lg:h-full lg:flex-col lg:justify-start lg:px-0 lg:py-3" : ""
+        } ${isOver ? "border-foreground bg-muted" : ""}`}
       >
         <ListChecks className="size-4 shrink-0" aria-hidden />
         <span className="text-xs font-medium tabular-nums">
@@ -57,15 +80,21 @@ export function CollapsedRail({
             {summary.pointsTotal} pts
           </span>
         )}
-        <span className="text-muted-foreground text-xs lg:hidden">
+        {/* Words on the bar, where there is room for them; the rail says the
+            same thing with its icon and its count. */}
+        <span
+          className={`text-muted-foreground text-xs ${docked ? "lg:hidden" : ""}`}
+        >
           {isOver ? "Drop to add" : "My list"}
         </span>
-        {/* The rail's own affordance: a chevron pointing back the way the panel
-            will come from, instead of a word lying on its side. */}
-        <ChevronLeft
-          className="text-muted-foreground hidden size-4 lg:block"
-          aria-hidden
-        />
+        {/* The rail's own affordance, instead of a word lying on its side. The
+            bar doesn't need it: it says "My list" in words. */}
+        {docked && (
+          <Expand
+            className="text-muted-foreground hidden size-4 lg:block"
+            aria-hidden
+          />
+        )}
       </button>
     </aside>
   );
