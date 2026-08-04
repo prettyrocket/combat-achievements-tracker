@@ -1,123 +1,60 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  DndContext,
-  DragOverlay,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-  type DragStartEvent,
-} from "@dnd-kit/core";
-import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+// The layout, and the wiring between the stores and the things that draw them.
+//
+// Everything that used to make this file long has a home of its own now: the
+// localStorage furniture in use-ui-prefs, the arriving share code in
+// use-share-code, the pivot in use-monster-filter, the drag mechanics in
+// task-drag-provider. What's left is which component gets what, which is the one
+// thing an App file should be for.
+
+import { useCallback, useMemo, useState } from "react";
 import { TASKS } from "@/data/tasks";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { TaskTable } from "@/components/task-table";
 import { ProgressToolbar } from "@/components/toolbar";
 import { LoadDialog } from "@/components/load-dialog";
 import { ProgressHeader } from "@/components/progress-header";
 import { FilterBar } from "@/components/filter-bar";
 import { MonsterBreadcrumb } from "@/components/monster-breadcrumb";
+import { ShareCodePrompt } from "@/components/share-code-prompt";
+import { TaskDragProvider } from "@/components/task-drag-provider";
 import { TaskListPanel } from "@/components/tasklist-panel";
 import { importBackup } from "@/lib/backup";
-import { TASKLIST_DROPPABLE, parseDragId } from "@/lib/dnd";
 import type { Notice } from "@/lib/notice";
-import { readJson, writeJson } from "@/lib/local-store";
 import { summarize, summarizeMonster } from "@/lib/progress-summary";
 import {
   checkAll,
   profileIsEmpty,
   type PlayerProfile,
 } from "@/lib/requirements";
-import { rewardStatus, rewardTiers } from "@/lib/rewards";
-import {
-  clearShareCode,
-  decodeShareCode,
-  readShareCode,
-  type ShareCodeResult,
-} from "@/lib/share-code";
+import { rewardStatus } from "@/lib/rewards";
+import type { ShareCodeResult } from "@/lib/share-code";
+import { MONSTERS, REWARD_TIERS } from "@/lib/task-index";
 import { resolve } from "@/lib/tasklist";
-import {
-  DEFAULT_SORT,
-  addMonster,
-  clearMonster,
-  pivotToMonster,
-  removeMonster,
-  applyQuery,
-} from "@/lib/task-query";
+import { DEFAULT_SORT, applyQuery } from "@/lib/task-query";
+import { useMonsterFilter } from "@/lib/use-monster-filter";
 import { useProfile } from "@/lib/use-profile";
 import type { ProfileSource } from "@/lib/profile-store";
 import type { LoadSourceId } from "@/lib/load-source";
 import { useProgress } from "@/lib/use-progress";
+import { useShareCode } from "@/lib/use-share-code";
 import { useTaskList } from "@/lib/use-tasklist";
 import { useTaskQuery } from "@/lib/use-task-query";
-import type { SortKey } from "@/lib/types";
-
-// Every distinct monster with its task count, for the picker. Static data, so
-// it's computed once at module load rather than per render.
-const MONSTERS = (() => {
-  const counts = new Map<string, number>();
-  for (const task of TASKS) {
-    if (task.monster !== null)
-      counts.set(task.monster, (counts.get(task.monster) ?? 0) + 1);
-  }
-  return [...counts]
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => a.name.localeCompare(b.name));
-})();
-
-const BY_ID = new Map(TASKS.map((task) => [task.wikiId, task]));
-
-// The point requirements for each reward tier, derived from the bundle -- see
-// rewards.ts for why they aren't constants. Static data, so once at module load.
-const REWARD_TIERS = rewardTiers(TASKS);
-
-// Whether the panel was left open, and whether the summary was left collapsed.
-// UI state, not data, so each gets its own key and stays out of the export --
-// restoring a backup shouldn't rearrange the furniture.
-const PANEL_KEY = "ca-tracker:tasklist-open:v1";
-const COMPACT_KEY = "ca-tracker:summary-compact:v1";
-// The account the last WikiSync import came from, so a later import can tell
-// whether the planned list beside it was built for this account or another.
-const RSN_KEY = "ca-tracker:last-rsn:v1";
-
-function storedFlag(key: string, fallback: boolean): boolean {
-  const stored = readJson(key);
-  return typeof stored === "boolean" ? stored : fallback;
-}
-
-/**
- * Whether the summary should start collapsed, for someone who has never said.
- *
- * Nothing above the table scrolls away any more, which is the point -- but it
- * also means the header block is charged to the table's height. On a short or
- * narrow window the six tier meters would leave a table two rows tall, so the
- * first impression there is the one-line form. Say otherwise once and that
- * choice is remembered.
- */
-function compactByDefault(): boolean {
-  if (typeof window === "undefined") return false;
-  return window.innerWidth < 1024 || window.innerHeight < 900;
-}
+import { useUiPrefs } from "@/lib/use-ui-prefs";
 
 export default function App() {
-  const { completed, toggle, setMany, reset, undo, storageError } =
-    useProgress();
+  const { completed, toggle, setMany, reset, storageError } = useProgress();
   const { query, setQuery, clear } = useTaskQuery();
   const taskList = useTaskList();
   const profile = useProfile();
   // Pulled out because it's the one part of `profile` that is stable across
   // renders, which is what the import callback below wants to depend on.
   const { setProfile } = profile;
+
+  const prefs = useUiPrefs();
+  const shareCode = useShareCode();
+  const filter = useMonsterFilter(query, setQuery, clear);
+  // Same reason as `setProfile` above: the stable half of a hook result, pulled
+  // out so the callback below doesn't depend on an object rebuilt every render.
+  const { dismiss: dismissShareCode } = shareCode;
 
   // Lifted out of the dialog because the requirement filter opens it: with no
   // levels entered there is nothing to filter on, and sending you to find the
@@ -138,6 +75,13 @@ export default function App() {
   }, []);
 
   const openLoad = useCallback(() => setLoadOpen(true), []);
+
+  const onLoadOpenChange = useCallback((open: boolean) => {
+    setLoadOpen(open);
+    // Cleared on close so the next plain Load click gets the remembered source
+    // rather than being pinned to wherever the filter last sent you.
+    if (!open) setLoadSource(null);
+  }, []);
 
   /**
    * Rethrows rather than swallowing: the file pane shows the failure beside its
@@ -161,82 +105,6 @@ export default function App() {
           ? ` Ignored ${result.dropped + result.listDropped} unrecognised entries.`
           : ""),
     });
-  }, []);
-
-  const onLoadOpenChange = useCallback((open: boolean) => {
-    setLoadOpen(open);
-    // Cleared on close so the next plain Load click gets the remembered source
-    // rather than being pinned to wherever the filter last sent you.
-    if (!open) setLoadSource(null);
-  }, []);
-
-  // A share code in the address bar, waiting on a yes or no. Never applied on
-  // arrival: following a link is not consent to replace what this browser
-  // already holds, and the person clicking it may not know it carries anything.
-  const [incoming, setIncoming] = useState<ShareCodeResult | null>(null);
-  const [incomingError, setIncomingError] = useState<string | null>(null);
-
-  // Open by default: a plan you have to go and find is a plan you stop using.
-  const [panelOpen, setPanelOpen] = useState(() => storedFlag(PANEL_KEY, true));
-  const [compactSummary, setCompactSummary] = useState(() =>
-    storedFlag(COMPACT_KEY, compactByDefault()),
-  );
-  const [dragging, setDragging] = useState<number | null>(null);
-  // What the last pivot took out of the search box, so it can be handed back.
-  const [parkedSearch, setParkedSearch] = useState<string | null>(null);
-  const [lastRsn, setLastRsn] = useState<string | null>(() => {
-    const stored = readJson(RSN_KEY);
-    return typeof stored === "string" && stored.trim() !== "" ? stored : null;
-  });
-
-  // Ctrl+Z / ⌘Z anywhere that isn't a text field, and the only way to undo --
-  // ticking a task is a one-click change to the thing this app is for, so the
-  // reflex that follows a misclick is the right thing to answer, and it's the
-  // reflex people already have.
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (
-        event.key !== "z" ||
-        !(event.ctrlKey || event.metaKey) ||
-        event.shiftKey
-      )
-        return;
-      const target = event.target as HTMLElement | null;
-      if (
-        target?.isContentEditable ||
-        target?.tagName === "INPUT" ||
-        target?.tagName === "TEXTAREA"
-      ) {
-        return;
-      }
-      event.preventDefault();
-      undo();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [undo]);
-
-  // Read once, on arrival. A malformed code is reported rather than ignored:
-  // silently dropping it would look exactly like a link that did nothing.
-  useEffect(() => {
-    const code = readShareCode(window.location.hash);
-    if (code === null) return;
-    try {
-      setIncoming(decodeShareCode(code));
-    } catch (err) {
-      setIncomingError(
-        err instanceof Error
-          ? err.message
-          : "That share code could not be read.",
-      );
-      clearShareCode();
-    }
-  }, []);
-
-  const dismissShareCode = useCallback(() => {
-    setIncoming(null);
-    setIncomingError(null);
-    clearShareCode();
   }, []);
 
   // The summary deliberately ignores the query: it reports progress against the
@@ -275,89 +143,7 @@ export default function App() {
 
   const listedIds = useMemo(() => new Set(taskList.list), [taskList.list]);
 
-  const pivot = useCallback(
-    (monster: string) => {
-      // Navigation, so it earns its own history entry rather than being folded
-      // into whatever filtering came just before it.
-      setQuery(pivotToMonster(query, monster), "push");
-      setParkedSearch(query.q?.trim() || null);
-    },
-    [query, setQuery],
-  );
-
-  const addToPivot = useCallback(
-    (monster: string) => {
-      setQuery(addMonster(query, monster), "push");
-      if (query.q?.trim()) setParkedSearch(query.q.trim());
-    },
-    [query, setQuery],
-  );
-
-  const dropMonster = useCallback(
-    (monster: string) => setQuery(removeMonster(query, monster), "push"),
-    [query, setQuery],
-  );
-
-  /** The picker's one action: in if it's out, out if it's in. */
-  const toggleMonster = useCallback(
-    (monster: string) => {
-      const isOn = (query.monster ?? []).some(
-        (m) => m.trim().toLowerCase() === monster.trim().toLowerCase(),
-      );
-      setQuery(
-        isOn ? removeMonster(query, monster) : addMonster(query, monster),
-        "push",
-      );
-      if (!isOn && query.q?.trim()) setParkedSearch(query.q.trim());
-    },
-    [query, setQuery],
-  );
-
-  const unpivot = useCallback(() => {
-    setQuery(clearMonster(query), "push");
-    setParkedSearch(null);
-  }, [query, setQuery]);
-
-  const restoreSearch = useCallback(() => {
-    if (parkedSearch) setQuery({ ...query, q: parkedSearch }, "push");
-    setParkedSearch(null);
-  }, [parkedSearch, query, setQuery]);
-
-  const setSort = useCallback(
-    (sort: SortKey) =>
-      setQuery({ ...query, sort: sort === DEFAULT_SORT ? undefined : sort }),
-    [query, setQuery],
-  );
-
-  const clearAll = useCallback(() => {
-    clear();
-    setParkedSearch(null);
-  }, [clear]);
-
-  const togglePanel = useCallback((open: boolean) => {
-    setPanelOpen(open);
-    writeJson(PANEL_KEY, open);
-  }, []);
-
-  const toggleCompact = useCallback((compact: boolean) => {
-    setCompactSummary(compact);
-    writeJson(COMPACT_KEY, compact);
-  }, []);
-
-  /**
-   * The account this browser tracks.
-   *
-   * Set by an import, and also by simply typing the name into Load and closing
-   * it -- saying who you are is saying who you are, whether or not anything was
-   * fetched. It's what the different-account warning compares against, so a
-   * player who enters levels by hand gets that protection too.
-   */
-  const rememberRsn = useCallback((rsn: string) => {
-    const name = rsn.replace(/_/g, " ").replace(/\s+/g, " ").trim();
-    if (name === "") return;
-    setLastRsn(name);
-    writeJson(RSN_KEY, name);
-  }, []);
+  const { rememberRsn } = prefs;
 
   /**
    * An import replaces progress outright -- the account is the authority on
@@ -386,51 +172,23 @@ export default function App() {
     [setMany, taskList, setProfile, rememberRsn],
   );
 
-  // Distance-activated, so a press that turns into a click still reaches the
-  // checkbox and the monster pivot inside the row rather than starting a drag.
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
-
-  const onDragStart = useCallback(({ active }: DragStartEvent) => {
-    setDragging(parseDragId(active.id)?.wikiId ?? null);
-  }, []);
-
-  const onDragEnd = useCallback(
-    ({ active, over }: DragEndEvent) => {
-      setDragging(null);
-      if (!over) return;
-
-      const source = parseDragId(active.id);
-      if (!source) return;
-
-      const target = parseDragId(over.id);
-      if (target) {
-        // Dropped onto an entry: take that entry's place, pushing it down.
-        taskList.insertAt(source.wikiId, taskList.list.indexOf(target.wikiId));
-        return;
-      }
-
-      // Dropped on the panel itself rather than any entry -- append. Only the
-      // panel is a valid target, so anything else is a drag that went nowhere.
-      if (over.id === TASKLIST_DROPPABLE)
-        taskList.insertAt(source.wikiId, taskList.list.length);
+  const acceptShareCode = useCallback(
+    (incoming: ShareCodeResult) => {
+      setMany(incoming.completed);
+      taskList.replace(incoming.list);
+      // Same rule as an imported file (backup.ts): a code without a profile is
+      // not an instruction to clear one. 'manual' rather than 'wikisync'
+      // because from here it is a thing you accepted, and the source only
+      // decides which way of editing wins.
+      if (!profileIsEmpty(incoming.profile))
+        setProfile(incoming.profile, "manual");
+      dismissShareCode();
     },
-    [taskList],
+    [setMany, taskList, setProfile, dismissShareCode],
   );
-
-  const draggingTask = dragging === null ? null : BY_ID.get(dragging);
 
   return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-      onDragCancel={() => setDragging(null)}
-    >
+    <TaskDragProvider list={taskList.list} onInsertAt={taskList.insertAt}>
       {/* The app owns the viewport height and hands what's left to the table.
           Nothing above the table scrolls away, and the table's own scrollbars --
           including the horizontal one, which used to sit 646 rows below the fold
@@ -471,17 +229,17 @@ export default function App() {
           <ProgressHeader
             summary={summary}
             rewards={rewards}
-            rsn={lastRsn}
-            compact={compactSummary}
-            onCompactChange={toggleCompact}
+            rsn={prefs.lastRsn}
+            compact={prefs.compactSummary}
+            onCompactChange={prefs.setCompactSummary}
           />
 
           <FilterBar
             query={query}
             onChange={setQuery}
-            onClear={clearAll}
+            onClear={filter.clearAll}
             monsters={MONSTERS}
-            onToggleMonster={toggleMonster}
+            onToggleMonster={filter.toggleMonster}
             resultCount={visible.length}
             totalCount={TASKS.length}
             profileIsEmpty={profile.isEmpty}
@@ -491,12 +249,12 @@ export default function App() {
           {monsterSummaries.length > 0 && (
             <MonsterBreadcrumb
               summaries={monsterSummaries}
-              onClear={unpivot}
-              onRemove={dropMonster}
+              onClear={filter.unpivot}
+              onRemove={filter.dropMonster}
               monsters={MONSTERS}
-              onToggleMonster={toggleMonster}
-              parkedSearch={parkedSearch}
-              onRestoreSearch={restoreSearch}
+              onToggleMonster={filter.toggleMonster}
+              parkedSearch={filter.parkedSearch}
+              onRestoreSearch={filter.restoreSearch}
             />
           )}
         </div>
@@ -512,8 +270,8 @@ export default function App() {
               entries={entries}
               rewardTiers={REWARD_TIERS}
               pointsEarned={summary.pointsEarned}
-              open={panelOpen}
-              onOpenChange={togglePanel}
+              open={prefs.panelOpen}
+              onOpenChange={prefs.setPanelOpen}
               onToggleCompleted={toggle}
               onRemove={taskList.remove}
               onClear={taskList.clear}
@@ -530,15 +288,15 @@ export default function App() {
                 tasks={visible}
                 completed={completed}
                 onToggle={toggle}
-                onPivotToMonster={pivot}
-                onAddMonster={addToPivot}
+                onPivotToMonster={filter.pivot}
+                onAddMonster={filter.addToPivot}
                 activeMonsters={query.monster}
                 onList={listedIds}
                 onToggleListed={taskList.toggle}
                 onAddManyToList={taskList.addMany}
                 gates={gates}
                 sort={query.sort ?? DEFAULT_SORT}
-                onSortChange={setSort}
+                onSortChange={filter.setSort}
               />
             )}
           </main>
@@ -555,7 +313,7 @@ export default function App() {
         initialSource={loadSource}
         completed={completed}
         listCount={taskList.list.length}
-        lastRsn={lastRsn}
+        lastRsn={prefs.lastRsn}
         onImportApply={applyImport}
         onImportLevels={profile.importLevels}
         onImportFile={handleImportFile}
@@ -567,80 +325,14 @@ export default function App() {
         onClearProfile={profile.clear}
       />
 
-      {/* Opening a link is a replace, exactly like an import, so it asks first
-          and says what it would cost. Undo covers it afterwards, but only until
-          the next reload, which is not long enough to be the whole answer. */}
-      <AlertDialog
-        open={incoming !== null || incomingError !== null}
-        onOpenChange={(open) => {
-          if (!open) dismissShareCode();
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {incomingError
-                ? "That link didn't carry readable progress"
-                : "Open shared progress?"}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {incomingError ??
-                (incoming
-                  ? `This link holds ${incoming.completed.length} completed tasks` +
-                    (incoming.list.length > 0
-                      ? ` and a plan of ${incoming.list.length}.`
-                      : " and no plan.") +
-                    ` Opening it replaces the ${completed.size} completed tasks in this browser` +
-                    (taskList.list.length > 0
-                      ? ` and your plan of ${taskList.list.length}.`
-                      : ".") +
-                    (incoming.dropped > 0
-                      ? ` ${incoming.dropped} entries weren't recognised and will be ignored.`
-                      : "") +
-                    // Said plainly in both directions: a link carrying levels
-                    // overwrites yours, and one carrying none leaves them be
-                    // rather than wiping them. The second half is the one
-                    // somebody would otherwise have to test to find out.
-                    (profileIsEmpty(incoming.profile)
-                      ? " It carries no levels or quests, so yours are left alone."
-                      : " Its levels and quests replace yours.")
-                  : "")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>
-              {incomingError ? "Close" : "Keep what I have"}
-            </AlertDialogCancel>
-            {incoming && (
-              <AlertDialogAction
-                onClick={() => {
-                  setMany(incoming.completed);
-                  taskList.replace(incoming.list);
-                  // Same rule as an imported file (backup.ts): a code without a
-                  // profile is not an instruction to clear one. 'manual' rather
-                  // than 'wikisync' because from here it is a thing you accepted,
-                  // and the source only decides which way of editing wins.
-                  if (!profileIsEmpty(incoming.profile))
-                    setProfile(incoming.profile, "manual");
-                  dismissShareCode();
-                }}
-              >
-                Replace with the link
-              </AlertDialogAction>
-            )}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Follows the cursor across the gap between table and panel -- without it
-          the row stays put and the drag has nothing to show for itself. */}
-      <DragOverlay dropAnimation={null}>
-        {draggingTask && (
-          <div className="bg-card rounded-md border px-3 py-2 text-sm font-medium shadow-lg">
-            {draggingTask.name}
-          </div>
-        )}
-      </DragOverlay>
-    </DndContext>
+      <ShareCodePrompt
+        incoming={shareCode.incoming}
+        error={shareCode.error}
+        completedCount={completed.size}
+        listCount={taskList.list.length}
+        onAccept={acceptShareCode}
+        onDismiss={dismissShareCode}
+      />
+    </TaskDragProvider>
   );
 }

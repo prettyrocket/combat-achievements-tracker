@@ -29,9 +29,12 @@ export type HistoryMode = "push" | "replace" | "coalesce";
  *  clicks stay two entries. */
 const COALESCE_MS = 800;
 
+/** Named because the monster filter takes one as a parameter. */
+export type SetQuery = (next: TaskQuery, mode?: HistoryMode) => void;
+
 export interface UseTaskQuery {
   query: TaskQuery;
-  setQuery: (next: TaskQuery, mode?: HistoryMode) => void;
+  setQuery: SetQuery;
   clear: () => void;
 }
 

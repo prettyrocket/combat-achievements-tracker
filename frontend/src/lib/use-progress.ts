@@ -31,6 +31,34 @@ export interface UseProgress {
 export function useProgress(): UseProgress {
   const completed = useSyncExternalStore(subscribe, getCompleted, getCompleted);
 
+  // Ctrl+Z / ⌘Z anywhere that isn't a text field, and the only way to undo --
+  // ticking a task is a one-click change to the thing this app is for, so the
+  // reflex that follows a misclick is the right thing to answer, and it's the
+  // reflex people already have. Bound here rather than by whoever renders the
+  // table, because the hotkey is part of what having an undo *means*.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.key !== "z" ||
+        !(event.ctrlKey || event.metaKey) ||
+        event.shiftKey
+      )
+        return;
+      const target = event.target as HTMLElement | null;
+      if (
+        target?.isContentEditable ||
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA"
+      ) {
+        return;
+      }
+      event.preventDefault();
+      undo();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   // The `storage` event fires only in *other* tabs, which is exactly what we want:
   // the writing tab already has the value, the listening tabs need to catch up.
   useEffect(() => {
