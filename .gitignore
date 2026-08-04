@@ -5,6 +5,11 @@ dist-ssr/
 *.local
 .vite/
 
+# Scratch file that keeps reappearing beside the load panes and has been
+# un-tracked by hand three times now. Ignored so a broad `git add` can't pick
+# it up again.
+frontend/src/components/load/junk.json
+
 # --- IDEs / editors ---
 .idea/
 *.iml
