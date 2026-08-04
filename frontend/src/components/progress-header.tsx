@@ -281,38 +281,11 @@ export function ProgressHeader({
           </span>
         </h2>
 
-        {/* Second row: the reward and the tiers, as pills of the same build, so
-            the collapsed form is one scannable strip rather than a sentence with
-            chips stuck on the end. What survives a collapse is where you stand,
-            not how far across you are -- so both meters go, and the reward keeps
-            only its two figures: what you're on, and what it costs to move up. */}
-        <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-          <p
-            className="flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs whitespace-nowrap"
-            title={
-              rewards.next
-                ? `${rewards.next.hilt} needs ${rewards.next.required} points, from tasks of any tier — it also unlocks ${rewards.next.alsoUnlocks}.`
-                : "Every reward tier claimed."
-            }
-          >
-            <Swords
-              className="text-muted-foreground size-3.5 shrink-0"
-              aria-hidden
-            />
-            <span className="font-medium">
-              {rewards.unlocked?.hiltShort ?? "No hilt"}
-            </span>
-            {rewards.next && (
-              <span className="text-muted-foreground tabular-nums">
-                ·{" "}
-                <span className="text-foreground font-medium">
-                  {rewards.pointsToNext}
-                </span>{" "}
-                to {rewards.next.hiltShort.toLowerCase()}
-              </span>
-            )}
-          </p>
-
+        {/* Second row: the per-tier breakdown. The reward pill that used to open
+            this strip carried the same distance-to-next figure the headline now
+            states in words, so what's left is the one thing the line above
+            can't say -- where the work stands tier by tier. */}
+        <div className="mt-2.5">
           <TierChips perTier={summary.perTier} />
         </div>
 
