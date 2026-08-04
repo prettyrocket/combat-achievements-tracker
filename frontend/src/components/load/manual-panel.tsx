@@ -25,7 +25,6 @@ import {
   questLabel,
   type PlayerProfile,
 } from "@/lib/requirements";
-import type { ProfileSource } from "@/lib/profile-store";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -74,7 +73,6 @@ function LevelInput({
 export interface ManualPanelProps {
   profile: PlayerProfile;
   isEmpty: boolean;
-  source: ProfileSource;
   onSetLevel: (skill: string, level: number) => void;
   onSetQuest: (quest: string, finished: boolean) => void;
   onClear: () => void;
@@ -83,7 +81,6 @@ export interface ManualPanelProps {
 export function ManualPanel({
   profile,
   isEmpty,
-  source,
   onSetLevel,
   onSetQuest,
   onClear,
@@ -105,18 +102,6 @@ export function ManualPanel({
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
-        {/* Where these came from, when they came from somewhere. Worth saying
-            because editing a field here silently overrides an import, and
-            because a Wise Old Man lookup fills only half the form. Nothing is
-            said when it's empty or hand-typed: the form is in front of you. */}
-        {!isEmpty && source !== "manual" && (
-          <p className="text-muted-foreground text-sm">
-            {source === "wiseoldman"
-              ? "Levels came from Wise Old Man — quests it has no way of knowing, so those are yours to tick."
-              : `Imported from ${source === "wikisync" ? "WikiSync" : "RuneProfile"} — editing anything here overrides it until the next import.`}
-          </p>
-        )}
-
         {/* Two columns on anything but a phone: ten short number fields in one
             column would be a very tall pane for very little content. */}
         <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">

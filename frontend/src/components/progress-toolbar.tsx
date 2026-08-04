@@ -142,7 +142,6 @@ export interface ProgressToolbarProps {
   /** The levels and quests behind the requirement filter, and its editor. */
   profile: PlayerProfile;
   profileIsEmpty: boolean;
-  profileSource: ProfileSource;
   /** Owned by App: the requirement filter opens this dialog too. */
   loadOpen: boolean;
   onLoadOpenChange: (open: boolean) => void;
@@ -167,7 +166,6 @@ export function ProgressToolbar({
   onImportApply,
   profile,
   profileIsEmpty,
-  profileSource,
   loadOpen,
   onLoadOpenChange,
   loadSource,
@@ -421,7 +419,6 @@ export function ProgressToolbar({
         onRsnCommit={onRsnCommit}
         profile={profile}
         profileIsEmpty={profileIsEmpty}
-        profileSource={profileSource}
         onSetLevel={onSetLevel}
         onSetQuest={onSetQuest}
         onClearProfile={onClearProfile}

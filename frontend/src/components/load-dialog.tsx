@@ -66,7 +66,6 @@ export interface LoadDialogProps {
 
   profile: PlayerProfile;
   profileIsEmpty: boolean;
-  profileSource: ProfileSource;
   onSetLevel: (skill: string, level: number) => void;
   onSetQuest: (quest: string, finished: boolean) => void;
   onClearProfile: () => void;
@@ -85,7 +84,6 @@ export function LoadDialog({
   onRsnCommit,
   profile,
   profileIsEmpty,
-  profileSource,
   onSetLevel,
   onSetQuest,
   onClearProfile,
@@ -234,7 +232,6 @@ export function LoadDialog({
               <ManualPanel
                 profile={profile}
                 isEmpty={profileIsEmpty}
-                source={profileSource}
                 onSetLevel={onSetLevel}
                 onSetQuest={onSetQuest}
                 onClear={onClearProfile}

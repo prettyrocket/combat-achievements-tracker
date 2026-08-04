@@ -437,7 +437,6 @@ export default function App() {
             onImportApply={applyImport}
             profile={profile.profile}
             profileIsEmpty={profile.isEmpty}
-            profileSource={profile.source}
             loadOpen={loadOpen}
             onLoadOpenChange={onLoadOpenChange}
             loadSource={loadSource}
