@@ -39,7 +39,6 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -345,13 +344,7 @@ export function ProgressToolbar({
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Reset what?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Nothing here is kept on a server, so nothing comes back from one
-                — export first if you might want it. Ctrl+Z can bring completed
-                tasks back until you reload the page; your levels and your list
-                can't be undone.
-              </AlertDialogDescription>
+              <AlertDialogTitle>Reset</AlertDialogTitle>
             </AlertDialogHeader>
 
             {/* Each row disabled when there's nothing behind it, so the dialog
