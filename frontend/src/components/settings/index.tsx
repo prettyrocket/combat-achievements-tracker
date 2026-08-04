@@ -7,10 +7,15 @@
 //
 // Owns its own trigger, the way ResetDialog does. Nothing else opens Settings,
 // so lifting the open state into App would buy nothing but two more props.
+//
+// A setting is a label and a control. The controls that are more than a
+// checkbox get their own file -- layout-picker draws four little diagrams, and
+// that is a different job from listing what can be set.
 
 import { useState } from "react";
 import { Settings } from "lucide-react";
-import { LIST_POSITIONS, type ListPosition } from "@/lib/list-position";
+import type { ListPosition } from "@/lib/list-position";
+import { LayoutPicker } from "@/components/settings/layout-picker";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -20,13 +25,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 /** One switch: a label you can click, and the box it belongs to. */
 function SettingRow({
@@ -49,33 +47,18 @@ function SettingRow({
   );
 }
 
-/** One choice out of a handful: a label, and the menu it belongs to. */
-function SettingChoice<T extends string>({
+/** A label, and a control too big to be a checkbox sitting beside it. */
+function SettingField({
   label,
-  value,
-  options,
-  onChange,
+  children,
 }: {
   label: string;
-  value: T;
-  options: readonly { id: T; label: string }[];
-  onChange: (value: T) => void;
+  children: React.ReactNode;
 }) {
   return (
     <div className="flex items-center gap-2.5 px-1.5 py-1.5 text-sm">
       <span className="flex-1">{label}</span>
-      <Select value={value} onValueChange={(next) => onChange(next as T)}>
-        <SelectTrigger size="sm" className="w-44">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((option) => (
-            <SelectItem key={option.id} value={option.id}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {children}
     </div>
   );
 }
@@ -113,12 +96,12 @@ export function SettingsDialog({
             checked={manualTracking}
             onChange={onManualTrackingChange}
           />
-          <SettingChoice
-            label="My list"
-            value={listPosition}
-            options={LIST_POSITIONS}
-            onChange={onListPositionChange}
-          />
+          <SettingField label="My list">
+            <LayoutPicker
+              value={listPosition}
+              onChange={onListPositionChange}
+            />
+          </SettingField>
         </div>
       </DialogContent>
     </Dialog>

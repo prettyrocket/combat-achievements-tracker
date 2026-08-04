@@ -16,7 +16,7 @@ import { Upload } from "lucide-react";
 import type { ListPosition } from "@/lib/list-position";
 import type { Notice } from "@/lib/notice";
 import type { PlayerProfile } from "@/lib/requirements";
-import { SettingsDialog } from "@/components/settings-dialog";
+import { SettingsDialog } from "@/components/settings";
 import { ResetDialog } from "@/components/toolbar/reset-dialog";
 import { ShareMenu } from "@/components/toolbar/share-menu";
 import { Button } from "@/components/ui/button";
