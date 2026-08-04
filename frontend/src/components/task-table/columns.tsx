@@ -10,7 +10,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { ListChecks, ListPlus } from "lucide-react";
 import type { GateCheck } from "@/lib/requirements";
-import type { TaskRow, TaskType } from "@/lib/types";
+import { TYPE_LABEL, type TaskRow } from "@/lib/types";
 import {
   COMPLETION_TONE_CLASS,
   completionTone,
@@ -20,15 +20,6 @@ import { monsterWikiUrl, taskWikiUrl } from "@/lib/wiki";
 import { TierBadge } from "@/components/tier-badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { GateLock, SplitName, WikiLink } from "@/components/task-table/cells";
-
-const TYPE_LABEL: Record<TaskType, string> = {
-  KILL_COUNT: "Kill Count",
-  RESTRICTION: "Restriction",
-  PERFECTION: "Perfection",
-  MECHANICAL: "Mechanical",
-  SPEED: "Speed",
-  STAMINA: "Stamina",
-};
 
 /**
  * Row state that changes constantly, kept out of the column defs.

@@ -30,7 +30,7 @@
 // Relative, not the usual `@/lib/types`: check-links.ts loads this module in
 // bare Node to build the six reward links, and Node doesn't read the alias out
 // of tsconfig. types.ts imports nothing, so the graph stops here.
-import { TIERS, type TaskRow, type Tier } from "./types.ts";
+import { TIERS, TIER_LABEL, type TaskRow, type Tier } from "./types.ts";
 
 export interface RewardTier {
   tier: Tier;
@@ -45,15 +45,6 @@ export interface RewardTier {
    *  wiki has a dozen per tier, and this is a tracker, not the wiki. */
   alsoUnlocks: string;
 }
-
-const TIER_LABEL: Record<Tier, string> = {
-  EASY: "Easy",
-  MEDIUM: "Medium",
-  HARD: "Hard",
-  ELITE: "Elite",
-  MASTER: "Master",
-  GRANDMASTER: "Grandmaster",
-};
 
 // The headline reward per tier. These are stable -- the *thresholds* move with
 // each release, the hilts don't -- so unlike the numbers they are safe to name.

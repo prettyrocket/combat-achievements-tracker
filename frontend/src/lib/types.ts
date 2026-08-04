@@ -22,6 +22,18 @@ export const TIER_POINTS: Record<Tier, number> = {
   GRANDMASTER: 6,
 };
 
+// How the six tiers are spelled where a person reads them. One copy, because
+// three files had grown their own and a seventh tier would have to be spelled
+// right in all of them.
+export const TIER_LABEL: Record<Tier, string> = {
+  EASY: "Easy",
+  MEDIUM: "Medium",
+  HARD: "Hard",
+  ELITE: "Elite",
+  MASTER: "Master",
+  GRANDMASTER: "Grandmaster",
+};
+
 export const TASK_TYPES = [
   "KILL_COUNT",
   "RESTRICTION",
@@ -31,6 +43,16 @@ export const TASK_TYPES = [
   "STAMINA",
 ] as const;
 export type TaskType = (typeof TASK_TYPES)[number];
+
+/** Same again for types: the table's column and the filter chip agreed by luck. */
+export const TYPE_LABEL: Record<TaskType, string> = {
+  KILL_COUNT: "Kill Count",
+  RESTRICTION: "Restriction",
+  PERFECTION: "Perfection",
+  MECHANICAL: "Mechanical",
+  SPEED: "Speed",
+  STAMINA: "Stamina",
+};
 
 export interface Task {
   wikiId: number;

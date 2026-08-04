@@ -12,6 +12,7 @@ import { isEmptyQuery } from "@/lib/task-query";
 import {
   TIERS,
   TASK_TYPES,
+  TYPE_LABEL,
   type RequirementFilter,
   type TaskQuery,
   type TaskType,
@@ -22,15 +23,6 @@ import { MonsterPicker } from "@/components/monster-picker";
 import { TierBadge } from "@/components/tier-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-const TYPE_LABEL: Record<TaskType, string> = {
-  KILL_COUNT: "Kill Count",
-  RESTRICTION: "Restriction",
-  PERFECTION: "Perfection",
-  MECHANICAL: "Mechanical",
-  SPEED: "Speed",
-  STAMINA: "Stamina",
-};
 
 /** Adds or removes one value from a facet, returning undefined when it empties. */
 function toggleFacet<T>(current: T[] | undefined, value: T): T[] | undefined {

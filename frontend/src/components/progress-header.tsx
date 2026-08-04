@@ -12,28 +12,9 @@ import { ChevronDown, ChevronUp, Swords } from "lucide-react";
 import { percent } from "@/lib/progress-summary";
 import type { RewardStatus } from "@/lib/rewards";
 import { itemWikiUrl } from "@/lib/wiki";
-import type { ProgressSummary, Tier, TierProgress } from "@/lib/types";
-
-const TIER_LABEL: Record<Tier, string> = {
-  EASY: "Easy",
-  MEDIUM: "Medium",
-  HARD: "Hard",
-  ELITE: "Elite",
-  MASTER: "Master",
-  GRANDMASTER: "Grandmaster",
-};
-
-// Matches the tier colours used by the table's TierBadge, at low opacity: the
-// fill *behind* a chip's text has to sit under type without fighting it, which
-// the solid badge colours would.
-const TIER_FILL: Record<Tier, string> = {
-  EASY: "bg-emerald-400/25",
-  MEDIUM: "bg-sky-400/25",
-  HARD: "bg-violet-400/25",
-  ELITE: "bg-amber-400/25",
-  MASTER: "bg-rose-400/25",
-  GRANDMASTER: "bg-fuchsia-400/25",
-};
+import { TIER_LABEL } from "@/lib/types";
+import { TIER_FILL_CLASS } from "@/lib/tier-style";
+import type { ProgressSummary, TierProgress } from "@/lib/types";
 
 /**
  * Half chip, half meter: the tier's full name and count, with the chip filling
@@ -51,7 +32,7 @@ function TierChip({ tier }: { tier: TierProgress }) {
       title={`${TIER_LABEL[tier.tier]}: ${tier.completed} of ${tier.total} tasks · ${tier.pointsEarned}/${tier.pointsTotal} points`}
     >
       <span
-        className={`absolute inset-y-0 left-0 -z-10 transition-[width] duration-300 ${TIER_FILL[tier.tier]}`}
+        className={`absolute inset-y-0 left-0 -z-10 transition-[width] duration-300 ${TIER_FILL_CLASS[tier.tier]}`}
         style={{ width: `${value}%` }}
         aria-hidden
       />
