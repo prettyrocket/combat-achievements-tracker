@@ -53,6 +53,8 @@ export interface TaskTableProps {
   tasks: readonly TaskRow[];
   completed: ReadonlySet<number>;
   onToggle: (wikiId: number) => void;
+  /** Whether the checkbox column is drawn at all -- see ColumnHandlers. */
+  manualTracking: boolean;
   /** Ids on the plan, so a row can show it's already there. */
   onList: ReadonlySet<number>;
   /**
@@ -78,6 +80,7 @@ export function TaskTable({
   tasks,
   completed,
   onToggle,
+  manualTracking,
   onList,
   onToggleListed,
   onAddManyToList,
@@ -87,8 +90,8 @@ export function TaskTable({
 }: TaskTableProps) {
   // Deliberately does *not* depend on `completed` or `onList` -- see TableMeta.
   const columns = useMemo(
-    () => buildColumns({ onToggle, onToggleListed }),
-    [onToggle, onToggleListed],
+    () => buildColumns({ onToggle, onToggleListed, manualTracking }),
+    [onToggle, onToggleListed, manualTracking],
   );
 
   const data = useMemo(() => tasks as TaskRow[], [tasks]);

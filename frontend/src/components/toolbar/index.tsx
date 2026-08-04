@@ -1,7 +1,10 @@
-// Load / Share / Reset.
+// Load / Share / Reset / Settings.
 //
-// Grouped by direction rather than by mechanism: Load is everything that writes
-// your progress from somewhere else, Share is everything that takes it out.
+// The first three are grouped by direction rather than by mechanism: Load is
+// everything that writes your progress from somewhere else, Share is everything
+// that takes it out, Reset is everything that throws it away. Settings sits
+// apart at the end because it touches none of them -- it changes what this
+// browser shows, not what it holds.
 //
 // Load is one button here and nothing more. The dialog it opens is App's, not
 // this bar's -- the requirement filter opens it too, and routing that through
@@ -12,6 +15,7 @@
 import { Upload } from "lucide-react";
 import type { Notice } from "@/lib/notice";
 import type { PlayerProfile } from "@/lib/requirements";
+import { SettingsDialog } from "@/components/settings-dialog";
 import { ResetDialog } from "@/components/toolbar/reset-dialog";
 import { ShareMenu } from "@/components/toolbar/share-menu";
 import { Button } from "@/components/ui/button";
@@ -38,6 +42,9 @@ export interface ProgressToolbarProps {
    */
   notice: Notice | null;
   onNotice: (notice: Notice) => void;
+  /** Furniture, not progress -- passed straight through to Settings. */
+  manualTracking: boolean;
+  onManualTrackingChange: (allowed: boolean) => void;
 }
 
 export function ProgressToolbar({
@@ -53,6 +60,8 @@ export function ProgressToolbar({
   onLoadOpen,
   notice,
   onNotice,
+  manualTracking,
+  onManualTrackingChange,
 }: ProgressToolbarProps) {
   return (
     <div className="flex flex-col items-end gap-2">
@@ -83,6 +92,11 @@ export function ProgressToolbar({
           onClearList={onClearList}
           onClearProfile={onClearProfile}
           onNotice={onNotice}
+        />
+
+        <SettingsDialog
+          manualTracking={manualTracking}
+          onManualTrackingChange={onManualTrackingChange}
         />
       </div>
 

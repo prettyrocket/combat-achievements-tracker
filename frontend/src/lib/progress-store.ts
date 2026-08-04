@@ -30,6 +30,47 @@ export interface ProgressExport {
   completed: number[];
 }
 
+/**
+ * Where the current set of ticks came from.
+ *
+ * A set of 646 integers looks the same however it got here, and one setting
+ * needs to tell the difference: manual completion tracking is on by default,
+ * unless an account is already keeping the answer. So provenance is stored
+ * beside the ids, the way profile-store stores its own.
+ *
+ * Deliberately not `LoadSourceId`. That list has `wiseoldman`, which can never
+ * write progress -- the hiscores don't carry Combat Achievements -- and it has
+ * no room for a share code, which isn't a door in the Load dialog at all.
+ */
+export type ProgressSource =
+  "manual" | "wikisync" | "runeprofile" | "sharecode" | "file";
+
+const SOURCES: ReadonlySet<string> = new Set<ProgressSource>([
+  "manual",
+  "wikisync",
+  "runeprofile",
+  "sharecode",
+  "file",
+]);
+
+/** The stored shape: the export, plus where it came from. */
+interface StoredProgress extends ProgressExport {
+  source: ProgressSource;
+}
+
+/**
+ * Whether something other than this browser is the authority on these ticks.
+ *
+ * A WikiSync paste, a RuneProfile lookup and a share code all speak for an
+ * account. A backup file does not: it is this app's own tracking coming home,
+ * and most of what's in it was ticked by hand in the first place.
+ */
+export function fromAnAccount(source: ProgressSource): boolean {
+  return (
+    source === "wikisync" || source === "runeprofile" || source === "sharecode"
+  );
+}
+
 // --- id validation ----------------------------------------------------------
 
 /**
@@ -79,12 +120,25 @@ function load(): ReadonlySet<number> {
   return new Set(sanitizeIds(completed).ids);
 }
 
+/**
+ * `manual` for anything written before this was stored. That's the safe way to
+ * be wrong: it leaves the checkbox column where a returning player left it,
+ * rather than making their ticks disappear on the strength of a guess.
+ */
+function loadSource(): ProgressSource {
+  const stored = (readJson(STORAGE_KEY) as { source?: unknown } | null)?.source;
+  return typeof stored === "string" && SOURCES.has(stored)
+    ? (stored as ProgressSource)
+    : "manual";
+}
+
 // --- snapshot + subscription ------------------------------------------------
 //
 // `current` is cached rather than rebuilt per read: useSyncExternalStore compares
 // snapshots by identity, and handing it a fresh Set each call is an infinite loop.
 
 let current: ReadonlySet<number> = load();
+let currentSource: ProgressSource = loadSource();
 const listeners = new Set<() => void>();
 
 // --- undo -------------------------------------------------------------------
@@ -99,7 +153,14 @@ const listeners = new Set<() => void>();
 // Export is what survives a reload, and it says so where it matters.
 
 const UNDO_LIMIT = 50;
-let undoStack: ReadonlySet<number>[] = [];
+// The source travels with the snapshot. Undoing an import has to put back the
+// provenance as well as the ids, or a browser that just stepped out of a
+// RuneProfile import would still believe an account was keeping its answers.
+interface Snapshot {
+  completed: ReadonlySet<number>;
+  source: ProgressSource;
+}
+let undoStack: Snapshot[] = [];
 
 /** The state before the most recent change, if there is one to go back to. */
 export function canUndo(): boolean {
@@ -112,21 +173,27 @@ export function undo(): boolean {
   if (previous === undefined) return false;
   // Not itself undoable -- otherwise undo would push the state it just left and
   // the next undo would walk straight back into it.
-  commit(previous, false);
+  commit(previous.completed, previous.source, false);
   return true;
 }
 
-function commit(next: ReadonlySet<number>, undoable = true): void {
+function commit(
+  next: ReadonlySet<number>,
+  source: ProgressSource,
+  undoable = true,
+): void {
   if (undoable) {
-    undoStack.push(current);
+    undoStack.push({ completed: current, source: currentSource });
     if (undoStack.length > UNDO_LIMIT) undoStack.shift();
   }
   current = next;
-  const payload: ProgressExport = {
+  currentSource = source;
+  const payload: StoredProgress = {
     app: EXPORT_APP,
     version: SCHEMA_VERSION,
     exportedAt: new Date().toISOString(),
     completed: [...next].sort((a, b) => a - b),
+    source,
   };
   writeJson(STORAGE_KEY, payload);
   for (const listener of listeners) listener();
@@ -142,19 +209,31 @@ export function getCompleted(): ReadonlySet<number> {
   return current;
 }
 
+export function getSource(): ProgressSource {
+  return currentSource;
+}
+
 // --- mutations --------------------------------------------------------------
 
+/**
+ * Ticking a box is the definition of tracking by hand, so it says so. That
+ * matters after an import: tick one thing yourself and this browser is keeping
+ * the answers again, whatever wrote them last.
+ */
 export function toggle(wikiId: number): void {
   const next = new Set(current);
   if (!next.delete(wikiId)) {
     if (!KNOWN_IDS.has(wikiId)) return;
     next.add(wikiId);
   }
-  commit(next);
+  commit(next, "manual");
 }
 
-export function setMany(wikiIds: Iterable<number>): void {
-  commit(new Set(sanitizeIds([...wikiIds]).ids));
+export function setMany(
+  wikiIds: Iterable<number>,
+  source: ProgressSource,
+): void {
+  commit(new Set(sanitizeIds([...wikiIds]).ids), source);
 }
 
 // There used to be a `mergeMany` here, the union counterpart to setMany, for the
@@ -163,8 +242,9 @@ export function setMany(wikiIds: Iterable<number>): void {
 // done and a union can only ever leave stale ticks behind. Nothing unions any
 // more, so nothing here does either.
 
+/** Back to nothing, and back to this browser keeping its own answers. */
 export function reset(): void {
-  commit(new Set());
+  commit(new Set(), "manual");
 }
 
 /** Re-read from disk. For the `storage` event: another tab already wrote. */
@@ -173,6 +253,7 @@ export function refreshFromStorage(): void {
   if (next.size === current.size && [...next].every((id) => current.has(id)))
     return;
   current = next;
+  currentSource = loadSource();
   // Another tab is the authority now. Undoing here would write this tab's older
   // idea of the truth back over what that tab just did, so the history goes.
   undoStack = [];
@@ -222,6 +303,6 @@ export function importProgress(text: string): ImportResult {
   }
 
   const { ids, dropped } = sanitizeIds(data.completed);
-  commit(new Set(ids));
+  commit(new Set(ids), "file");
   return { imported: ids.length, dropped };
 }

@@ -23,10 +23,10 @@ import {
   LOAD_SOURCES,
   readLastSource,
   writeLastSource,
+  type AccountSource,
   type LoadSourceId,
 } from "@/lib/load-source";
 import type { PlayerProfile } from "@/lib/requirements";
-import type { ProfileSource } from "@/lib/profile-store";
 import { WikiSyncPanel } from "@/components/load/wikisync-panel";
 import { RuneProfilePanel } from "@/components/load/runeprofile-panel";
 import { WiseOldManPanel } from "@/components/load/wiseoldman-panel";
@@ -52,12 +52,13 @@ export interface LoadDialogProps {
   completed: ReadonlySet<number>;
   listCount: number;
   lastRsn: string | null;
+  /** Only the two panes that carry achievements call this -- see AccountSource. */
   onImportApply: (
     ids: number[],
     rsn: string,
     clearList: boolean,
     profile: PlayerProfile | null,
-    source: ProfileSource,
+    source: AccountSource,
   ) => void;
   onImportLevels: (levels: Record<string, number>) => void;
   onImportFile: (file: File) => Promise<void>;

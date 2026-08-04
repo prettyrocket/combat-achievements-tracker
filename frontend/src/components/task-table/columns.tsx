@@ -37,30 +37,45 @@ export interface TableMeta {
 export interface ColumnHandlers {
   onToggle: (wikiId: number) => void;
   onToggleListed: (wikiId: number) => void;
+  /**
+   * Whether the checkbox column exists at all.
+   *
+   * Left out of the array rather than hidden with CSS: the header, the cells
+   * and the virtualiser's spacer `colSpan` all count leaf columns, so a column
+   * that is merely invisible is still a column three other things believe in.
+   *
+   * Only the *ticking* goes. A completed row keeps every other treatment it
+   * has, because with an account keeping the answers the question is still
+   * worth seeing answered -- you just aren't the one answering it.
+   */
+  manualTracking: boolean;
 }
 
 export function buildColumns({
   onToggle,
   onToggleListed,
+  manualTracking,
 }: ColumnHandlers): ColumnDef<TaskRow>[] {
-  return [
-    {
-      id: "completed",
-      header: () => <span className="sr-only">Completed</span>,
-      cell: ({ row, table }) => {
-        const task = row.original;
-        const isDone = (table.options.meta as TableMeta).completed.has(
-          task.wikiId,
-        );
-        return (
-          <Checkbox
-            checked={isDone}
-            onCheckedChange={() => onToggle(task.wikiId)}
-            aria-label={`Mark "${task.name}" as ${isDone ? "not completed" : "completed"}`}
-          />
-        );
-      },
+  const completedColumn: ColumnDef<TaskRow> = {
+    id: "completed",
+    header: () => <span className="sr-only">Completed</span>,
+    cell: ({ row, table }) => {
+      const task = row.original;
+      const isDone = (table.options.meta as TableMeta).completed.has(
+        task.wikiId,
+      );
+      return (
+        <Checkbox
+          checked={isDone}
+          onCheckedChange={() => onToggle(task.wikiId)}
+          aria-label={`Mark "${task.name}" as ${isDone ? "not completed" : "completed"}`}
+        />
+      );
     },
+  };
+
+  return [
+    ...(manualTracking ? [completedColumn] : []),
     {
       id: "listed",
       header: () => <span className="sr-only">On my list</span>,

@@ -32,7 +32,7 @@ afterEach(() => {
 describe("buildBackup", () => {
   it("carries progress and the list in one document", async () => {
     const { backup, progress, list } = await load();
-    progress.setMany([3, 1]);
+    progress.setMany([3, 1], "wikisync");
     list.setList([2, 1]);
 
     const file = backup.buildBackup();
@@ -57,7 +57,7 @@ describe("buildBackup", () => {
 describe("importBackup", () => {
   it("round-trips its own export", async () => {
     const { backup, progress, list } = await load();
-    progress.setMany([5, 9]);
+    progress.setMany([5, 9], "wikisync");
     list.setList([9, 5, 12]);
     const file = JSON.stringify(backup.buildBackup());
 
@@ -197,7 +197,7 @@ describe("importBackup", () => {
     "rejects %s without touching progress or the list",
     async (_label, payload) => {
       const { backup, progress, list } = await load();
-      progress.setMany([42]);
+      progress.setMany([42], "wikisync");
       list.setList([1, 2]);
 
       expect(() => backup.importBackup(payload)).toThrow();
@@ -212,7 +212,7 @@ describe("progress and the list stay independent", () => {
   // plan from under it would be a surprise with no undo.
   it("leaves the list alone when progress is reset", async () => {
     const { progress, list } = await load();
-    progress.setMany([1, 2]);
+    progress.setMany([1, 2], "wikisync");
     list.setList([3, 4]);
 
     progress.reset();
@@ -221,7 +221,7 @@ describe("progress and the list stay independent", () => {
 
   it("leaves progress alone when the list is cleared", async () => {
     const { progress, list } = await load();
-    progress.setMany([1, 2]);
+    progress.setMany([1, 2], "wikisync");
     list.setList([3, 4]);
 
     list.clear();

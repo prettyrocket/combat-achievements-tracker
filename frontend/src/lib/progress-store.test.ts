@@ -73,7 +73,7 @@ describe("toggle and persistence", () => {
 
   it("writes ids sorted, so the stored value has a stable shape", async () => {
     const { store, storage } = await loadStore();
-    store.setMany([300, 1, 42]);
+    store.setMany([300, 1, 42], "wikisync");
     expect(JSON.parse(storage.map.get(KEY)!).completed).toEqual([1, 42, 300]);
   });
 
@@ -176,14 +176,14 @@ describe("subscribe", () => {
 describe("every path in replaces rather than unions", () => {
   it("setMany replaces what was there", async () => {
     const { store } = await loadStore();
-    store.setMany([100, 101]);
-    store.setMany([1, 2, 3]);
+    store.setMany([100, 101], "wikisync");
+    store.setMany([1, 2, 3], "wikisync");
     expect([...store.getCompleted()].sort((a, b) => a - b)).toEqual([1, 2, 3]);
   });
 
   it("importProgress replaces too", async () => {
     const { store } = await loadStore();
-    store.setMany([100, 101]);
+    store.setMany([100, 101], "wikisync");
     store.importProgress(
       JSON.stringify({
         app: "combat-achievements-tracker",
@@ -196,7 +196,7 @@ describe("every path in replaces rather than unions", () => {
 
   it("setMany validates ids like every other path in", async () => {
     const { store } = await loadStore();
-    store.setMany([1, 999999, 2]);
+    store.setMany([1, 999999, 2], "wikisync");
     expect(store.getCompleted().size).toBe(2);
   });
 });
@@ -204,7 +204,7 @@ describe("every path in replaces rather than unions", () => {
 describe("export and import", () => {
   it("exports a tagged, sorted payload", async () => {
     const { store } = await loadStore();
-    store.setMany([3, 1, 2]);
+    store.setMany([3, 1, 2], "wikisync");
     const exported = store.buildExport();
 
     expect(exported.app).toBe("combat-achievements-tracker");
@@ -214,7 +214,7 @@ describe("export and import", () => {
 
   it("round-trips its own export", async () => {
     const { store } = await loadStore();
-    store.setMany([5, 9, 12]);
+    store.setMany([5, 9, 12], "wikisync");
     const payload = JSON.stringify(store.buildExport());
 
     store.reset();
@@ -253,7 +253,7 @@ describe("export and import", () => {
     "rejects %s without touching existing progress",
     async (_label, payload) => {
       const { store } = await loadStore();
-      store.setMany([42]);
+      store.setMany([42], "wikisync");
 
       expect(() => store.importProgress(payload)).toThrow();
       expect([...store.getCompleted()]).toEqual([42]);
@@ -302,7 +302,7 @@ describe("undo", () => {
   // too, and they're the ones worth being able to take back.
   it("takes back a reset and a WikiSync-style replace", async () => {
     const { store } = await loadStore();
-    store.setMany([18, 315, 42]);
+    store.setMany([18, 315, 42], "wikisync");
     store.reset();
     expect(store.getCompleted().size).toBe(0);
 
@@ -359,5 +359,92 @@ describe("sanitizeIds", () => {
       ids: [],
       dropped: 0,
     });
+  });
+});
+
+// A set of 646 integers looks identical however it got here, and one setting
+// turns on telling the difference -- so provenance is worth its own tests.
+describe("where the ticks came from", () => {
+  it("starts manual, and stays manual through a hand-ticked session", async () => {
+    const { store } = await loadStore();
+    expect(store.getSource()).toBe("manual");
+    store.toggle(18);
+    expect(store.getSource()).toBe("manual");
+  });
+
+  it("remembers the source an import wrote with", async () => {
+    const { store, storage } = await loadStore();
+    store.setMany([1, 2], "runeprofile");
+    expect(store.getSource()).toBe("runeprofile");
+    expect(JSON.parse(storage.map.get(KEY)!).source).toBe("runeprofile");
+  });
+
+  it("goes back to manual the moment you tick something yourself", async () => {
+    const { store } = await loadStore();
+    store.setMany([1, 2], "wikisync");
+    store.toggle(18);
+    expect(store.getSource()).toBe("manual");
+  });
+
+  it("calls a restored backup a file, not an account", async () => {
+    const { store } = await loadStore();
+    store.importProgress(
+      JSON.stringify({
+        app: "combat-achievements-tracker",
+        version: 1,
+        completed: [1, 2],
+      }),
+    );
+    expect(store.getSource()).toBe("file");
+    expect(store.fromAnAccount(store.getSource())).toBe(false);
+  });
+
+  it("puts the old source back when a change is undone", async () => {
+    const { store } = await loadStore();
+    store.setMany([1, 2], "wikisync");
+    store.toggle(18);
+    expect(store.getSource()).toBe("manual");
+
+    store.undo();
+    // Undoing the hand-tick returns to the imported set, so the account is the
+    // authority again -- ids and provenance step back together.
+    expect(store.getSource()).toBe("wikisync");
+  });
+
+  it("reads back what another tab wrote", async () => {
+    const { store, storage } = await loadStore();
+    storage.map.set(
+      KEY,
+      JSON.stringify({
+        app: "combat-achievements-tracker",
+        version: 1,
+        completed: [7],
+        source: "sharecode",
+      }),
+    );
+    store.refreshFromStorage();
+    expect(store.getSource()).toBe("sharecode");
+  });
+
+  it("calls anything it can't read manual, so the checkboxes stay", async () => {
+    // A v1 payload written before the field existed. Guessing "account" here
+    // would make a returning player's checkboxes vanish on upgrade.
+    const { store } = await loadStore({
+      seed: JSON.stringify({
+        app: "combat-achievements-tracker",
+        version: 1,
+        completed: [1],
+      }),
+    });
+    expect(store.getSource()).toBe("manual");
+  });
+
+  it("only counts an account as an account", async () => {
+    const { store } = await loadStore();
+    expect(store.fromAnAccount("wikisync")).toBe(true);
+    expect(store.fromAnAccount("runeprofile")).toBe(true);
+    expect(store.fromAnAccount("sharecode")).toBe(true);
+    expect(store.fromAnAccount("file")).toBe(false);
+    expect(store.fromAnAccount("manual")).toBe(false);
   });
 });

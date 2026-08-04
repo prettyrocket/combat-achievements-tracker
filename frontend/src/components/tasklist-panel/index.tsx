@@ -33,6 +33,8 @@ export interface TaskListPanelProps {
   pointsEarned: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Whether an entry carries a checkbox -- see Entry. */
+  manualTracking: boolean;
   onToggleCompleted: (wikiId: number) => void;
   onRemove: (wikiId: number) => void;
   onClear: () => void;
@@ -44,6 +46,7 @@ export function TaskListPanel({
   pointsEarned,
   open,
   onOpenChange,
+  manualTracking,
   onToggleCompleted,
   onRemove,
   onClear,
@@ -133,6 +136,7 @@ export function TaskListPanel({
                   <Entry
                     key={entry.task.wikiId}
                     entry={entry}
+                    manualTracking={manualTracking}
                     onToggleCompleted={onToggleCompleted}
                     onRemove={onRemove}
                   />

@@ -9,15 +9,22 @@ import { Checkbox } from "@/components/ui/checkbox";
 /**
  * One planned task: position, name, tier, and whether it's done.
  *
- * Deliberately a narrow view. Everything else -- description, Comp%, the monster
- * pivot -- is what the table on the left is for.
+ * Deliberately a narrow view. Everything else -- description, Comp%, the wiki
+ * links -- is what the table on the left is for.
  */
 export function Entry({
   entry,
+  manualTracking,
   onToggleCompleted,
   onRemove,
 }: {
   entry: TaskListEntry;
+  /**
+   * The panel's checkbox is the table's checkbox in a second place, so it goes
+   * when that one does. The strike-through stays: what's done is still worth
+   * seeing, it just isn't this browser's answer to give.
+   */
+  manualTracking: boolean;
   onToggleCompleted: (wikiId: number) => void;
   onRemove: (wikiId: number) => void;
 }) {
@@ -61,12 +68,14 @@ export function Entry({
         {position}
       </span>
 
-      <Checkbox
-        checked={completed}
-        onCheckedChange={() => onToggleCompleted(task.wikiId)}
-        aria-label={`Mark "${task.name}" as ${completed ? "not completed" : "completed"}`}
-        className="mt-0.5"
-      />
+      {manualTracking && (
+        <Checkbox
+          checked={completed}
+          onCheckedChange={() => onToggleCompleted(task.wikiId)}
+          aria-label={`Mark "${task.name}" as ${completed ? "not completed" : "completed"}`}
+          className="mt-0.5"
+        />
+      )}
 
       <div className="min-w-0 flex-1">
         <p

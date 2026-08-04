@@ -20,6 +20,17 @@ import { readJson, writeJson } from "@/lib/local-store";
 export type LoadSourceId =
   "wikisync" | "runeprofile" | "wiseoldman" | "file" | "manual";
 
+/**
+ * The two that speak for a whole account: achievements *and* levels, from one
+ * lookup or one paste.
+ *
+ * A named subset because they are the pair that writes to both stores at once,
+ * and both stores have to call them the same thing -- `ProgressSource` and
+ * `ProfileSource` overlap here and nowhere else that matters. Wise Old Man is
+ * not among them: it knows levels and has never heard of a Combat Achievement.
+ */
+export type AccountSource = Extract<LoadSourceId, "wikisync" | "runeprofile">;
+
 export interface LoadSourceMeta {
   id: LoadSourceId;
   /** The rail label. */

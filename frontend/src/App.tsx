@@ -32,8 +32,7 @@ import { resolve } from "@/lib/tasklist";
 import { DEFAULT_SORT, applyQuery } from "@/lib/task-query";
 import { useMonsterFilter } from "@/lib/use-monster-filter";
 import { useProfile } from "@/lib/use-profile";
-import type { ProfileSource } from "@/lib/profile-store";
-import type { LoadSourceId } from "@/lib/load-source";
+import type { AccountSource, LoadSourceId } from "@/lib/load-source";
 import { useProgress } from "@/lib/use-progress";
 import { useShareCode } from "@/lib/use-share-code";
 import { useTaskList } from "@/lib/use-tasklist";
@@ -41,7 +40,14 @@ import { useTaskQuery } from "@/lib/use-task-query";
 import { useUiPrefs } from "@/lib/use-ui-prefs";
 
 export default function App() {
-  const { completed, toggle, setMany, reset, storageError } = useProgress();
+  const {
+    completed,
+    source: progressSource,
+    toggle,
+    setMany,
+    reset,
+    storageError,
+  } = useProgress();
   const { query, setQuery, clear } = useTaskQuery();
   const taskList = useTaskList();
   const profile = useProfile();
@@ -49,7 +55,9 @@ export default function App() {
   // renders, which is what the import callback below wants to depend on.
   const { setProfile } = profile;
 
-  const prefs = useUiPrefs();
+  // Takes the source because one pref is defaulted from it: manual tracking is
+  // on unless an account is already keeping the answers.
+  const prefs = useUiPrefs(progressSource);
   const shareCode = useShareCode();
   const filter = useMonsterFilter(query, setQuery, clear);
   // Same reason as `setProfile` above: the stable half of a hook result, pulled
@@ -160,9 +168,9 @@ export default function App() {
       rsn: string,
       clearList: boolean,
       imported: PlayerProfile | null,
-      source: ProfileSource,
+      source: AccountSource,
     ) => {
-      setMany(ids);
+      setMany(ids, source);
       if (clearList) taskList.clear();
       // Only when the import actually carried levels. A payload without them
       // must not wipe a profile the player typed in by hand.
@@ -174,7 +182,9 @@ export default function App() {
 
   const acceptShareCode = useCallback(
     (incoming: ShareCodeResult) => {
-      setMany(incoming.completed);
+      // 'sharecode' rather than 'manual': someone handed you a finished set,
+      // which is the same relationship to it that an import has.
+      setMany(incoming.completed, "sharecode");
       taskList.replace(incoming.list);
       // Same rule as an imported file (backup.ts): a code without a profile is
       // not an instruction to clear one. 'manual' rather than 'wikisync'
@@ -213,6 +223,8 @@ export default function App() {
             onLoadOpen={openLoad}
             notice={notice}
             onNotice={setNotice}
+            manualTracking={prefs.manualTracking}
+            onManualTrackingChange={prefs.setManualTracking}
           />
         </header>
 
@@ -272,6 +284,7 @@ export default function App() {
               pointsEarned={summary.pointsEarned}
               open={prefs.panelOpen}
               onOpenChange={prefs.setPanelOpen}
+              manualTracking={prefs.manualTracking}
               onToggleCompleted={toggle}
               onRemove={taskList.remove}
               onClear={taskList.clear}
@@ -288,6 +301,7 @@ export default function App() {
                 tasks={visible}
                 completed={completed}
                 onToggle={toggle}
+                manualTracking={prefs.manualTracking}
                 onList={listedIds}
                 onToggleListed={taskList.toggle}
                 onAddManyToList={taskList.addMany}

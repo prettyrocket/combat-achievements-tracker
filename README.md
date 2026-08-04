@@ -117,8 +117,10 @@ because the hiscores don't track those either.
 ## Filtering by what you can actually fight
 
 The **Requirements** filter cycles *Any monster → Can face → Can't face yet*, and every
-row whose monster is out of reach carries a lock. Hover or focus it and it says what the
-gate asks for — "Requires 92 Slayer and the quest Priest in Peril". It needs to know your
+row whose monster is out of reach has a lock where its **add to my list** button would be —
+you can't plan what you can't reach. Hover or focus it and it says what the gate asks for
+— "Requires 92 Slayer and the quest Priest in Peril". Ticking a row as done is never
+locked: the app is not the authority on what you have done, you are. It needs to know your
 levels and quests, which any of the sources above can supply. The **By hand** pane is the
 one that can answer a question none of the others can: type a level you haven't earned yet
 and the filter tells you what it would open up. When the filter has nothing to run on, it
@@ -156,6 +158,23 @@ Re-checked 2026-08-02 across all 47 Bucket schemas: still nothing machine-readab
 levels are (`infobox_monster.slayer_level`), but quest gates fail three separate ways —
 `infobox_npc.quest` means "appears in" rather than "unlocked by", bosses like Duke Sucellus
 have no `infobox_npc` row at all, and page categories cover only 14 of the 31 gated bosses.
+
+## Settings
+
+Under the gear, and all of them furniture: they belong to this browser, persist in their
+own `localStorage` keys, and are untouched by a data load or a restored backup.
+
+**Allow manual completion tracking** decides whether the checkbox column exists at all. It
+is on by default — unless an account is already keeping the answers, which is what a
+WikiSync paste, a RuneProfile lookup or an accepted share code means. Ticking a box the
+next import will overwrite is an invitation to lose your own edit, so the column goes and
+completed rows keep every other treatment they have.
+
+That is a *default*, not a rule. Set it either way and your choice sticks through every
+later import; and ticking a single box yourself hands provenance back to this browser. The
+distinction needs `progress-store.ts` to record where the current ticks came from, which it
+stores beside them — a restored backup counts as your own tracking coming home, not as an
+account.
 
 ## Prerequisites
 

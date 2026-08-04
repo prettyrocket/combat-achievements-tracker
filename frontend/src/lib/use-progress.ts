@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useSyncExternalStore } from "react";
 import {
   getCompleted,
+  getSource,
   getStorageError,
   refreshFromStorage,
   reset,
@@ -14,12 +15,15 @@ import {
   subscribe,
   toggle,
   undo,
+  type ProgressSource,
 } from "@/lib/progress-store";
 
 export interface UseProgress {
   completed: ReadonlySet<number>;
+  /** Where the current ticks came from -- what the manual-tracking default reads. */
+  source: ProgressSource;
   toggle: (wikiId: number) => void;
-  setMany: (wikiIds: Iterable<number>) => void;
+  setMany: (wikiIds: Iterable<number>, source: ProgressSource) => void;
   reset: () => void;
   /** Steps back one change to progress. A no-op when there's nothing to step
    *  back to, which is why nothing here reports whether there is. */
@@ -30,6 +34,10 @@ export interface UseProgress {
 
 export function useProgress(): UseProgress {
   const completed = useSyncExternalStore(subscribe, getCompleted, getCompleted);
+  // Its own subscription rather than a bare getSource() during render: the two
+  // move together, but only a subscribed read is safe to trust across a
+  // concurrent render.
+  const source = useSyncExternalStore(subscribe, getSource, getSource);
 
   // Ctrl+Z / ⌘Z anywhere that isn't a text field, and the only way to undo --
   // ticking a task is a one-click change to the thing this app is for, so the
@@ -73,8 +81,13 @@ export function useProgress(): UseProgress {
 
   return {
     completed,
+    source,
     toggle: useCallback((wikiId: number) => toggle(wikiId), []),
-    setMany: useCallback((wikiIds: Iterable<number>) => setMany(wikiIds), []),
+    setMany: useCallback(
+      (wikiIds: Iterable<number>, source: ProgressSource) =>
+        setMany(wikiIds, source),
+      [],
+    ),
     reset: useCallback(() => reset(), []),
     undo: useCallback(() => void undo(), []),
     storageError: getStorageError(),
