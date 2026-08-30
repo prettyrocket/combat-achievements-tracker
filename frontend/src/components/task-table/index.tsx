@@ -192,13 +192,6 @@ export function TaskTable({
                 index={virtualRow.index}
                 measureRef={virtualizer.measureElement}
                 isCompleted={completed.has(task.wikiId)}
-                // The third door onto the plan, after the row's button and the
-                // banner's. A gate that stops the other two has to stop this
-                // one, or the lock is a suggestion.
-                locked={
-                  !onList.has(task.wikiId) &&
-                  gateReason(gates, task.monster) !== null
-                }
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>

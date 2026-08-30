@@ -1,24 +1,42 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, X } from "lucide-react";
+import { GripVertical, Lock, X } from "lucide-react";
 import { dragId } from "@/lib/dnd";
 import type { TaskListEntry } from "@/lib/tasklist";
 import { TierBadge } from "@/components/tier-badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 /**
- * One planned task: position, name, tier, and whether it's done.
+ * One planned task: name, tier, and whether it's done.
  *
  * Deliberately a narrow view. Everything else -- description, Comp%, the wiki
  * links -- is what the table on the left is for.
+ *
+ * The order is the order of the rows; it is not also written down beside them.
+ * A number that only ever reads 1, 2, 3 down a list you can already see costs a
+ * column of a panel this narrow to say nothing. It survives where it is the only
+ * way to know -- the drag handle's label, which is what a screen reader hears
+ * while lifting a row.
  */
 export function Entry({
   entry,
+  requires,
   manualTracking,
   onToggleCompleted,
   onRemove,
 }: {
   entry: TaskListEntry;
+  /**
+   * What this task still needs, or null when nothing. The table lets you plan
+   * one of these deliberately; the lock rides along so the plan says which of
+   * its rows you can't walk up to yet, rather than looking like the rest.
+   */
+  requires: string | null;
   /**
    * The panel's checkbox is the table's checkbox in a second place, so it goes
    * when that one does. The strike-through stays: what's done is still worth
@@ -29,6 +47,7 @@ export function Entry({
   onRemove: (wikiId: number) => void;
 }) {
   const { task, position, completed } = entry;
+  const showLock = requires !== null && !completed;
   const {
     attributes,
     listeners,
@@ -64,10 +83,6 @@ export function Entry({
         <GripVertical className="size-4" aria-hidden />
       </button>
 
-      <span className="text-muted-foreground mt-0.5 w-4 shrink-0 text-right text-xs tabular-nums">
-        {position}
-      </span>
-
       {manualTracking && (
         <Checkbox
           checked={completed}
@@ -82,6 +97,23 @@ export function Entry({
           className={`text-sm font-medium ${completed ? "text-muted-foreground line-through" : ""}`}
         >
           {task.name}
+          {/* Inline, so it follows the last word rather than sitting at the end
+              of a box the name may not fill. Gone once the task is ticked: a
+              requirement on something you have done is a contradiction, and the
+              app takes your word for that over its own. */}
+          {showLock && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="ml-1 inline-flex align-text-bottom text-amber-500/70">
+                  <Lock className="size-3.5" aria-hidden />
+                  {/* The tooltip is hover-only on a span, so the reason is
+                      spelled out here for anyone not using a pointer. */}
+                  <span className="sr-only">{requires}</span>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{requires}</TooltipContent>
+            </Tooltip>
+          )}
         </p>
         <p className="mt-0.5 flex items-center gap-2 text-xs">
           <TierBadge tier={task.tier} />

@@ -319,6 +319,7 @@ export default function App() {
               open={prefs.panelOpen}
               onOpenChange={prefs.setPanelOpen}
               position={prefs.listPosition}
+              gates={gates}
               manualTracking={prefs.manualTracking}
               onToggleCompleted={toggle}
               onRemove={taskList.remove}

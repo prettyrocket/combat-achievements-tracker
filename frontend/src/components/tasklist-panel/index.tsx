@@ -1,6 +1,6 @@
 // The plan, docked to the right of the table.
 //
-// Deliberately a *narrow* view of a task: position, name, tier, and whether it's
+// Deliberately a *narrow* view of a task: name, tier, and whether it's
 // done. Everything else -- description, Comp%, the monster pivot -- is what the
 // table on the left is for. The panel answers one question, "what am I doing
 // next", and stays readable at a third of the width because it doesn't try to
@@ -27,6 +27,7 @@ import {
 import { TASKLIST_DROPPABLE, dragId } from "@/lib/dnd";
 import { isSideDocked, type ListPosition } from "@/lib/list-position";
 import { percent } from "@/lib/progress-summary";
+import { gateReason, type GateCheck } from "@/lib/requirements";
 import type { RewardTier } from "@/lib/rewards";
 import { summarize, type TaskListEntry } from "@/lib/tasklist";
 import { CollapsedRail } from "@/components/tasklist-panel/collapsed-rail";
@@ -49,6 +50,10 @@ export interface TaskListPanelProps {
    * the panel will actually go.
    */
   position: ListPosition;
+  /** One verdict per monster, as the table reads it. The panel only asks it the
+   *  one question -- what does this still need -- so a planned task keeps saying
+   *  so after it's left the table behind. */
+  gates: ReadonlyMap<string, GateCheck>;
   /** Whether an entry carries a checkbox -- see Entry. */
   manualTracking: boolean;
   onToggleCompleted: (wikiId: number) => void;
@@ -63,6 +68,7 @@ export function TaskListPanel({
   open,
   onOpenChange,
   position,
+  gates,
   manualTracking,
   onToggleCompleted,
   onRemove,
@@ -166,6 +172,7 @@ export function TaskListPanel({
                   <Entry
                     key={entry.task.wikiId}
                     entry={entry}
+                    requires={gateReason(gates, entry.task.monster)}
                     manualTracking={manualTracking}
                     onToggleCompleted={onToggleCompleted}
                     onRemove={onRemove}

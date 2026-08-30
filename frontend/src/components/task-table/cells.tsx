@@ -14,17 +14,16 @@ import {
 } from "@/components/ui/tooltip";
 
 /**
- * The plan control: add, remove, or the lock that says not yet.
+ * The plan control: add, remove, and the lock that says what this one will take.
  *
- * The lock used to sit beside the monster's name, where it was information and
- * nothing more. It belongs on the control it actually governs -- a plan is what
- * you are going to go and do next, and a task you cannot reach is not that.
+ * The lock used to refuse. It sat where the add button goes and did nothing on
+ * click, on the reasoning that a plan is what you are going to do next and a
+ * task you cannot reach is not that. But a plan you are building towards --
+ * 85 Slayer, then these six Cerberus tasks -- is the same list, and the app is
+ * no more the authority on what you are going to do than on what you have done.
  *
- * Only *adding* is locked. A task already on the list stays removable however
- * short of its requirements you are: it can get there from an import or from a
- * profile you edited afterwards, and a plan you can't take something off is a
- * trap. Ticking the row as done is untouched either way -- the app is not the
- * authority on what you have done, you are.
+ * So the lock stays and the veto goes: an unreachable task shows the amber lock
+ * and says what it needs, and adds when you click it anyway.
  */
 export function ListToggle({
   name,
@@ -34,56 +33,55 @@ export function ListToggle({
 }: {
   name: string;
   listed: boolean;
-  /** Why this task can't be planned yet, or null when it can. */
+  /** What this task needs first, or null when nothing. */
   gateReason: string | null;
   onToggle: () => void;
 }) {
+  // Nothing to warn about once it's on the list -- at that point the control's
+  // job is removing it, and the row is already a decision you made.
   const requires = listed ? null : gateReason;
+  const Icon = requires !== null ? Lock : listed ? ListChecks : ListPlus;
 
-  if (requires !== null) {
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          {/* A button, not a decorated span: `title` never appears on keyboard
-              focus, so the reason would be reachable by pointer only. Disabled
-              would cost the same -- a disabled button takes neither hover nor
-              focus, and the reason is the whole point of the lock. */}
-          <button
-            type="button"
-            // Nothing to do on click. The tooltip opens on hover and on focus,
-            // and blocking this stops a stray tap from doing anything at all.
-            onClick={(event) => event.preventDefault()}
-            aria-disabled
-            aria-label={`Can't plan "${name}" yet. ${requires}`}
-            className="cursor-not-allowed rounded p-1 text-amber-500/70 hover:text-amber-500"
-          >
-            <Lock className="size-4" aria-hidden />
-          </button>
-        </TooltipTrigger>
-        {/* One line, and the same line the screen reader gets. */}
-        <TooltipContent>{requires}</TooltipContent>
-      </Tooltip>
-    );
-  }
-
-  const Icon = listed ? ListChecks : ListPlus;
-  return (
+  const button = (
     <button
       type="button"
       onClick={onToggle}
       aria-pressed={listed}
-      title={listed ? "On my list" : "Add to my list"}
+      // The reason lives in the tooltip when there is one; a `title` beside it
+      // would open a second, native tooltip saying something shorter.
+      title={
+        requires !== null ? undefined : listed ? "On my list" : "Add to my list"
+      }
       aria-label={
-        listed ? `Remove "${name}" from my list` : `Add "${name}" to my list`
+        requires !== null
+          ? `Add "${name}" to my list. ${requires}`
+          : listed
+            ? `Remove "${name}" from my list`
+            : `Add "${name}" to my list`
       }
       className={`rounded p-1 transition-colors ${
-        listed
-          ? "text-background bg-foreground"
-          : "text-muted-foreground/50 hover:bg-muted hover:text-foreground"
+        requires !== null
+          ? "hover:bg-muted text-amber-500/70 hover:text-amber-500"
+          : listed
+            ? "text-background bg-foreground"
+            : "text-muted-foreground/50 hover:bg-muted hover:text-foreground"
       }`}
     >
       <Icon className="size-4" aria-hidden />
     </button>
+  );
+
+  if (requires === null) return button;
+
+  return (
+    <Tooltip>
+      {/* A live button, so the reason is reachable by hover and by focus. A
+          disabled one would take neither -- which is why the lock was never
+          `disabled` even back when it refused. */}
+      <TooltipTrigger asChild>{button}</TooltipTrigger>
+      {/* One line, and the same line the screen reader gets. */}
+      <TooltipContent>{requires}</TooltipContent>
+    </Tooltip>
   );
 }
 
