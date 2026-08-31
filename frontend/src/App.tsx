@@ -15,6 +15,7 @@ import { ProgressHeader } from "@/components/progress-header";
 import { FilterBar } from "@/components/filter-bar";
 import { MonsterBreadcrumb } from "@/components/monster-breadcrumb";
 import { ShareCodePrompt } from "@/components/share-code-prompt";
+import { Toast } from "@/components/toast";
 import { TaskDragProvider } from "@/components/task-drag-provider";
 import { PlanOverlay } from "@/components/plan-overlay";
 import { TaskListPanel } from "@/components/tasklist-panel";
@@ -109,6 +110,7 @@ export default function App() {
   // its dialog has closed: the message describes three stores at once and is
   // worth reading once the thing that produced it has gone.
   const [notice, setNotice] = useState<Notice | null>(null);
+  const dismissNotice = useCallback(() => setNotice(null), []);
 
   const openProfileEditor = useCallback(() => {
     setLoadSource("manual");
@@ -274,7 +276,6 @@ export default function App() {
             onClearList={taskList.clear}
             onClearProfile={profile.clear}
             onLoadOpen={openLoad}
-            notice={notice}
             onNotice={setNotice}
             manualTracking={prefs.manualTracking}
             onManualTrackingChange={prefs.setManualTracking}
@@ -415,6 +416,8 @@ export default function App() {
         onMoveTrip={moveTripInPlan}
         onClearCompleted={clearCompletedFromPlan}
       />
+
+      <Toast notice={notice} onDismiss={dismissNotice} />
 
       <ShareCodePrompt
         incoming={shareCode.incoming}

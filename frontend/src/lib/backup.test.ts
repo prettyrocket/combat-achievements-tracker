@@ -110,6 +110,32 @@ describe("importBackup", () => {
     expect(result.listDropped).toBe(0);
   });
 
+  // The other tests here hand importBackup a file written by hand, which pins
+  // what it accepts but not that we still write that shape. This one is the
+  // whole loop -- Export in the toolbar, then the file pane in Load -- with all
+  // three stores carrying something.
+  it("round-trips its own export with a profile in it", async () => {
+    const { backup, progress, list, profile } = await load();
+    progress.setMany([5, 9], "wikisync");
+    list.setList([9, 5, 12]);
+    profile.setProfile({ levels: { Slayer: 92 }, quests: ["Regicide"] });
+    // Pretty-printed, exactly as the download is written.
+    const file = JSON.stringify(backup.buildBackup(), null, 2);
+
+    progress.reset();
+    list.clear();
+    profile.clearProfile();
+
+    const result = backup.importBackup(file);
+    expect(result.profileImported).toBe(true);
+    expect([...progress.getCompleted()].sort((a, b) => a - b)).toEqual([5, 9]);
+    expect([...list.getList()]).toEqual([9, 5, 12]);
+    expect(profile.getProfile()).toEqual({
+      levels: { Slayer: 92 },
+      quests: ["Regicide"],
+    });
+  });
+
   // Unlike progress and the list, an absent profile is *not* an instruction to
   // clear one -- a file exported before this existed must not wipe your levels.
   it("leaves an existing profile alone when the file has none", async () => {

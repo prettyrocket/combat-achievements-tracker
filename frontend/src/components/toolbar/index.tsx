@@ -41,7 +41,6 @@ export interface ProgressToolbarProps {
    * and that message describes three stores at once -- it has to outlive the
    * thing that produced it.
    */
-  notice: Notice | null;
   onNotice: (notice: Notice) => void;
   /** Furniture, not progress -- passed straight through to Settings. */
   manualTracking: boolean;
@@ -61,7 +60,6 @@ export function ProgressToolbar({
   onClearList,
   onClearProfile,
   onLoadOpen,
-  notice,
   onNotice,
   manualTracking,
   onManualTrackingChange,
@@ -106,15 +104,6 @@ export function ProgressToolbar({
           onListPositionChange={onListPositionChange}
         />
       </div>
-
-      {notice && (
-        <p
-          role="status"
-          className={`text-xs ${notice.tone === "error" ? "text-red-400" : "text-muted-foreground"}`}
-        >
-          {notice.message}
-        </p>
-      )}
     </div>
   );
 }
