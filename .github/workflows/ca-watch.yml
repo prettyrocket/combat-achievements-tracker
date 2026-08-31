@@ -1,0 +1,198 @@
+name: Watch for CA updates
+
+# The task bundle (frontend/src/data/tasks.json) is a build-time snapshot, so it
+# is the one input to this app that changes without anyone pushing -- and every
+# other check here is push-triggered. Nothing noticed the Mad Angel release for
+# five weeks. This is the job that notices.
+#
+# Two things can be worth telling someone about, and they want different handling:
+#
+#   Percentages drifted   refresh-data succeeds and the file changes. Routine, and
+#                         safe to merge once the suite agrees -- open a PR.
+#   A release landed      refresh-data *fails* on the row-count tripwire in
+#                         wiki-transform.ts and writes nothing, on purpose: new
+#                         tasks want a human before they ship. Open an issue
+#                         carrying the script's own message, which already says
+#                         what needs updating.
+#
+# Anything else -- the wiki down, a shape change, a bad response -- is left to
+# fail the run. A red Actions badge is the right signal for "went wrong"; an
+# issue is for "the game changed and there is work to do".
+
+on:
+  schedule:
+    # Thursdays. OSRS updates land on Wednesdays, and GitHub throttles jobs
+    # queued exactly on the hour, hence the odd minute.
+    - cron: "17 7 * * 4"
+  # Lets someone check immediately when they hear a release landed, rather than
+  # waiting for Thursday.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+# Both branches of this write to the same PR branch, so never two at once.
+concurrency:
+  group: ca-watch
+  cancel-in-progress: false
+
+env:
+  BRANCH: data/ca-refresh
+  ISSUE_TITLE: A Combat Achievements release needs a human
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+
+      # The exit code is wanted as *data*, not as a job result: the steps below
+      # need to tell a release apart from a bad afternoon on the wiki. Hence the
+      # capture rather than `continue-on-error`.
+      - name: Refresh the bundle
+        id: refresh
+        run: |
+          set +e
+          log=$(npm run refresh-data 2>&1)
+          code=$?
+          set -e
+          echo "$log"
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          {
+            echo "log<<REFRESH_EOF"
+            echo "$log"
+            echo "REFRESH_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Did the bundle actually change?
+        id: diff
+        if: steps.refresh.outputs.code == '0'
+        run: |
+          if git diff --quiet -- src/data/tasks.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Worth doing here rather than leaving to the PR: the deploy workflow runs
+      # on push to main only, and a PR opened with GITHUB_TOKEN doesn't trigger
+      # workflows anyway, so this is the only chance to say whether it's safe.
+      - name: Does the suite still agree with it?
+        id: verify
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          set +e
+          npm run test > /tmp/test.log 2>&1
+          code=$?
+          set -e
+          tail -30 /tmp/test.log
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+
+      - name: Open or update the data PR
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # Through the environment, never interpolated into the script: this
+          # text comes from the wiki, and `${{ }}` inside a run block is pasted
+          # in before bash ever sees it.
+          REFRESH_LOG: ${{ steps.refresh.outputs.log }}
+          TEST_CODE: ${{ steps.verify.outputs.code }}
+        run: |
+          {
+            echo "The weekly wiki check found the bundle out of date. Only"
+            echo "\`tasks.json\` is touched here -- the row count and point total"
+            echo "still match, so this is percentage drift rather than a release."
+            echo
+            echo '```'
+            printf '%s\n' "$REFRESH_LOG"
+            echo '```'
+            echo
+            if [ "$TEST_CODE" = "0" ]; then
+              echo "\`npm run test\` passes against the new data, so this is safe to merge."
+            else
+              echo "**\`npm run test\` fails against the new data.** Something moved that the"
+              echo "tripwire in \`wiki-transform.ts\` doesn't cover -- look before merging."
+              echo
+              echo '```'
+              tail -30 /tmp/test.log
+              echo '```'
+            fi
+          } > /tmp/body.md
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$BRANCH"
+          git add src/data/tasks.json
+          git commit -m "Refresh Combat Achievements completion data"
+          git push -f origin "$BRANCH"
+
+          # Force-pushed to a fixed branch, so an open PR just picks up the new
+          # data instead of a second one appearing every Thursday.
+          if [ -n "$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')" ]; then
+            gh pr edit "$BRANCH" --body-file /tmp/body.md
+          else
+            gh pr create \
+              --base main \
+              --head "$BRANCH" \
+              --title "Refresh Combat Achievements completion data" \
+              --body-file /tmp/body.md
+          fi
+
+      - name: Flag a release for a human
+        if: steps.refresh.outputs.code != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REFRESH_LOG: ${{ steps.refresh.outputs.log }}
+        run: |
+          # The tripwire's own wording, matched loosely enough to survive a
+          # reword. Anything else that failed is not a release, so let the run
+          # go red instead of filing an issue about it.
+          if ! printf '%s\n' "$REFRESH_LOG" | grep -qE 'Expected [0-9]+ (tasks|total tier points)'; then
+            echo "refresh-data failed for a reason that isn't a release. Failing the run."
+            exit 1
+          fi
+
+          {
+            echo "\`refresh-data\` refused to write, which is the row-count tripwire in"
+            echo "\`frontend/scripts/wiki-transform.ts\` doing its job: tasks were added,"
+            echo "removed, or retiered, and that wants a person before it ships."
+            echo
+            echo '```'
+            printf '%s\n' "$REFRESH_LOG"
+            echo '```'
+            echo
+            echo "To take it: bump \`EXPECTED_ROWS\` and \`EXPECTED_POINTS\`, run"
+            echo "\`npm run refresh-data\`, then update the counts the tests assert"
+            echo "(\`tasks.test.ts\`, \`progress-summary.test.ts\`, \`rewards.test.ts\`,"
+            echo "\`wiki-transform.test.ts\`). A change in task count also resizes the"
+            echo "share-code bitset, so \`VERSION\` in \`src/lib/share-code.ts\` moves too."
+            echo "Finish with \`npm run check-links\` and \`npm run check-requirements\` --"
+            echo "new tasks arrive in the Bucket API before the wiki has pages for them."
+          } > /tmp/body.md
+
+          # $ENV rather than shell interpolation, so the title stays one value
+          # however it is later reworded.
+          existing=$(gh issue list --state open --json number,title \
+            --jq 'map(select(.title == $ENV.ISSUE_TITLE)) | .[0].number // empty')
+
+          # One issue per release, not one per Thursday. It stays open until
+          # someone does the work, and saying so again weekly adds nothing.
+          if [ -n "$existing" ]; then
+            echo "Already tracked in #$existing."
+          else
+            gh issue create --title "$ISSUE_TITLE" --body-file /tmp/body.md
+          fi
