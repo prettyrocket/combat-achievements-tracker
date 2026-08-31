@@ -9,6 +9,12 @@
 // Two shapes, in two files: the rail when it's put away, and this when it isn't.
 // The droppable is registered here either way, so a row dragged toward a closed
 // panel still has something to hit.
+//
+// A third shape lives elsewhere: plan-overlay, the same plan over the whole
+// window, for when glancing at it isn't what you're doing. This one keeps the
+// narrow job -- a flat queue in list order, nothing else -- and hands that one
+// the expand button. Trip headings live over there, where there is room for
+// them to be worth their line.
 
 import { useDroppable } from "@dnd-kit/core";
 import {
@@ -22,6 +28,7 @@ import {
   ChevronUp,
   ListChecks,
   ListPlus,
+  Maximize2,
   X,
 } from "lucide-react";
 import { TASKLIST_DROPPABLE, dragId } from "@/lib/dnd";
@@ -54,6 +61,8 @@ export interface TaskListPanelProps {
    *  one question -- what does this still need -- so a planned task keeps saying
    *  so after it's left the table behind. */
   gates: ReadonlyMap<string, GateCheck>;
+  /** Opens the plan over the whole window, where there is room to work on it. */
+  onExpand: () => void;
   /** Whether an entry carries a checkbox -- see Entry. */
   manualTracking: boolean;
   onToggleCompleted: (wikiId: number) => void;
@@ -69,6 +78,7 @@ export function TaskListPanel({
   onOpenChange,
   position,
   gates,
+  onExpand,
   manualTracking,
   onToggleCompleted,
   onRemove,
@@ -91,6 +101,17 @@ export function TaskListPanel({
       />
     );
   }
+
+  const renderEntry = (entry: TaskListEntry) => (
+    <Entry
+      key={entry.task.wikiId}
+      entry={entry}
+      requires={gateReason(gates, entry.task.monster)}
+      manualTracking={manualTracking}
+      onToggleCompleted={onToggleCompleted}
+      onRemove={onRemove}
+    />
+  );
 
   // Pointing the way the panel goes when you put it away.
   const Collapse = {
@@ -125,15 +146,28 @@ export function TaskListPanel({
               </span>
             </span>
           </h2>
-          <button
-            type="button"
-            onClick={() => onOpenChange(false)}
-            aria-expanded
-            aria-label="Collapse my list"
-            className="text-muted-foreground hover:text-foreground hover:bg-muted rounded p-1"
-          >
-            <Collapse className="size-4" aria-hidden />
-          </button>
+          <div className="flex shrink-0 items-center gap-0.5">
+            {entries.length > 0 && (
+              <button
+                type="button"
+                onClick={onExpand}
+                title="Open my list"
+                aria-label="Open my list"
+                className="text-muted-foreground hover:text-foreground hover:bg-muted rounded p-1"
+              >
+                <Maximize2 className="size-4" aria-hidden />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              aria-expanded
+              aria-label="Collapse my list"
+              className="text-muted-foreground hover:text-foreground hover:bg-muted rounded p-1"
+            >
+              <Collapse className="size-4" aria-hidden />
+            </button>
+          </div>
         </div>
 
         {summary.total > 0 && (
@@ -168,16 +202,7 @@ export function TaskListPanel({
               {/* The one part of the panel that scrolls: the header, the meter
                   and Clear all stay put, however long the plan gets. */}
               <ul className="min-h-0 flex-1 space-y-1.5 overflow-y-auto p-2">
-                {entries.map((entry) => (
-                  <Entry
-                    key={entry.task.wikiId}
-                    entry={entry}
-                    requires={gateReason(gates, entry.task.monster)}
-                    manualTracking={manualTracking}
-                    onToggleCompleted={onToggleCompleted}
-                    onRemove={onRemove}
-                  />
-                ))}
+                {entries.map(renderEntry)}
               </ul>
             </SortableContext>
 

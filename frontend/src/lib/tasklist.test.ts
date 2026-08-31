@@ -5,12 +5,16 @@ import { describe, expect, it } from "vitest";
 import {
   add,
   addMany,
+  dropCompleted,
+  gatherByMonster,
+  moveTrip,
   insertAt,
   move,
   moveId,
   remove,
   resolve,
   summarize,
+  toTrips,
   toggle,
 } from "@/lib/tasklist";
 import type { TaskRow, Tier } from "@/lib/types";
@@ -312,5 +316,144 @@ describe("summarize", () => {
     const a = task({ tier: "HARD" });
     const entries = resolve([a.wikiId, 999999], [a], new Set());
     expect(summarize(entries).pointsTotal).toBe(3);
+  });
+});
+
+describe("toTrips", () => {
+  const entries = (...monsters: (string | null)[]) =>
+    resolve(
+      monsters.map((_, index) => index),
+      monsters.map((monster, index) => task({ wikiId: index, monster })),
+      new Set<number>(),
+    );
+
+  it("starts a trip wherever the monster changes", () => {
+    const trips = toTrips(entries("Zulrah", "Zulrah", "Vorkath"));
+    expect(trips.map((trip) => trip.monster)).toEqual(["Zulrah", "Vorkath"]);
+    expect(trips[0].entries).toHaveLength(2);
+  });
+
+  // The whole reason these are runs and not one section per monster: a plan is
+  // a route, and a route can come back to a boss it has already been to.
+  it("keeps a second visit to the same monster as its own trip", () => {
+    const trips = toTrips(entries("Cerberus", "Zulrah", "Cerberus"));
+    expect(trips.map((trip) => trip.monster)).toEqual([
+      "Cerberus",
+      "Zulrah",
+      "Cerberus",
+    ]);
+    expect(trips.map((trip) => trip.entries.length)).toEqual([1, 1, 1]);
+  });
+
+  it("never reorders: the rows come back in list order", () => {
+    const trips = toTrips(entries("Cerberus", "Zulrah", "Cerberus"));
+    expect(
+      trips.flatMap((trip) => trip.entries.map((e) => e.task.wikiId)),
+    ).toEqual([0, 1, 2]);
+  });
+
+  it("runs the monsterless tasks together like any other", () => {
+    const trips = toTrips(entries(null, null, "Zulrah"));
+    expect(trips[0].monster).toBeNull();
+    expect(trips[0].entries).toHaveLength(2);
+  });
+
+  it("returns nothing for an empty plan", () => {
+    expect(toTrips([])).toEqual([]);
+  });
+});
+
+describe("gatherByMonster", () => {
+  const tasks = [
+    task({ wikiId: 0, monster: "Cerberus" }),
+    task({ wikiId: 1, monster: "Zulrah" }),
+    task({ wikiId: 2, monster: "Cerberus" }),
+    task({ wikiId: 3, monster: null }),
+    task({ wikiId: 4, monster: "Zulrah" }),
+  ];
+
+  it("brings each monster's tasks up to where that monster first appears", () => {
+    expect(gatherByMonster([0, 1, 2, 4], tasks)).toEqual([0, 2, 1, 4]);
+  });
+
+  it("leaves a plan that is already gathered alone", () => {
+    expect(gatherByMonster([0, 2, 1, 4], tasks)).toEqual([0, 2, 1, 4]);
+  });
+
+  it("keeps the monsterless tasks together in their own place", () => {
+    expect(gatherByMonster([3, 0, 2], tasks)).toEqual([3, 0, 2]);
+  });
+
+  // The store keeps ids the bundle no longer has -- see resolve. Gathering must
+  // not quietly file them all under "no monster".
+  it("keeps an unknown id in its own place rather than grouping it", () => {
+    expect(gatherByMonster([0, 99, 2], tasks)).toEqual([0, 2, 99]);
+  });
+
+  it("returns an empty plan unchanged", () => {
+    expect(gatherByMonster([], tasks)).toEqual([]);
+  });
+});
+
+describe("moveTrip", () => {
+  const tasks = [
+    task({ wikiId: 0, monster: "Cerberus" }),
+    task({ wikiId: 1, monster: "Cerberus" }),
+    task({ wikiId: 2, monster: "Zulrah" }),
+    task({ wikiId: 3, monster: "Vorkath" }),
+  ];
+  const list = [0, 1, 2, 3];
+
+  it("moves a trip up over the one before it, tasks and all", () => {
+    expect(moveTrip(list, tasks, 2, -1)).toEqual([2, 0, 1, 3]);
+  });
+
+  it("moves a trip down under the one after it", () => {
+    expect(moveTrip(list, tasks, 0, 1)).toEqual([2, 0, 1, 3]);
+  });
+
+  it("can be named by any task in the trip, not just its first", () => {
+    expect(moveTrip(list, tasks, 1, 1)).toEqual([2, 0, 1, 3]);
+  });
+
+  it("does nothing at either end", () => {
+    expect(moveTrip(list, tasks, 0, -1)).toEqual(list);
+    expect(moveTrip(list, tasks, 3, 1)).toEqual(list);
+  });
+
+  it("does nothing for a task that isn't in the plan", () => {
+    expect(moveTrip(list, tasks, 99, -1)).toEqual(list);
+  });
+
+  // Two visits to one boss are two trips, and moving one leaves the other alone.
+  it("moves one visit without gathering the other", () => {
+    const revisit = [0, 2, 1];
+    expect(moveTrip(revisit, tasks, 1, -1)).toEqual([0, 1, 2]);
+  });
+
+  // An id the bundle no longer has is invisible in the view; it must not split a
+  // trip in two behind the scenes, or the move would grab the wrong stretch.
+  it("carries an unknown id along with the trip it sits in", () => {
+    expect(moveTrip([0, 99, 1, 2], tasks, 2, -1)).toEqual([2, 0, 99, 1]);
+  });
+});
+
+describe("dropCompleted", () => {
+  it("keeps only what's still to do, in order", () => {
+    expect(dropCompleted([1, 2, 3, 4], new Set([2, 4]))).toEqual([1, 3]);
+  });
+
+  it("leaves a plan with nothing finished alone", () => {
+    expect(dropCompleted([1, 2, 3], new Set<number>())).toEqual([1, 2, 3]);
+  });
+
+  it("empties a plan that is entirely done", () => {
+    expect(dropCompleted([1, 2], new Set([1, 2]))).toEqual([]);
+  });
+
+  // Progress is a different store and a different question: taking a task off
+  // the plan is not un-finishing it, and this returns a list, not a verdict.
+  it("ignores completions that were never planned", () => {
+    expect(dropCompleted([1], new Set([1, 99]))).toEqual([]);
   });
 });

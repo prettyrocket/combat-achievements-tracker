@@ -16,6 +16,7 @@ import { FilterBar } from "@/components/filter-bar";
 import { MonsterBreadcrumb } from "@/components/monster-breadcrumb";
 import { ShareCodePrompt } from "@/components/share-code-prompt";
 import { TaskDragProvider } from "@/components/task-drag-provider";
+import { PlanOverlay } from "@/components/plan-overlay";
 import { TaskListPanel } from "@/components/tasklist-panel";
 import { importBackup } from "@/lib/backup";
 import type { Notice } from "@/lib/notice";
@@ -28,7 +29,12 @@ import {
 import { rewardStatus } from "@/lib/rewards";
 import type { ShareCodeResult } from "@/lib/share-code";
 import { MONSTERS, REWARD_TIERS } from "@/lib/task-index";
-import { resolve } from "@/lib/tasklist";
+import {
+  dropCompleted,
+  gatherByMonster,
+  moveTrip,
+  resolve,
+} from "@/lib/tasklist";
 import { DEFAULT_SORT, applyQuery } from "@/lib/task-query";
 import { useMonsterFilter } from "@/lib/use-monster-filter";
 import { useProfile } from "@/lib/use-profile";
@@ -93,6 +99,11 @@ export default function App() {
   // last imported from.
   const [loadOpen, setLoadOpen] = useState(false);
   const [loadSource, setLoadSource] = useState<LoadSourceId | null>(null);
+
+  // The plan at full size. Not in the URL with the rest of the view state: it is
+  // a place you stand for a minute, not an arrangement of the table worth
+  // sending to somebody.
+  const [planOpen, setPlanOpen] = useState(false);
 
   // Lives here rather than in the toolbar because a file import finishes after
   // its dialog has closed: the message describes three stores at once and is
@@ -172,6 +183,24 @@ export default function App() {
   );
 
   const listedIds = useMemo(() => new Set(taskList.list), [taskList.list]);
+
+  // A one-press reorder, committed like any other: the plan it hands back is an
+  // ordinary plan, and dragging out of a run it just made is allowed.
+  const gatherPlan = useCallback(
+    () => taskList.replace(gatherByMonster(taskList.list, TASKS)),
+    [taskList],
+  );
+
+  const clearCompletedFromPlan = useCallback(
+    () => taskList.replace(dropCompleted(taskList.list, completed)),
+    [taskList, completed],
+  );
+
+  const moveTripInPlan = useCallback(
+    (anchor: number, delta: -1 | 1) =>
+      taskList.replace(moveTrip(taskList.list, TASKS, anchor, delta)),
+    [taskList],
+  );
 
   const sideDocked = isSideDocked(prefs.listPosition);
 
@@ -320,6 +349,7 @@ export default function App() {
               onOpenChange={prefs.setPanelOpen}
               position={prefs.listPosition}
               gates={gates}
+              onExpand={() => setPlanOpen(true)}
               manualTracking={prefs.manualTracking}
               onToggleCompleted={toggle}
               onRemove={taskList.remove}
@@ -372,6 +402,18 @@ export default function App() {
         onSetLevel={profile.setLevel}
         onSetQuest={profile.setQuest}
         onClearProfile={profile.clear}
+      />
+
+      <PlanOverlay
+        open={planOpen}
+        onOpenChange={setPlanOpen}
+        entries={entries}
+        gates={gates}
+        onToggleCompleted={toggle}
+        onRemove={taskList.remove}
+        onGather={gatherPlan}
+        onMoveTrip={moveTripInPlan}
+        onClearCompleted={clearCompletedFromPlan}
       />
 
       <ShareCodePrompt
