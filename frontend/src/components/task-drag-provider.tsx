@@ -17,8 +17,10 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { GripVertical } from "lucide-react";
 import { TASKLIST_DROPPABLE, parseDragId } from "@/lib/dnd";
 import { BY_ID } from "@/lib/task-index";
+import { TierBadge } from "@/components/tier-badge";
 
 export interface TaskDragProviderProps {
   /** The plan, in order -- a drop is positional, so it needs to be read. */
@@ -83,11 +85,40 @@ export function TaskDragProvider({
       {children}
 
       {/* Follows the cursor across the gap between table and panel -- without it
-          the row stays put and the drag has nothing to show for itself. */}
+          the row stays put and the drag has nothing to show for itself.
+
+          It is a panel entry, at the panel's width -- the same grip, the same
+          name over the same tier and monster, in a card the same size. What you
+          are carrying should be what you are about to put down, so the drop is
+          a thing landing where it already looked like it belonged rather than a
+          label turning into a row on arrival. A table row torn out of its
+          columns was neither, and it is the same card whichever end the drag
+          started at, so filling the plan and reordering it read as one gesture.
+
+          What isn't copied is the state: no checkbox, no lock, no strike. Those
+          answer questions about a task sitting still, and this one is moving.
+
+          Only the shadow says "held", since nothing else here is allowed to
+          differ, and the cursor, which dnd-kit leaves alone -- without the class
+          it goes back to an arrow the moment the row leaves the table. */}
       <DragOverlay dropAnimation={null}>
         {draggingTask && (
-          <div className="bg-card rounded-md border px-3 py-2 text-sm font-medium shadow-lg">
-            {draggingTask.name}
+          <div className="bg-card flex w-80 max-w-[80vw] cursor-grabbing items-start gap-2 rounded-md border p-2 shadow-xl">
+            <GripVertical
+              className="text-muted-foreground mt-0.5 size-4 shrink-0"
+              aria-hidden
+            />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium">{draggingTask.name}</p>
+              <p className="mt-0.5 flex items-center gap-2 text-xs">
+                <TierBadge tier={draggingTask.tier} />
+                {draggingTask.monster && (
+                  <span className="text-muted-foreground truncate">
+                    {draggingTask.monster}
+                  </span>
+                )}
+              </p>
+            </div>
           </div>
         )}
       </DragOverlay>
