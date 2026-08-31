@@ -194,16 +194,16 @@ describe("buildTasks", () => {
 });
 
 describe("validate", () => {
-  // A fixture with the real tier distribution: 646 rows totalling exactly 2671
+  // A fixture with the real tier distribution: 655 rows totalling exactly 2697
   // points. Built rather than faked so each check below is reached honestly,
   // instead of by sneaking past the one before it.
   const DISTRIBUTION: Array<[string, number]> = [
     ["Easy", 41],
-    ["Medium", 60],
-    ["Hard", 86],
-    ["Elite", 164],
-    ["Master", 174],
-    ["Grandmaster", 121],
+    ["Medium", 64],
+    ["Hard", 89],
+    ["Elite", 166],
+    ["Master", 173],
+    ["Grandmaster", 122],
   ];
 
   function validFixture(): BucketRow[] {
@@ -224,15 +224,15 @@ describe("validate", () => {
   it("rejects the wrong row count", () => {
     const tasks = buildTasks(validFixture().slice(0, 3), new Map());
     expect(() => validate(tasks, new Map())).toThrow(
-      /Expected 646 tasks, got 3/,
+      /Expected 655 tasks, got 3/,
     );
   });
 
   it("rejects the right count with the wrong point total", () => {
-    // 646 rows, but all Easy: the count check passes and the points check catches it.
+    // 655 rows, but all Easy: the count check passes and the points check catches it.
     const allEasy = validFixture().map((r) => ({ ...r, tier: "Easy" }));
     expect(() => validate(buildTasks(allEasy, new Map()), new Map())).toThrow(
-      /Expected 2671 total tier points, got 646/,
+      /Expected 2697 total tier points, got 655/,
     );
   });
 

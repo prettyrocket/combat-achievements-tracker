@@ -34,15 +34,20 @@ import {
  * Appending a section does not qualify: decode treats a short code as "the
  * later sections are empty", so a v1 code stays readable after a v2 section
  * exists. This moves when an existing byte changes meaning.
+ *
+ * v2: the Mad Angel release took the game to 655 tasks, so the bitset grew from
+ * 81 bytes to 82 and every byte after it slid one to the right. A v1 code read
+ * with this layout would take its length byte for bitset padding, so v1 codes
+ * are refused below rather than silently misread.
  */
-const VERSION = 1;
+const VERSION = 2;
 
 /**
- * Ids run 0..645 with no gaps -- asserted in the tests against the real data,
+ * Ids run 0..654 with no gaps -- asserted in the tests against the real data,
  * because this is the assumption the whole format rests on.
  */
-const TASK_COUNT = 646;
-const BITSET_BYTES = 32 + 49; // 81; ceil(646 / 8), written so the arithmetic shows
+const TASK_COUNT = 655;
+const BITSET_BYTES = 32 + 50; // 82; ceil(655 / 8), written so the arithmetic shows
 
 /** Version + bitset + one length byte, before any task list entries. */
 const HEADER_BYTES = 1 + BITSET_BYTES + 1;
@@ -253,16 +258,16 @@ function encodeProfile(profile: PlayerProfile): Uint8Array {
 }
 
 /**
- * Layout, v1:
+ * Layout, v2:
  *
  *   byte  0        version
- *   bytes 1..81    completion bitset, bit `id` for task `id`
- *   byte  82       task list length, n
- *   bytes 83..     n ids, two bytes each, big-endian, in list order
+ *   bytes 1..82    completion bitset, bit `id` for task `id`
+ *   byte  83       task list length, n
+ *   bytes 84..     n ids, two bytes each, big-endian, in list order
  *   bytes ..       the profile section above, when there is a profile
  *
  * Completions are positional because they are a set over a fixed universe: the
- * cost is 81 bytes whether one task is done or all 646, which beats a list of
+ * cost is 82 bytes whether one task is done or all 655, which beats a list of
  * ids as soon as ~40 are complete and never gets worse. The task list is *not*
  * a set -- its order is the whole point -- so it pays for ids by value.
  *
@@ -417,7 +422,11 @@ export function decodeShareCode(code: string): ShareCodeResult {
     throw new Error("That doesn't look like a share code.");
   }
 
-  if (bytes.length < HEADER_BYTES) {
+  // Version before length, because how long a code *should* be depends on which
+  // format it is. A complete v1 code is 83 bytes and this build's header is 84,
+  // so checking length first tells someone their intact code was cut off when
+  // copied -- sending them to re-copy a code that will never work.
+  if (bytes.length === 0) {
     throw new Error(
       "That share code is incomplete -- it may have been cut off when copied.",
     );
@@ -427,9 +436,14 @@ export function decodeShareCode(code: string): ShareCodeResult {
       `That share code was made by a different version of this app (format ${bytes[0]}, this build reads ${VERSION}).`,
     );
   }
+  if (bytes.length < HEADER_BYTES) {
+    throw new Error(
+      "That share code is incomplete -- it may have been cut off when copied.",
+    );
+  }
 
-  // Loop to TASK_COUNT, not to the end of the bitset: bits 646 and 647 are
-  // padding in the last byte and mean nothing.
+  // Loop to TASK_COUNT, not to the end of the bitset: bit 655 is padding in the
+  // last byte and means nothing.
   const rawCompleted: number[] = [];
   for (let id = 0; id < TASK_COUNT; id++) {
     if (bytes[1 + (id >> 3)] & (1 << (id & 7))) rawCompleted.push(id);

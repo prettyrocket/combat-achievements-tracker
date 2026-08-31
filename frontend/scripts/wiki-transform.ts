@@ -16,8 +16,8 @@ import {
 /** Tripwires. Facts about the current CA release, not guesses -- if either changes,
  *  the game changed and a human should look at the diff before it ships. Bump them
  *  in the same commit as the new tasks.json. */
-export const EXPECTED_ROWS = 646;
-export const EXPECTED_POINTS = 2671;
+export const EXPECTED_ROWS = 655;
+export const EXPECTED_POINTS = 2697;
 
 /** The wiki's placeholder for "this task isn't tied to a specific monster". */
 const NO_MONSTER = "None";

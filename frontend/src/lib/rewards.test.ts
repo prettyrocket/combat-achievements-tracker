@@ -89,7 +89,7 @@ describe("rewardTiers", () => {
   // and the *expectations* are what should move.
   it("matches the point requirements the wiki publishes", () => {
     expect(rewardTiers(TASKS).map((t) => t.required)).toEqual([
-      41, 161, 419, 1075, 1945, 2671,
+      41, 169, 436, 1100, 1965, 2697,
     ]);
   });
 });

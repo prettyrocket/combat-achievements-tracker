@@ -188,23 +188,23 @@ describe("summarize: against the real bundle", () => {
     const { TASKS } = await import("@/data/tasks");
     const summary = summarize(TASKS, new Set());
 
-    expect(summary.totalTasks).toBe(646);
-    expect(summary.pointsTotal).toBe(2671);
+    expect(summary.totalTasks).toBe(655);
+    expect(summary.pointsTotal).toBe(2697);
     expect(summary.completedTasks).toBe(0);
     expect(summary.pointsEarned).toBe(0);
   });
 
-  // 2671 is derived from the data, never typed into the UI -- so a CA release
+  // 2697 is derived from the data, never typed into the UI -- so a CA release
   // moves the denominator without anyone editing a component.
-  it("earns exactly 2671 when everything is completed", async () => {
+  it("earns exactly 2697 when everything is completed", async () => {
     const { TASKS } = await import("@/data/tasks");
     const summary = summarize(TASKS, new Set(TASKS.map((t) => t.wikiId)));
 
-    expect(summary.pointsEarned).toBe(2671);
-    expect(summary.completedTasks).toBe(646);
+    expect(summary.pointsEarned).toBe(2697);
+    expect(summary.completedTasks).toBe(655);
     expect(
       summary.perTier.find((t) => t.tier === "GRANDMASTER")?.pointsEarned,
-    ).toBe(726);
+    ).toBe(732);
   });
 });
 

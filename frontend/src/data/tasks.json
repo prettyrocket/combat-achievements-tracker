@@ -8,7 +8,7 @@
     "points": 1,
     "type": "KILL_COUNT",
     "leagueRegion": "Morytania",
-    "completionPct": 58.1
+    "completionPct": 69.9
   },
   {
     "wikiId": 1,
@@ -19,7 +19,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "General",
-    "completionPct": 20.7
+    "completionPct": 31.3
   },
   {
     "wikiId": 2,
@@ -30,7 +30,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "General",
-    "completionPct": 18.7
+    "completionPct": 28.8
   },
   {
     "wikiId": 3,
@@ -41,7 +41,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "General",
-    "completionPct": 13.6
+    "completionPct": 22.6
   },
   {
     "wikiId": 4,
@@ -52,7 +52,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "General",
-    "completionPct": 17.7
+    "completionPct": 28.8
   },
   {
     "wikiId": 5,
@@ -63,7 +63,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "General",
-    "completionPct": 20.8
+    "completionPct": 31.9
   },
   {
     "wikiId": 6,
@@ -74,7 +74,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "General",
-    "completionPct": 11
+    "completionPct": 18
   },
   {
     "wikiId": 7,
@@ -85,7 +85,7 @@
     "points": 3,
     "type": "PERFECTION",
     "leagueRegion": "General",
-    "completionPct": 19.5
+    "completionPct": 30.4
   },
   {
     "wikiId": 8,
@@ -96,7 +96,7 @@
     "points": 4,
     "type": "PERFECTION",
     "leagueRegion": "General",
-    "completionPct": 18.5
+    "completionPct": 29.2
   },
   {
     "wikiId": 9,
@@ -107,7 +107,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia",
-    "completionPct": 10.5
+    "completionPct": 15.2
   },
   {
     "wikiId": 10,
@@ -118,7 +118,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia",
-    "completionPct": 8.2
+    "completionPct": 12.3
   },
   {
     "wikiId": 11,
@@ -129,7 +129,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Asgarnia",
-    "completionPct": 3.6
+    "completionPct": 6.2
   },
   {
     "wikiId": 12,
@@ -140,7 +140,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Asgarnia",
-    "completionPct": 6.1
+    "completionPct": 9.7
   },
   {
     "wikiId": 13,
@@ -151,7 +151,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 5.3
+    "completionPct": 9
   },
   {
     "wikiId": 14,
@@ -162,7 +162,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 4.1
+    "completionPct": 6.8
   },
   {
     "wikiId": 15,
@@ -173,7 +173,7 @@
     "points": 6,
     "type": "STAMINA",
     "leagueRegion": "Asgarnia",
-    "completionPct": 2.8
+    "completionPct": 5
   },
   {
     "wikiId": 16,
@@ -184,7 +184,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia",
-    "completionPct": 20.1
+    "completionPct": 27.1
   },
   {
     "wikiId": 17,
@@ -195,7 +195,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia",
-    "completionPct": 16.3
+    "completionPct": 22.6
   },
   {
     "wikiId": 18,
@@ -206,7 +206,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Asgarnia",
-    "completionPct": 11.6
+    "completionPct": 17.9
   },
   {
     "wikiId": 19,
@@ -217,7 +217,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Asgarnia",
-    "completionPct": 12.4
+    "completionPct": 19.2
   },
   {
     "wikiId": 20,
@@ -228,7 +228,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Asgarnia",
-    "completionPct": 8.1
+    "completionPct": 12.4
   },
   {
     "wikiId": 21,
@@ -239,7 +239,7 @@
     "points": 6,
     "type": "PERFECTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 1.6
+    "completionPct": 2.7
   },
   {
     "wikiId": 22,
@@ -250,7 +250,7 @@
     "points": 6,
     "type": "PERFECTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 3.6
+    "completionPct": 6.2
   },
   {
     "wikiId": 23,
@@ -261,7 +261,7 @@
     "points": 6,
     "type": "STAMINA",
     "leagueRegion": "Asgarnia",
-    "completionPct": 5.6
+    "completionPct": 9.5
   },
   {
     "wikiId": 24,
@@ -272,7 +272,7 @@
     "points": 1,
     "type": "KILL_COUNT",
     "leagueRegion": "Morytania",
-    "completionPct": 54
+    "completionPct": 66.1
   },
   {
     "wikiId": 25,
@@ -283,7 +283,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Morytania",
-    "completionPct": 47.3
+    "completionPct": 59.6
   },
   {
     "wikiId": 26,
@@ -294,7 +294,7 @@
     "points": 2,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 19.7
+    "completionPct": 29.1
   },
   {
     "wikiId": 27,
@@ -305,7 +305,7 @@
     "points": 2,
     "type": "PERFECTION",
     "leagueRegion": "Morytania",
-    "completionPct": 41.9
+    "completionPct": 55.6
   },
   {
     "wikiId": 28,
@@ -316,7 +316,7 @@
     "points": 1,
     "type": "RESTRICTION",
     "leagueRegion": "Morytania",
-    "completionPct": 61.7
+    "completionPct": 74.4
   },
   {
     "wikiId": 29,
@@ -327,7 +327,7 @@
     "points": 3,
     "type": "RESTRICTION",
     "leagueRegion": "Morytania",
-    "completionPct": 29.2
+    "completionPct": 41
   },
   {
     "wikiId": 30,
@@ -338,7 +338,7 @@
     "points": 3,
     "type": "RESTRICTION",
     "leagueRegion": "Morytania",
-    "completionPct": 26.7
+    "completionPct": 38.2
   },
   {
     "wikiId": 31,
@@ -349,7 +349,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Fremennik",
-    "completionPct": 30.2
+    "completionPct": 43.2
   },
   {
     "wikiId": 32,
@@ -360,7 +360,7 @@
     "points": 1,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia,Fremennik&Kandarin,Misthalin&Fremennik,Wilderness,Kourend,Tirannwn",
-    "completionPct": 71.3
+    "completionPct": 80.9
   },
   {
     "wikiId": 33,
@@ -371,7 +371,7 @@
     "points": 1,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia,Morytania,Kourend,Tirannwn,Wilderness",
-    "completionPct": 69.3
+    "completionPct": 79.5
   },
   {
     "wikiId": 34,
@@ -382,7 +382,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Kourend",
-    "completionPct": 31
+    "completionPct": 41
   },
   {
     "wikiId": 35,
@@ -393,7 +393,7 @@
     "points": 1,
     "type": "KILL_COUNT",
     "leagueRegion": "Misthalin",
-    "completionPct": 36.3
+    "completionPct": 47.7
   },
   {
     "wikiId": 36,
@@ -404,7 +404,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Misthalin",
-    "completionPct": 22.8
+    "completionPct": 31.5
   },
   {
     "wikiId": 37,
@@ -415,7 +415,7 @@
     "points": 1,
     "type": "MECHANICAL",
     "leagueRegion": "Misthalin",
-    "completionPct": 30.6
+    "completionPct": 42.6
   },
   {
     "wikiId": 38,
@@ -426,7 +426,7 @@
     "points": 2,
     "type": "MECHANICAL",
     "leagueRegion": "Misthalin",
-    "completionPct": 26.9
+    "completionPct": 38.9
   },
   {
     "wikiId": 39,
@@ -437,7 +437,7 @@
     "points": 1,
     "type": "PERFECTION",
     "leagueRegion": "Misthalin",
-    "completionPct": 33.3
+    "completionPct": 45
   },
   {
     "wikiId": 40,
@@ -448,7 +448,7 @@
     "points": 1,
     "type": "RESTRICTION",
     "leagueRegion": "Misthalin",
-    "completionPct": 24.9
+    "completionPct": 35.8
   },
   {
     "wikiId": 41,
@@ -459,7 +459,7 @@
     "points": 1,
     "type": "RESTRICTION",
     "leagueRegion": "Misthalin",
-    "completionPct": 24.2
+    "completionPct": 34.7
   },
   {
     "wikiId": 42,
@@ -470,7 +470,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Wilderness",
-    "completionPct": 22
+    "completionPct": 29.5
   },
   {
     "wikiId": 43,
@@ -481,7 +481,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Wilderness",
-    "completionPct": 20.2
+    "completionPct": 27.5
   },
   {
     "wikiId": 44,
@@ -492,7 +492,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Kourend",
-    "completionPct": 43.9
+    "completionPct": 56.9
   },
   {
     "wikiId": 45,
@@ -503,7 +503,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Kourend",
-    "completionPct": 35.2
+    "completionPct": 47.7
   },
   {
     "wikiId": 46,
@@ -514,7 +514,7 @@
     "points": 2,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 31.9
+    "completionPct": 45.3
   },
   {
     "wikiId": 47,
@@ -525,7 +525,7 @@
     "points": 4,
     "type": "PERFECTION",
     "leagueRegion": "Kourend",
-    "completionPct": 16.6
+    "completionPct": 25.7
   },
   {
     "wikiId": 48,
@@ -536,7 +536,7 @@
     "points": 2,
     "type": "RESTRICTION",
     "leagueRegion": "Kourend",
-    "completionPct": 38.6
+    "completionPct": 52.3
   },
   {
     "wikiId": 49,
@@ -547,7 +547,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Kourend",
-    "completionPct": 21.3
+    "completionPct": 31
   },
   {
     "wikiId": 50,
@@ -558,7 +558,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": "Kourend",
-    "completionPct": 14.1
+    "completionPct": 22.2
   },
   {
     "wikiId": 51,
@@ -569,7 +569,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia",
-    "completionPct": 20
+    "completionPct": 29.3
   },
   {
     "wikiId": 52,
@@ -580,7 +580,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia",
-    "completionPct": 18.4
+    "completionPct": 27.3
   },
   {
     "wikiId": 53,
@@ -591,7 +591,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Asgarnia",
-    "completionPct": 20.7
+    "completionPct": 30.7
   },
   {
     "wikiId": 54,
@@ -602,7 +602,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Asgarnia",
-    "completionPct": 18.8
+    "completionPct": 28.4
   },
   {
     "wikiId": 55,
@@ -613,7 +613,7 @@
     "points": 4,
     "type": "PERFECTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 21.4
+    "completionPct": 31.6
   },
   {
     "wikiId": 56,
@@ -624,7 +624,7 @@
     "points": 4,
     "type": "PERFECTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 21
+    "completionPct": 31.2
   },
   {
     "wikiId": 57,
@@ -635,7 +635,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Wilderness",
-    "completionPct": 16.5
+    "completionPct": 23.2
   },
   {
     "wikiId": 58,
@@ -646,7 +646,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Wilderness",
-    "completionPct": 13.3
+    "completionPct": 19.2
   },
   {
     "wikiId": 59,
@@ -657,7 +657,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Wilderness",
-    "completionPct": 23.2
+    "completionPct": 33.3
   },
   {
     "wikiId": 60,
@@ -668,7 +668,7 @@
     "points": 3,
     "type": "PERFECTION",
     "leagueRegion": "Wilderness",
-    "completionPct": 12.5
+    "completionPct": 18.8
   },
   {
     "wikiId": 61,
@@ -679,7 +679,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Wilderness",
-    "completionPct": 21.4
+    "completionPct": 29.8
   },
   {
     "wikiId": 62,
@@ -690,7 +690,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Wilderness",
-    "completionPct": 17.1
+    "completionPct": 24.6
   },
   {
     "wikiId": 63,
@@ -701,7 +701,7 @@
     "points": 2,
     "type": "PERFECTION",
     "leagueRegion": "Wilderness",
-    "completionPct": 24.7
+    "completionPct": 35.5
   },
   {
     "wikiId": 64,
@@ -712,7 +712,7 @@
     "points": 3,
     "type": "RESTRICTION",
     "leagueRegion": "Wilderness",
-    "completionPct": 12.7
+    "completionPct": 19.6
   },
   {
     "wikiId": 65,
@@ -723,7 +723,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Wilderness",
-    "completionPct": 10
+    "completionPct": 13.7
   },
   {
     "wikiId": 66,
@@ -734,7 +734,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Wilderness",
-    "completionPct": 7.8
+    "completionPct": 10.9
   },
   {
     "wikiId": 67,
@@ -745,7 +745,7 @@
     "points": 4,
     "type": "PERFECTION",
     "leagueRegion": "Wilderness",
-    "completionPct": 10
+    "completionPct": 14.5
   },
   {
     "wikiId": 68,
@@ -756,7 +756,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Wilderness",
-    "completionPct": 8.3
+    "completionPct": 12.7
   },
   {
     "wikiId": 69,
@@ -767,7 +767,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Wilderness",
-    "completionPct": 9.8
+    "completionPct": 14.5
   },
   {
     "wikiId": 70,
@@ -778,7 +778,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Wilderness",
-    "completionPct": 32.4
+    "completionPct": 42.9
   },
   {
     "wikiId": 71,
@@ -789,7 +789,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Wilderness",
-    "completionPct": 26.1
+    "completionPct": 35.8
   },
   {
     "wikiId": 72,
@@ -800,7 +800,7 @@
     "points": 2,
     "type": "MECHANICAL",
     "leagueRegion": "Wilderness",
-    "completionPct": 37.9
+    "completionPct": 50.5
   },
   {
     "wikiId": 73,
@@ -811,7 +811,7 @@
     "points": 2,
     "type": "PERFECTION",
     "leagueRegion": "Wilderness",
-    "completionPct": 31.6
+    "completionPct": 43
   },
   {
     "wikiId": 74,
@@ -822,7 +822,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Kandarin",
-    "completionPct": 46.9
+    "completionPct": 60.1
   },
   {
     "wikiId": 75,
@@ -833,7 +833,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Kandarin",
-    "completionPct": 31.6
+    "completionPct": 44.6
   },
   {
     "wikiId": 76,
@@ -844,7 +844,7 @@
     "points": 1,
     "type": "KILL_COUNT",
     "leagueRegion": "Misthalin",
-    "completionPct": 27.5
+    "completionPct": 39.4
   },
   {
     "wikiId": 77,
@@ -855,7 +855,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Misthalin",
-    "completionPct": 24
+    "completionPct": 35.2
   },
   {
     "wikiId": 78,
@@ -866,7 +866,7 @@
     "points": 2,
     "type": "MECHANICAL",
     "leagueRegion": "Misthalin",
-    "completionPct": 29.2
+    "completionPct": 41.7
   },
   {
     "wikiId": 79,
@@ -877,7 +877,7 @@
     "points": 2,
     "type": "PERFECTION",
     "leagueRegion": "Misthalin",
-    "completionPct": 28.9
+    "completionPct": 41.3
   },
   {
     "wikiId": 80,
@@ -888,7 +888,7 @@
     "points": 1,
     "type": "KILL_COUNT",
     "leagueRegion": "Desert,Kandarin,Karamja,Kourend,Misthalin,Wilderness",
-    "completionPct": 75.2
+    "completionPct": 83.7
   },
   {
     "wikiId": 81,
@@ -899,7 +899,7 @@
     "points": 4,
     "type": "SPEED",
     "leagueRegion": "Kandarin",
-    "completionPct": 4.2
+    "completionPct": 7
   },
   {
     "wikiId": 82,
@@ -910,7 +910,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Morytania",
-    "completionPct": 21.7
+    "completionPct": 32.2
   },
   {
     "wikiId": 83,
@@ -921,7 +921,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Morytania",
-    "completionPct": 18.7
+    "completionPct": 28.3
   },
   {
     "wikiId": 84,
@@ -932,7 +932,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 24.8
+    "completionPct": 37.1
   },
   {
     "wikiId": 85,
@@ -943,7 +943,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 25.3
+    "completionPct": 37.8
   },
   {
     "wikiId": 86,
@@ -954,7 +954,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 25.1
+    "completionPct": 37.5
   },
   {
     "wikiId": 87,
@@ -965,7 +965,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 25.3
+    "completionPct": 37.7
   },
   {
     "wikiId": 88,
@@ -976,7 +976,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 24.9
+    "completionPct": 37.2
   },
   {
     "wikiId": 89,
@@ -987,7 +987,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 25.2
+    "completionPct": 37.6
   },
   {
     "wikiId": 90,
@@ -998,7 +998,7 @@
     "points": 4,
     "type": "PERFECTION",
     "leagueRegion": "Morytania",
-    "completionPct": 23.3
+    "completionPct": 35.3
   },
   {
     "wikiId": 91,
@@ -1009,7 +1009,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Morytania",
-    "completionPct": 11.3
+    "completionPct": 18.9
   },
   {
     "wikiId": 92,
@@ -1020,7 +1020,7 @@
     "points": 4,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 17.3
+    "completionPct": 27.6
   },
   {
     "wikiId": 93,
@@ -1031,7 +1031,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 11.6
+    "completionPct": 19.9
   },
   {
     "wikiId": 94,
@@ -1042,7 +1042,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 5.2
+    "completionPct": 9.4
   },
   {
     "wikiId": 95,
@@ -1053,7 +1053,7 @@
     "points": 4,
     "type": "STAMINA",
     "leagueRegion": "Morytania",
-    "completionPct": 13.8
+    "completionPct": 22.5
   },
   {
     "wikiId": 96,
@@ -1064,7 +1064,7 @@
     "points": 5,
     "type": "STAMINA",
     "leagueRegion": "Morytania",
-    "completionPct": 8.1
+    "completionPct": 14
   },
   {
     "wikiId": 97,
@@ -1075,7 +1075,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Morytania",
-    "completionPct": 46.2
+    "completionPct": 59.2
   },
   {
     "wikiId": 98,
@@ -1086,7 +1086,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Tirannwn",
-    "completionPct": 23.8
+    "completionPct": 35.1
   },
   {
     "wikiId": 99,
@@ -1097,7 +1097,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Tirannwn",
-    "completionPct": 22.3
+    "completionPct": 33.2
   },
   {
     "wikiId": 100,
@@ -1108,7 +1108,7 @@
     "points": 6,
     "type": "KILL_COUNT",
     "leagueRegion": "Tirannwn",
-    "completionPct": 18
+    "completionPct": 27.1
   },
   {
     "wikiId": 101,
@@ -1119,7 +1119,7 @@
     "points": 4,
     "type": "PERFECTION",
     "leagueRegion": "Tirannwn",
-    "completionPct": 24.6
+    "completionPct": 35.9
   },
   {
     "wikiId": 102,
@@ -1130,7 +1130,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Tirannwn",
-    "completionPct": 18.9
+    "completionPct": 28.1
   },
   {
     "wikiId": 103,
@@ -1141,7 +1141,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": "Tirannwn",
-    "completionPct": 5.8
+    "completionPct": 9.7
   },
   {
     "wikiId": 104,
@@ -1152,7 +1152,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Tirannwn",
-    "completionPct": 5.6
+    "completionPct": 9.9
   },
   {
     "wikiId": 105,
@@ -1163,7 +1163,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": "Tirannwn",
-    "completionPct": 7.7
+    "completionPct": 16.2
   },
   {
     "wikiId": 106,
@@ -1174,7 +1174,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Tirannwn",
-    "completionPct": 9.8
+    "completionPct": 15.9
   },
   {
     "wikiId": 107,
@@ -1185,7 +1185,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Tirannwn",
-    "completionPct": 4.9
+    "completionPct": 8.2
   },
   {
     "wikiId": 108,
@@ -1196,7 +1196,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Tirannwn",
-    "completionPct": 2.1
+    "completionPct": 3.7
   },
   {
     "wikiId": 109,
@@ -1207,7 +1207,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Tirannwn",
-    "completionPct": 30.5
+    "completionPct": 42.8
   },
   {
     "wikiId": 110,
@@ -1218,7 +1218,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Tirannwn",
-    "completionPct": 25.3
+    "completionPct": 36.6
   },
   {
     "wikiId": 111,
@@ -1229,7 +1229,7 @@
     "points": 4,
     "type": "PERFECTION",
     "leagueRegion": "Tirannwn",
-    "completionPct": 22.9
+    "completionPct": 32.6
   },
   {
     "wikiId": 112,
@@ -1240,7 +1240,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Tirannwn",
-    "completionPct": 13
+    "completionPct": 19.4
   },
   {
     "wikiId": 113,
@@ -1251,7 +1251,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": "Tirannwn",
-    "completionPct": 12.7
+    "completionPct": 19.9
   },
   {
     "wikiId": 114,
@@ -1262,7 +1262,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Tirannwn",
-    "completionPct": 10.9
+    "completionPct": 17.7
   },
   {
     "wikiId": 115,
@@ -1273,7 +1273,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Tirannwn",
-    "completionPct": 13.3
+    "completionPct": 21.9
   },
   {
     "wikiId": 116,
@@ -1284,7 +1284,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Tirannwn",
-    "completionPct": 13.1
+    "completionPct": 20.6
   },
   {
     "wikiId": 117,
@@ -1295,7 +1295,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Tirannwn",
-    "completionPct": 3.3
+    "completionPct": 5.7
   },
   {
     "wikiId": 118,
@@ -1306,7 +1306,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Tirannwn",
-    "completionPct": 1.8
+    "completionPct": 3.2
   },
   {
     "wikiId": 119,
@@ -1317,7 +1317,7 @@
     "points": 4,
     "type": "SPEED",
     "leagueRegion": "Kandarin",
-    "completionPct": 5
+    "completionPct": 8.4
   },
   {
     "wikiId": 120,
@@ -1328,7 +1328,7 @@
     "points": 1,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia,Kandarin,Karamja,Kourend,Misthalin,Morytania,Wilderness",
-    "completionPct": 69.4
+    "completionPct": 79.9
   },
   {
     "wikiId": 121,
@@ -1339,7 +1339,7 @@
     "points": 1,
     "type": "RESTRICTION",
     "leagueRegion": "Asgarnia,Kandarin,Karamja,Kourend,Misthalin,Morytania,Wilderness",
-    "completionPct": 47.6
+    "completionPct": 61.9
   },
   {
     "wikiId": 122,
@@ -1350,7 +1350,7 @@
     "points": 1,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia,Kandarin,Kourend,Wilderness",
-    "completionPct": 70.4
+    "completionPct": 80.5
   },
   {
     "wikiId": 123,
@@ -1361,7 +1361,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Kourend",
-    "completionPct": 46.2
+    "completionPct": 59.3
   },
   {
     "wikiId": 124,
@@ -1372,7 +1372,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 32.6
+    "completionPct": 45.1
   },
   {
     "wikiId": 125,
@@ -1383,7 +1383,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 40.6
+    "completionPct": 54
   },
   {
     "wikiId": 126,
@@ -1394,7 +1394,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Kourend",
-    "completionPct": 22.3
+    "completionPct": 32.6
   },
   {
     "wikiId": 127,
@@ -1405,7 +1405,7 @@
     "points": 4,
     "type": "SPEED",
     "leagueRegion": "Kourend",
-    "completionPct": 14.9
+    "completionPct": 23.2
   },
   {
     "wikiId": 128,
@@ -1416,7 +1416,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Kourend",
-    "completionPct": 6
+    "completionPct": 10
   },
   {
     "wikiId": 129,
@@ -1427,7 +1427,7 @@
     "points": 1,
     "type": "KILL_COUNT",
     "leagueRegion": "Misthalin",
-    "completionPct": 36
+    "completionPct": 47
   },
   {
     "wikiId": 130,
@@ -1438,7 +1438,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Misthalin",
-    "completionPct": 22.4
+    "completionPct": 31
   },
   {
     "wikiId": 131,
@@ -1449,7 +1449,7 @@
     "points": 1,
     "type": "MECHANICAL",
     "leagueRegion": "Misthalin",
-    "completionPct": 23.9
+    "completionPct": 34.8
   },
   {
     "wikiId": 132,
@@ -1460,7 +1460,7 @@
     "points": 2,
     "type": "MECHANICAL",
     "leagueRegion": "Misthalin",
-    "completionPct": 30.8
+    "completionPct": 42.2
   },
   {
     "wikiId": 133,
@@ -1471,7 +1471,7 @@
     "points": 2,
     "type": "PERFECTION",
     "leagueRegion": "Misthalin",
-    "completionPct": 22.6
+    "completionPct": 33.3
   },
   {
     "wikiId": 134,
@@ -1482,7 +1482,7 @@
     "points": 1,
     "type": "RESTRICTION",
     "leagueRegion": "Misthalin",
-    "completionPct": 23.5
+    "completionPct": 33.4
   },
   {
     "wikiId": 135,
@@ -1493,7 +1493,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Kourend",
-    "completionPct": 15.9
+    "completionPct": 24
   },
   {
     "wikiId": 136,
@@ -1504,7 +1504,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Kourend",
-    "completionPct": 14.8
+    "completionPct": 22.6
   },
   {
     "wikiId": 137,
@@ -1515,7 +1515,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 15.4
+    "completionPct": 23.9
   },
   {
     "wikiId": 138,
@@ -1526,7 +1526,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 15.6
+    "completionPct": 24.3
   },
   {
     "wikiId": 139,
@@ -1537,7 +1537,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 15.7
+    "completionPct": 24.5
   },
   {
     "wikiId": 140,
@@ -1548,7 +1548,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 15
+    "completionPct": 23.3
   },
   {
     "wikiId": 141,
@@ -1559,7 +1559,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 12.8
+    "completionPct": 20.2
   },
   {
     "wikiId": 142,
@@ -1570,7 +1570,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Kourend",
-    "completionPct": 14.8
+    "completionPct": 23.1
   },
   {
     "wikiId": 143,
@@ -1581,7 +1581,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Kourend",
-    "completionPct": 4.9
+    "completionPct": 8.3
   },
   {
     "wikiId": 144,
@@ -1592,7 +1592,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Kourend",
-    "completionPct": 9.4
+    "completionPct": 15
   },
   {
     "wikiId": 145,
@@ -1603,7 +1603,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Kourend",
-    "completionPct": 3.6
+    "completionPct": 6.2
   },
   {
     "wikiId": 146,
@@ -1614,7 +1614,7 @@
     "points": 5,
     "type": "STAMINA",
     "leagueRegion": "Kourend",
-    "completionPct": 10.6
+    "completionPct": 17.1
   },
   {
     "wikiId": 147,
@@ -1625,7 +1625,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Karamja",
-    "completionPct": 60.9
+    "completionPct": 71.1
   },
   {
     "wikiId": 148,
@@ -1636,7 +1636,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Karamja",
-    "completionPct": 16.5
+    "completionPct": 23.1
   },
   {
     "wikiId": 149,
@@ -1647,7 +1647,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Karamja",
-    "completionPct": 28.9
+    "completionPct": 38.8
   },
   {
     "wikiId": 150,
@@ -1658,7 +1658,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Karamja",
-    "completionPct": 14.9
+    "completionPct": 21
   },
   {
     "wikiId": 151,
@@ -1669,7 +1669,7 @@
     "points": 6,
     "type": "MECHANICAL",
     "leagueRegion": "Karamja",
-    "completionPct": 5.2
+    "completionPct": 8.2
   },
   {
     "wikiId": 152,
@@ -1680,7 +1680,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Karamja",
-    "completionPct": 7.9
+    "completionPct": 12.4
   },
   {
     "wikiId": 153,
@@ -1691,7 +1691,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Karamja",
-    "completionPct": 8.3
+    "completionPct": 13.1
   },
   {
     "wikiId": 154,
@@ -1702,7 +1702,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Karamja",
-    "completionPct": 1.3
+    "completionPct": 2
   },
   {
     "wikiId": 155,
@@ -1713,7 +1713,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Karamja",
-    "completionPct": 3.7
+    "completionPct": 6
   },
   {
     "wikiId": 156,
@@ -1724,7 +1724,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Karamja",
-    "completionPct": 1.8
+    "completionPct": 3
   },
   {
     "wikiId": 157,
@@ -1735,7 +1735,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Desert",
-    "completionPct": 17.9
+    "completionPct": 26
   },
   {
     "wikiId": 158,
@@ -1746,7 +1746,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Desert",
-    "completionPct": 15.5
+    "completionPct": 23
   },
   {
     "wikiId": 159,
@@ -1757,7 +1757,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Desert",
-    "completionPct": 22.7
+    "completionPct": 32.7
   },
   {
     "wikiId": 160,
@@ -1768,7 +1768,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Desert",
-    "completionPct": 12.8
+    "completionPct": 19.7
   },
   {
     "wikiId": 161,
@@ -1779,7 +1779,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Desert",
-    "completionPct": 11.3
+    "completionPct": 17.5
   },
   {
     "wikiId": 162,
@@ -1790,7 +1790,7 @@
     "points": 1,
     "type": "KILL_COUNT",
     "leagueRegion": "Wilderness",
-    "completionPct": 34.1
+    "completionPct": 43.4
   },
   {
     "wikiId": 163,
@@ -1801,7 +1801,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Wilderness",
-    "completionPct": 28.9
+    "completionPct": 37.4
   },
   {
     "wikiId": 164,
@@ -1812,7 +1812,7 @@
     "points": 2,
     "type": "MECHANICAL",
     "leagueRegion": "Wilderness",
-    "completionPct": 31.1
+    "completionPct": 41.9
   },
   {
     "wikiId": 165,
@@ -1823,7 +1823,7 @@
     "points": 2,
     "type": "RESTRICTION",
     "leagueRegion": "Wilderness",
-    "completionPct": 29.3
+    "completionPct": 40.5
   },
   {
     "wikiId": 166,
@@ -1834,7 +1834,7 @@
     "points": 2,
     "type": "RESTRICTION",
     "leagueRegion": "Wilderness",
-    "completionPct": 35.3
+    "completionPct": 46.6
   },
   {
     "wikiId": 167,
@@ -1845,7 +1845,7 @@
     "points": 3,
     "type": "STAMINA",
     "leagueRegion": "Wilderness",
-    "completionPct": 14.5
+    "completionPct": 21.8
   },
   {
     "wikiId": 168,
@@ -1856,7 +1856,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Kandarin",
-    "completionPct": 31
+    "completionPct": 42.4
   },
   {
     "wikiId": 169,
@@ -1867,7 +1867,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Kandarin",
-    "completionPct": 22
+    "completionPct": 32.8
   },
   {
     "wikiId": 170,
@@ -1878,7 +1878,7 @@
     "points": 3,
     "type": "STAMINA",
     "leagueRegion": "Kandarin",
-    "completionPct": 25.1
+    "completionPct": 36.2
   },
   {
     "wikiId": 171,
@@ -1889,7 +1889,7 @@
     "points": 4,
     "type": "STAMINA",
     "leagueRegion": "Kandarin",
-    "completionPct": 21.5
+    "completionPct": 31.6
   },
   {
     "wikiId": 172,
@@ -1900,7 +1900,7 @@
     "points": 5,
     "type": "STAMINA",
     "leagueRegion": "Kandarin",
-    "completionPct": 16.7
+    "completionPct": 25.5
   },
   {
     "wikiId": 173,
@@ -1911,7 +1911,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Fremennik,Tirannwn",
-    "completionPct": 46.7
+    "completionPct": 59.6
   },
   {
     "wikiId": 174,
@@ -1922,7 +1922,7 @@
     "points": 1,
     "type": "KILL_COUNT",
     "leagueRegion": "Kourend",
-    "completionPct": 46.1
+    "completionPct": 59.1
   },
   {
     "wikiId": 175,
@@ -1933,7 +1933,7 @@
     "points": 1,
     "type": "PERFECTION",
     "leagueRegion": "Kourend",
-    "completionPct": 31.7
+    "completionPct": 43.3
   },
   {
     "wikiId": 176,
@@ -1944,7 +1944,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Kourend",
-    "completionPct": 18.5
+    "completionPct": 27.4
   },
   {
     "wikiId": 177,
@@ -1955,7 +1955,7 @@
     "points": 1,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia",
-    "completionPct": 32.4
+    "completionPct": 44.7
   },
   {
     "wikiId": 178,
@@ -1966,7 +1966,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia",
-    "completionPct": 28.7
+    "completionPct": 40.4
   },
   {
     "wikiId": 179,
@@ -1977,7 +1977,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Asgarnia",
-    "completionPct": 35.9
+    "completionPct": 49.8
   },
   {
     "wikiId": 180,
@@ -1988,7 +1988,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Asgarnia",
-    "completionPct": 19.4
+    "completionPct": 28.4
   },
   {
     "wikiId": 181,
@@ -1999,7 +1999,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Asgarnia",
-    "completionPct": 28.9
+    "completionPct": 41.4
   },
   {
     "wikiId": 182,
@@ -2010,7 +2010,7 @@
     "points": 2,
     "type": "PERFECTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 37.8
+    "completionPct": 51.8
   },
   {
     "wikiId": 183,
@@ -2021,7 +2021,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Morytania",
-    "completionPct": 12.7
+    "completionPct": 18.5
   },
   {
     "wikiId": 184,
@@ -2032,7 +2032,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Morytania",
-    "completionPct": 6.6
+    "completionPct": 10.3
   },
   {
     "wikiId": 185,
@@ -2043,7 +2043,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Morytania",
-    "completionPct": 5.2
+    "completionPct": 8.3
   },
   {
     "wikiId": 186,
@@ -2054,7 +2054,7 @@
     "points": 6,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 1.7
+    "completionPct": 3.1
   },
   {
     "wikiId": 187,
@@ -2065,7 +2065,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 3.6
+    "completionPct": 6.1
   },
   {
     "wikiId": 188,
@@ -2076,7 +2076,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Morytania",
-    "completionPct": 1.9
+    "completionPct": 3.3
   },
   {
     "wikiId": 189,
@@ -2087,7 +2087,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Morytania",
-    "completionPct": 3.2
+    "completionPct": 5.4
   },
   {
     "wikiId": 190,
@@ -2098,7 +2098,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Morytania",
-    "completionPct": 1.8
+    "completionPct": 3.1
   },
   {
     "wikiId": 191,
@@ -2109,7 +2109,7 @@
     "points": 4,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 3
+    "completionPct": 5.2
   },
   {
     "wikiId": 192,
@@ -2120,7 +2120,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 2.3
+    "completionPct": 4.1
   },
   {
     "wikiId": 193,
@@ -2131,7 +2131,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 1.5
+    "completionPct": 2.7
   },
   {
     "wikiId": 194,
@@ -2142,7 +2142,7 @@
     "points": 4,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 4.6
+    "completionPct": 7.5
   },
   {
     "wikiId": 195,
@@ -2153,7 +2153,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 2.5
+    "completionPct": 4.3
   },
   {
     "wikiId": 196,
@@ -2164,7 +2164,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 1.8
+    "completionPct": 3.1
   },
   {
     "wikiId": 197,
@@ -2175,7 +2175,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Fremennik",
-    "completionPct": 26.7
+    "completionPct": 36.6
   },
   {
     "wikiId": 198,
@@ -2186,7 +2186,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Fremennik",
-    "completionPct": 23.3
+    "completionPct": 32.4
   },
   {
     "wikiId": 199,
@@ -2197,7 +2197,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Fremennik",
-    "completionPct": 9.7
+    "completionPct": 15.2
   },
   {
     "wikiId": 200,
@@ -2208,7 +2208,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Fremennik",
-    "completionPct": 7.3
+    "completionPct": 11.9
   },
   {
     "wikiId": 201,
@@ -2219,7 +2219,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Fremennik",
-    "completionPct": 39
+    "completionPct": 51.1
   },
   {
     "wikiId": 202,
@@ -2230,7 +2230,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Fremennik",
-    "completionPct": 35.4
+    "completionPct": 47.2
   },
   {
     "wikiId": 203,
@@ -2241,7 +2241,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Fremennik",
-    "completionPct": 11
+    "completionPct": 17
   },
   {
     "wikiId": 204,
@@ -2252,7 +2252,7 @@
     "points": 2,
     "type": "MECHANICAL",
     "leagueRegion": "Fremennik",
-    "completionPct": 16.8
+    "completionPct": 24.7
   },
   {
     "wikiId": 205,
@@ -2263,7 +2263,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Fremennik",
-    "completionPct": 5.3
+    "completionPct": 8.7
   },
   {
     "wikiId": 206,
@@ -2274,7 +2274,7 @@
     "points": 1,
     "type": "KILL_COUNT",
     "leagueRegion": "Kourend",
-    "completionPct": 28.8
+    "completionPct": 41.4
   },
   {
     "wikiId": 207,
@@ -2285,7 +2285,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Kourend",
-    "completionPct": 24.8
+    "completionPct": 36.6
   },
   {
     "wikiId": 208,
@@ -2296,7 +2296,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 24.7
+    "completionPct": 37.3
   },
   {
     "wikiId": 209,
@@ -2307,7 +2307,7 @@
     "points": 3,
     "type": "PERFECTION",
     "leagueRegion": "Kourend",
-    "completionPct": 28.1
+    "completionPct": 41.2
   },
   {
     "wikiId": 210,
@@ -2318,7 +2318,7 @@
     "points": 2,
     "type": "RESTRICTION",
     "leagueRegion": "Kourend",
-    "completionPct": 30.8
+    "completionPct": 44.3
   },
   {
     "wikiId": 211,
@@ -2329,7 +2329,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia",
-    "completionPct": 13.6
+    "completionPct": 19.5
   },
   {
     "wikiId": 212,
@@ -2340,7 +2340,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia",
-    "completionPct": 10.3
+    "completionPct": 15.2
   },
   {
     "wikiId": 213,
@@ -2351,7 +2351,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Asgarnia",
-    "completionPct": 8.3
+    "completionPct": 12.9
   },
   {
     "wikiId": 214,
@@ -2362,7 +2362,7 @@
     "points": 6,
     "type": "PERFECTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 4.2
+    "completionPct": 7.4
   },
   {
     "wikiId": 215,
@@ -2373,7 +2373,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 3.6
+    "completionPct": 6.3
   },
   {
     "wikiId": 216,
@@ -2384,7 +2384,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 4.5
+    "completionPct": 7.6
   },
   {
     "wikiId": 217,
@@ -2395,7 +2395,7 @@
     "points": 6,
     "type": "STAMINA",
     "leagueRegion": "Asgarnia",
-    "completionPct": 3.1
+    "completionPct": 5.6
   },
   {
     "wikiId": 218,
@@ -2406,7 +2406,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Wilderness",
-    "completionPct": 15.4
+    "completionPct": 21.5
   },
   {
     "wikiId": 219,
@@ -2417,7 +2417,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Wilderness",
-    "completionPct": 12.6
+    "completionPct": 18.2
   },
   {
     "wikiId": 220,
@@ -2428,7 +2428,7 @@
     "points": 3,
     "type": "PERFECTION",
     "leagueRegion": "Wilderness",
-    "completionPct": 16.8
+    "completionPct": 24.5
   },
   {
     "wikiId": 221,
@@ -2439,7 +2439,7 @@
     "points": 3,
     "type": "RESTRICTION",
     "leagueRegion": "Wilderness",
-    "completionPct": 21.3
+    "completionPct": 30.2
   },
   {
     "wikiId": 222,
@@ -2450,7 +2450,7 @@
     "points": 4,
     "type": "SPEED",
     "leagueRegion": "Tirannwn",
-    "completionPct": 4
+    "completionPct": 6.7
   },
   {
     "wikiId": 223,
@@ -2461,7 +2461,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia",
-    "completionPct": 48.9
+    "completionPct": 61.9
   },
   {
     "wikiId": 224,
@@ -2472,7 +2472,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Tirannwn",
-    "completionPct": 28.6
+    "completionPct": 38.9
   },
   {
     "wikiId": 225,
@@ -2483,7 +2483,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Tirannwn",
-    "completionPct": 25
+    "completionPct": 34.4
   },
   {
     "wikiId": 226,
@@ -2494,7 +2494,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Tirannwn",
-    "completionPct": 22
+    "completionPct": 30.7
   },
   {
     "wikiId": 227,
@@ -2505,7 +2505,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Tirannwn",
-    "completionPct": 13
+    "completionPct": 19.5
   },
   {
     "wikiId": 228,
@@ -2516,7 +2516,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Tirannwn",
-    "completionPct": 24
+    "completionPct": 34.1
   },
   {
     "wikiId": 229,
@@ -2527,7 +2527,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Tirannwn",
-    "completionPct": 10.5
+    "completionPct": 16.7
   },
   {
     "wikiId": 230,
@@ -2538,7 +2538,7 @@
     "points": 4,
     "type": "SPEED",
     "leagueRegion": "Tirannwn",
-    "completionPct": 20.4
+    "completionPct": 30.4
   },
   {
     "wikiId": 231,
@@ -2549,7 +2549,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Tirannwn",
-    "completionPct": 12.9
+    "completionPct": 20.2
   },
   {
     "wikiId": 232,
@@ -2560,7 +2560,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Tirannwn",
-    "completionPct": 9.8
+    "completionPct": 16
   },
   {
     "wikiId": 233,
@@ -2571,7 +2571,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Fremennik",
-    "completionPct": 26.5
+    "completionPct": 36.1
   },
   {
     "wikiId": 234,
@@ -2582,7 +2582,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Fremennik",
-    "completionPct": 22.9
+    "completionPct": 31.8
   },
   {
     "wikiId": 235,
@@ -2593,7 +2593,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Fremennik",
-    "completionPct": 17
+    "completionPct": 24.8
   },
   {
     "wikiId": 236,
@@ -2604,7 +2604,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Fremennik",
-    "completionPct": 5.5
+    "completionPct": 9.1
   },
   {
     "wikiId": 237,
@@ -2615,7 +2615,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Morytania",
-    "completionPct": 7.3
+    "completionPct": 10.8
   },
   {
     "wikiId": 238,
@@ -2626,7 +2626,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Morytania",
-    "completionPct": 5.5
+    "completionPct": 8.2
   },
   {
     "wikiId": 239,
@@ -2637,7 +2637,7 @@
     "points": 6,
     "type": "KILL_COUNT",
     "leagueRegion": "Morytania",
-    "completionPct": 4.2
+    "completionPct": 6.4
   },
   {
     "wikiId": 240,
@@ -2648,7 +2648,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 9.4
+    "completionPct": 14
   },
   {
     "wikiId": 241,
@@ -2659,7 +2659,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 3.8
+    "completionPct": 6.1
   },
   {
     "wikiId": 242,
@@ -2670,7 +2670,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 3.7
+    "completionPct": 5.7
   },
   {
     "wikiId": 243,
@@ -2681,7 +2681,7 @@
     "points": 6,
     "type": "PERFECTION",
     "leagueRegion": "Morytania",
-    "completionPct": 0.9
+    "completionPct": 1.5
   },
   {
     "wikiId": 244,
@@ -2692,7 +2692,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Morytania",
-    "completionPct": 4.3
+    "completionPct": 6.8
   },
   {
     "wikiId": 245,
@@ -2703,7 +2703,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Morytania",
-    "completionPct": 6.1
+    "completionPct": 9.4
   },
   {
     "wikiId": 246,
@@ -2714,7 +2714,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Morytania",
-    "completionPct": 2.4
+    "completionPct": 3.9
   },
   {
     "wikiId": 247,
@@ -2725,7 +2725,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Morytania",
-    "completionPct": 4.3
+    "completionPct": 6.9
   },
   {
     "wikiId": 248,
@@ -2736,7 +2736,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Morytania",
-    "completionPct": 2.2
+    "completionPct": 3.6
   },
   {
     "wikiId": 249,
@@ -2747,7 +2747,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Morytania",
-    "completionPct": 1.1
+    "completionPct": 1.8
   },
   {
     "wikiId": 250,
@@ -2758,7 +2758,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": "Morytania",
-    "completionPct": 2.4
+    "completionPct": 3.9
   },
   {
     "wikiId": 251,
@@ -2769,7 +2769,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": "Morytania",
-    "completionPct": 5.5
+    "completionPct": 8
   },
   {
     "wikiId": 252,
@@ -2780,7 +2780,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Morytania",
-    "completionPct": 1.4
+    "completionPct": 2.4
   },
   {
     "wikiId": 253,
@@ -2791,7 +2791,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": "Morytania",
-    "completionPct": 5
+    "completionPct": 7.7
   },
   {
     "wikiId": 254,
@@ -2802,7 +2802,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 1.3
+    "completionPct": 2.1
   },
   {
     "wikiId": 255,
@@ -2813,7 +2813,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 4
+    "completionPct": 6.5
   },
   {
     "wikiId": 256,
@@ -2824,7 +2824,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 1.5
+    "completionPct": 2.7
   },
   {
     "wikiId": 257,
@@ -2835,7 +2835,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 3.3
+    "completionPct": 5.4
   },
   {
     "wikiId": 258,
@@ -2846,7 +2846,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 1.1
+    "completionPct": 1.9
   },
   {
     "wikiId": 259,
@@ -2857,7 +2857,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 2.2
+    "completionPct": 3.8
   },
   {
     "wikiId": 260,
@@ -2868,7 +2868,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 1.1
+    "completionPct": 1.8
   },
   {
     "wikiId": 261,
@@ -2879,7 +2879,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Kandarin",
-    "completionPct": 19.7
+    "completionPct": 28.8
   },
   {
     "wikiId": 262,
@@ -2890,7 +2890,7 @@
     "points": 4,
     "type": "PERFECTION",
     "leagueRegion": "Kandarin",
-    "completionPct": 13
+    "completionPct": 20.7
   },
   {
     "wikiId": 263,
@@ -2901,7 +2901,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Kandarin",
-    "completionPct": 12.1
+    "completionPct": 19.3
   },
   {
     "wikiId": 264,
@@ -2912,7 +2912,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Wilderness",
-    "completionPct": 19.6
+    "completionPct": 27.1
   },
   {
     "wikiId": 265,
@@ -2923,7 +2923,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Wilderness",
-    "completionPct": 17.7
+    "completionPct": 24.9
   },
   {
     "wikiId": 266,
@@ -2934,7 +2934,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Wilderness",
-    "completionPct": 25.2
+    "completionPct": 34.9
   },
   {
     "wikiId": 267,
@@ -2945,7 +2945,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Wilderness",
-    "completionPct": 23.3
+    "completionPct": 32.6
   },
   {
     "wikiId": 268,
@@ -2956,7 +2956,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Fremennik",
-    "completionPct": 34.9
+    "completionPct": 45.2
   },
   {
     "wikiId": 269,
@@ -2967,7 +2967,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Fremennik",
-    "completionPct": 25.6
+    "completionPct": 33.5
   },
   {
     "wikiId": 270,
@@ -2978,7 +2978,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Fremennik",
-    "completionPct": 7.6
+    "completionPct": 12.4
   },
   {
     "wikiId": 271,
@@ -2989,7 +2989,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Fremennik",
-    "completionPct": 15
+    "completionPct": 21.9
   },
   {
     "wikiId": 272,
@@ -3000,7 +3000,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Fremennik",
-    "completionPct": 6.9
+    "completionPct": 10.5
   },
   {
     "wikiId": 273,
@@ -3011,7 +3011,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Fremennik",
-    "completionPct": 17.6
+    "completionPct": 25.6
   },
   {
     "wikiId": 274,
@@ -3022,7 +3022,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Fremennik",
-    "completionPct": 9.3
+    "completionPct": 14.5
   },
   {
     "wikiId": 275,
@@ -3033,7 +3033,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Fremennik",
-    "completionPct": 5.7
+    "completionPct": 9.5
   },
   {
     "wikiId": 276,
@@ -3044,7 +3044,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Fremennik",
-    "completionPct": 14.5
+    "completionPct": 20.6
   },
   {
     "wikiId": 277,
@@ -3055,7 +3055,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Fremennik",
-    "completionPct": 3.6
+    "completionPct": 5.9
   },
   {
     "wikiId": 278,
@@ -3066,7 +3066,7 @@
     "points": 5,
     "type": "STAMINA",
     "leagueRegion": "Fremennik",
-    "completionPct": 4.8
+    "completionPct": 8
   },
   {
     "wikiId": 279,
@@ -3077,7 +3077,7 @@
     "points": 1,
     "type": "KILL_COUNT",
     "leagueRegion": "Kourend",
-    "completionPct": 75.2
+    "completionPct": 82
   },
   {
     "wikiId": 280,
@@ -3088,7 +3088,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Kourend",
-    "completionPct": 72.5
+    "completionPct": 80
   },
   {
     "wikiId": 281,
@@ -3099,7 +3099,7 @@
     "points": 1,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 45
+    "completionPct": 56.7
   },
   {
     "wikiId": 282,
@@ -3110,7 +3110,7 @@
     "points": 1,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 68.7
+    "completionPct": 77.1
   },
   {
     "wikiId": 283,
@@ -3121,7 +3121,7 @@
     "points": 2,
     "type": "PERFECTION",
     "leagueRegion": "Kourend",
-    "completionPct": 71.4
+    "completionPct": 79.4
   },
   {
     "wikiId": 284,
@@ -3132,7 +3132,7 @@
     "points": 2,
     "type": "RESTRICTION",
     "leagueRegion": "Kourend",
-    "completionPct": 66.1
+    "completionPct": 74.9
   },
   {
     "wikiId": 285,
@@ -3143,7 +3143,7 @@
     "points": 1,
     "type": "RESTRICTION",
     "leagueRegion": "Kourend",
-    "completionPct": 68.7
+    "completionPct": 77.4
   },
   {
     "wikiId": 286,
@@ -3154,7 +3154,7 @@
     "points": 3,
     "type": "STAMINA",
     "leagueRegion": "Kourend",
-    "completionPct": 30.3
+    "completionPct": 39.8
   },
   {
     "wikiId": 287,
@@ -3165,7 +3165,7 @@
     "points": 1,
     "type": "KILL_COUNT",
     "leagueRegion": "Kourend",
-    "completionPct": 56.8
+    "completionPct": 69
   },
   {
     "wikiId": 288,
@@ -3176,7 +3176,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Kourend",
-    "completionPct": 6.9
+    "completionPct": 10.6
   },
   {
     "wikiId": 289,
@@ -3187,7 +3187,7 @@
     "points": 6,
     "type": "KILL_COUNT",
     "leagueRegion": "Kourend",
-    "completionPct": 5.3
+    "completionPct": 8.3
   },
   {
     "wikiId": 290,
@@ -3198,7 +3198,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Kourend",
-    "completionPct": 8
+    "completionPct": 12.3
   },
   {
     "wikiId": 291,
@@ -3209,7 +3209,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Kourend",
-    "completionPct": 2.6
+    "completionPct": 4.3
   },
   {
     "wikiId": 292,
@@ -3220,7 +3220,7 @@
     "points": 4,
     "type": "SPEED",
     "leagueRegion": "Kourend",
-    "completionPct": 10.3
+    "completionPct": 15.4
   },
   {
     "wikiId": 293,
@@ -3231,7 +3231,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Kourend",
-    "completionPct": 1.9
+    "completionPct": 3.3
   },
   {
     "wikiId": 294,
@@ -3242,7 +3242,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Kourend",
-    "completionPct": 1.4
+    "completionPct": 2.5
   },
   {
     "wikiId": 295,
@@ -3253,7 +3253,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Kourend",
-    "completionPct": 2.7
+    "completionPct": 4.5
   },
   {
     "wikiId": 296,
@@ -3264,7 +3264,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Kourend",
-    "completionPct": 1.6
+    "completionPct": 2.7
   },
   {
     "wikiId": 297,
@@ -3275,7 +3275,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Kourend",
-    "completionPct": 5.5
+    "completionPct": 8.8
   },
   {
     "wikiId": 298,
@@ -3286,7 +3286,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Kourend",
-    "completionPct": 2.2
+    "completionPct": 3.8
   },
   {
     "wikiId": 299,
@@ -3297,7 +3297,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Kourend",
-    "completionPct": 16.9
+    "completionPct": 23
   },
   {
     "wikiId": 300,
@@ -3308,7 +3308,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Kourend",
-    "completionPct": 12.4
+    "completionPct": 17.2
   },
   {
     "wikiId": 301,
@@ -3319,7 +3319,7 @@
     "points": 6,
     "type": "KILL_COUNT",
     "leagueRegion": "Kourend",
-    "completionPct": 9.2
+    "completionPct": 13.1
   },
   {
     "wikiId": 302,
@@ -3330,7 +3330,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 19.1
+    "completionPct": 26.4
   },
   {
     "wikiId": 303,
@@ -3341,7 +3341,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 13.7
+    "completionPct": 19.6
   },
   {
     "wikiId": 304,
@@ -3352,7 +3352,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 10.9
+    "completionPct": 16.1
   },
   {
     "wikiId": 305,
@@ -3363,7 +3363,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 3.2
+    "completionPct": 5.4
   },
   {
     "wikiId": 306,
@@ -3374,7 +3374,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 3.9
+    "completionPct": 6.1
   },
   {
     "wikiId": 307,
@@ -3385,7 +3385,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 25.3
+    "completionPct": 34.2
   },
   {
     "wikiId": 308,
@@ -3396,7 +3396,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 16.6
+    "completionPct": 23.9
   },
   {
     "wikiId": 309,
@@ -3407,7 +3407,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 16.3
+    "completionPct": 23.2
   },
   {
     "wikiId": 310,
@@ -3418,7 +3418,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 23.5
+    "completionPct": 32
   },
   {
     "wikiId": 311,
@@ -3429,7 +3429,7 @@
     "points": 4,
     "type": "PERFECTION",
     "leagueRegion": "Kourend",
-    "completionPct": 20.1
+    "completionPct": 28.3
   },
   {
     "wikiId": 312,
@@ -3440,7 +3440,7 @@
     "points": 4,
     "type": "PERFECTION",
     "leagueRegion": "Kourend",
-    "completionPct": 22.2
+    "completionPct": 29.9
   },
   {
     "wikiId": 313,
@@ -3451,7 +3451,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Kourend",
-    "completionPct": 5.9
+    "completionPct": 9
   },
   {
     "wikiId": 314,
@@ -3462,7 +3462,7 @@
     "points": 4,
     "type": "PERFECTION",
     "leagueRegion": "Kourend",
-    "completionPct": 15.2
+    "completionPct": 21.6
   },
   {
     "wikiId": 315,
@@ -3473,7 +3473,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Kourend",
-    "completionPct": 20.7
+    "completionPct": 28.2
   },
   {
     "wikiId": 316,
@@ -3484,7 +3484,7 @@
     "points": 4,
     "type": "PERFECTION",
     "leagueRegion": "Kourend",
-    "completionPct": 16.7
+    "completionPct": 23.8
   },
   {
     "wikiId": 317,
@@ -3495,7 +3495,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Kourend",
-    "completionPct": 3.7
+    "completionPct": 5.9
   },
   {
     "wikiId": 318,
@@ -3506,7 +3506,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Kourend",
-    "completionPct": 2.4
+    "completionPct": 3.8
   },
   {
     "wikiId": 319,
@@ -3517,7 +3517,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Kourend",
-    "completionPct": 13.4
+    "completionPct": 19.6
   },
   {
     "wikiId": 320,
@@ -3528,7 +3528,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Kourend",
-    "completionPct": 14
+    "completionPct": 20.3
   },
   {
     "wikiId": 321,
@@ -3539,7 +3539,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Kourend",
-    "completionPct": 15.2
+    "completionPct": 21.6
   },
   {
     "wikiId": 322,
@@ -3550,7 +3550,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Kourend",
-    "completionPct": 2.5
+    "completionPct": 4
   },
   {
     "wikiId": 323,
@@ -3561,7 +3561,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Kourend",
-    "completionPct": 1.5
+    "completionPct": 2.5
   },
   {
     "wikiId": 324,
@@ -3572,7 +3572,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Kourend",
-    "completionPct": 2.2
+    "completionPct": 3.5
   },
   {
     "wikiId": 325,
@@ -3583,7 +3583,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Kourend",
-    "completionPct": 1.8
+    "completionPct": 3
   },
   {
     "wikiId": 326,
@@ -3594,7 +3594,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Kourend",
-    "completionPct": 2.9
+    "completionPct": 4.6
   },
   {
     "wikiId": 327,
@@ -3605,7 +3605,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Kourend",
-    "completionPct": 2.4
+    "completionPct": 3.9
   },
   {
     "wikiId": 328,
@@ -3616,7 +3616,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Tirannwn",
-    "completionPct": 18.8
+    "completionPct": 27.3
   },
   {
     "wikiId": 329,
@@ -3627,7 +3627,7 @@
     "points": 4,
     "type": "PERFECTION",
     "leagueRegion": "Tirannwn",
-    "completionPct": 11.9
+    "completionPct": 19
   },
   {
     "wikiId": 330,
@@ -3638,7 +3638,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Tirannwn",
-    "completionPct": 16.9
+    "completionPct": 25.1
   },
   {
     "wikiId": 331,
@@ -3649,7 +3649,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Tirannwn",
-    "completionPct": 19.2
+    "completionPct": 28.3
   },
   {
     "wikiId": 332,
@@ -3660,7 +3660,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia",
-    "completionPct": 14.7
+    "completionPct": 21.6
   },
   {
     "wikiId": 333,
@@ -3671,7 +3671,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia",
-    "completionPct": 10.9
+    "completionPct": 16.6
   },
   {
     "wikiId": 334,
@@ -3682,7 +3682,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Asgarnia",
-    "completionPct": 26.2
+    "completionPct": 36.9
   },
   {
     "wikiId": 335,
@@ -3693,7 +3693,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Asgarnia",
-    "completionPct": 7.5
+    "completionPct": 12.1
   },
   {
     "wikiId": 336,
@@ -3704,7 +3704,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Asgarnia",
-    "completionPct": 5
+    "completionPct": 8.6
   },
   {
     "wikiId": 337,
@@ -3715,7 +3715,7 @@
     "points": 4,
     "type": "PERFECTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 8.4
+    "completionPct": 14.2
   },
   {
     "wikiId": 338,
@@ -3726,7 +3726,7 @@
     "points": 6,
     "type": "PERFECTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 5.7
+    "completionPct": 9.9
   },
   {
     "wikiId": 339,
@@ -3737,7 +3737,7 @@
     "points": 3,
     "type": "RESTRICTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 24.4
+    "completionPct": 35.2
   },
   {
     "wikiId": 340,
@@ -3748,7 +3748,7 @@
     "points": 6,
     "type": "STAMINA",
     "leagueRegion": "Asgarnia",
-    "completionPct": 6
+    "completionPct": 10.3
   },
   {
     "wikiId": 341,
@@ -3759,7 +3759,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Karamja",
-    "completionPct": 14.8
+    "completionPct": 19.4
   },
   {
     "wikiId": 342,
@@ -3770,7 +3770,7 @@
     "points": 6,
     "type": "KILL_COUNT",
     "leagueRegion": "Karamja",
-    "completionPct": 1.5
+    "completionPct": 2.4
   },
   {
     "wikiId": 343,
@@ -3781,7 +3781,7 @@
     "points": 6,
     "type": "MECHANICAL",
     "leagueRegion": "Karamja",
-    "completionPct": 1.1
+    "completionPct": 1.8
   },
   {
     "wikiId": 344,
@@ -3792,7 +3792,7 @@
     "points": 6,
     "type": "MECHANICAL",
     "leagueRegion": "Karamja",
-    "completionPct": 1.2
+    "completionPct": 1.9
   },
   {
     "wikiId": 345,
@@ -3803,7 +3803,7 @@
     "points": 6,
     "type": "PERFECTION",
     "leagueRegion": "Karamja",
-    "completionPct": 8.5
+    "completionPct": 10.6
   },
   {
     "wikiId": 346,
@@ -3814,7 +3814,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Karamja",
-    "completionPct": 4.9
+    "completionPct": 6.6
   },
   {
     "wikiId": 347,
@@ -3825,7 +3825,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Karamja",
-    "completionPct": 1.8
+    "completionPct": 2.4
   },
   {
     "wikiId": 348,
@@ -3836,7 +3836,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Karamja",
-    "completionPct": 6.9
+    "completionPct": 9.2
   },
   {
     "wikiId": 349,
@@ -3847,7 +3847,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Karamja",
-    "completionPct": 1.2
+    "completionPct": 1.8
   },
   {
     "wikiId": 350,
@@ -3858,7 +3858,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Karamja",
-    "completionPct": 0.9
+    "completionPct": 1.6
   },
   {
     "wikiId": 351,
@@ -3869,7 +3869,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Karamja",
-    "completionPct": 2.7
+    "completionPct": 2.9
   },
   {
     "wikiId": 352,
@@ -3880,7 +3880,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Karamja",
-    "completionPct": 1.3
+    "completionPct": 2.1
   },
   {
     "wikiId": 353,
@@ -3891,7 +3891,7 @@
     "points": 1,
     "type": "KILL_COUNT",
     "leagueRegion": "Desert",
-    "completionPct": 59.3
+    "completionPct": 70.1
   },
   {
     "wikiId": 354,
@@ -3902,7 +3902,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Desert",
-    "completionPct": 55.1
+    "completionPct": 66.5
   },
   {
     "wikiId": 355,
@@ -3913,7 +3913,7 @@
     "points": 3,
     "type": "RESTRICTION",
     "leagueRegion": "Desert",
-    "completionPct": 37.4
+    "completionPct": 48.2
   },
   {
     "wikiId": 356,
@@ -3924,7 +3924,7 @@
     "points": 1,
     "type": "MECHANICAL",
     "leagueRegion": "Desert",
-    "completionPct": 49.5
+    "completionPct": 60.9
   },
   {
     "wikiId": 357,
@@ -3935,7 +3935,7 @@
     "points": 1,
     "type": "MECHANICAL",
     "leagueRegion": "Desert",
-    "completionPct": 55.5
+    "completionPct": 66.7
   },
   {
     "wikiId": 358,
@@ -3946,7 +3946,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Desert",
-    "completionPct": 22.2
+    "completionPct": 31.2
   },
   {
     "wikiId": 359,
@@ -3957,7 +3957,7 @@
     "points": 2,
     "type": "PERFECTION",
     "leagueRegion": "Desert",
-    "completionPct": 34.5
+    "completionPct": 44.9
   },
   {
     "wikiId": 360,
@@ -3968,7 +3968,7 @@
     "points": 1,
     "type": "MECHANICAL",
     "leagueRegion": "Desert",
-    "completionPct": 29.3
+    "completionPct": 40.1
   },
   {
     "wikiId": 361,
@@ -3979,7 +3979,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Karamja",
-    "completionPct": 9.3
+    "completionPct": 14.3
   },
   {
     "wikiId": 362,
@@ -3990,7 +3990,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Karamja",
-    "completionPct": 4
+    "completionPct": 6.4
   },
   {
     "wikiId": 363,
@@ -4001,7 +4001,7 @@
     "points": 6,
     "type": "KILL_COUNT",
     "leagueRegion": "Karamja",
-    "completionPct": 2
+    "completionPct": 3
   },
   {
     "wikiId": 364,
@@ -4012,7 +4012,7 @@
     "points": 4,
     "type": "SPEED",
     "leagueRegion": "Karamja",
-    "completionPct": 4.3
+    "completionPct": 7.1
   },
   {
     "wikiId": 365,
@@ -4023,7 +4023,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Karamja",
-    "completionPct": 2.8
+    "completionPct": 4.6
   },
   {
     "wikiId": 366,
@@ -4034,7 +4034,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Karamja",
-    "completionPct": 1.5
+    "completionPct": 2.4
   },
   {
     "wikiId": 367,
@@ -4045,7 +4045,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Karamja",
-    "completionPct": 5.6
+    "completionPct": 9.2
   },
   {
     "wikiId": 368,
@@ -4056,7 +4056,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": "Karamja",
-    "completionPct": 2.7
+    "completionPct": 4.5
   },
   {
     "wikiId": 369,
@@ -4067,7 +4067,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Karamja",
-    "completionPct": 2.9
+    "completionPct": 4.9
   },
   {
     "wikiId": 370,
@@ -4078,7 +4078,7 @@
     "points": 6,
     "type": "PERFECTION",
     "leagueRegion": "Karamja",
-    "completionPct": 1.5
+    "completionPct": 2.3
   },
   {
     "wikiId": 371,
@@ -4089,7 +4089,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Karamja",
-    "completionPct": 3.3
+    "completionPct": 5.6
   },
   {
     "wikiId": 372,
@@ -4100,7 +4100,7 @@
     "points": 6,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 2.4
+    "completionPct": 3.8
   },
   {
     "wikiId": 373,
@@ -4111,7 +4111,7 @@
     "points": 6,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 1.1
+    "completionPct": 1.8
   },
   {
     "wikiId": 374,
@@ -4122,7 +4122,7 @@
     "points": 6,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 1.6
+    "completionPct": 2.6
   },
   {
     "wikiId": 375,
@@ -4133,7 +4133,7 @@
     "points": 6,
     "type": "PERFECTION",
     "leagueRegion": "Morytania",
-    "completionPct": 1.2
+    "completionPct": 1.9
   },
   {
     "wikiId": 376,
@@ -4144,7 +4144,7 @@
     "points": 6,
     "type": "PERFECTION",
     "leagueRegion": "Morytania",
-    "completionPct": 0.9
+    "completionPct": 1.6
   },
   {
     "wikiId": 377,
@@ -4155,7 +4155,7 @@
     "points": 6,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 1.2
+    "completionPct": 2.1
   },
   {
     "wikiId": 378,
@@ -4166,7 +4166,7 @@
     "points": 6,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 2.6
+    "completionPct": 4.1
   },
   {
     "wikiId": 379,
@@ -4177,7 +4177,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Morytania",
-    "completionPct": 1
+    "completionPct": 1.7
   },
   {
     "wikiId": 380,
@@ -4188,7 +4188,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Morytania",
-    "completionPct": 1.1
+    "completionPct": 1.8
   },
   {
     "wikiId": 381,
@@ -4199,7 +4199,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 3.4
+    "completionPct": 5.3
   },
   {
     "wikiId": 382,
@@ -4210,7 +4210,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 1
+    "completionPct": 1.7
   },
   {
     "wikiId": 383,
@@ -4221,7 +4221,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 1.7
+    "completionPct": 2.7
   },
   {
     "wikiId": 384,
@@ -4232,7 +4232,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 1.6
+    "completionPct": 2.7
   },
   {
     "wikiId": 385,
@@ -4243,7 +4243,7 @@
     "points": 6,
     "type": "KILL_COUNT",
     "leagueRegion": "Morytania",
-    "completionPct": 1.9
+    "completionPct": 3
   },
   {
     "wikiId": 386,
@@ -4254,7 +4254,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 22.1
+    "completionPct": 31.9
   },
   {
     "wikiId": 387,
@@ -4265,7 +4265,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 20.7
+    "completionPct": 30.4
   },
   {
     "wikiId": 388,
@@ -4276,7 +4276,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 13.9
+    "completionPct": 21.4
   },
   {
     "wikiId": 389,
@@ -4287,7 +4287,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 9.8
+    "completionPct": 15.7
   },
   {
     "wikiId": 390,
@@ -4298,7 +4298,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 9
+    "completionPct": 14.1
   },
   {
     "wikiId": 391,
@@ -4309,7 +4309,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 15.4
+    "completionPct": 22.6
   },
   {
     "wikiId": 392,
@@ -4320,7 +4320,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 19.7
+    "completionPct": 28.3
   },
   {
     "wikiId": 393,
@@ -4331,7 +4331,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 31.7
+    "completionPct": 45.2
   },
   {
     "wikiId": 394,
@@ -4342,7 +4342,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 12.1
+    "completionPct": 18.3
   },
   {
     "wikiId": 395,
@@ -4353,7 +4353,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 7.7
+    "completionPct": 11.8
   },
   {
     "wikiId": 396,
@@ -4364,7 +4364,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 7
+    "completionPct": 10.9
   },
   {
     "wikiId": 397,
@@ -4375,7 +4375,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Morytania",
-    "completionPct": 34.6
+    "completionPct": 49.1
   },
   {
     "wikiId": 398,
@@ -4386,7 +4386,7 @@
     "points": 1,
     "type": "KILL_COUNT",
     "leagueRegion": "Kourend",
-    "completionPct": 27.7
+    "completionPct": 38.4
   },
   {
     "wikiId": 399,
@@ -4397,7 +4397,7 @@
     "points": 2,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 40.8
+    "completionPct": 55.4
   },
   {
     "wikiId": 400,
@@ -4408,7 +4408,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Morytania",
-    "completionPct": 5.5
+    "completionPct": 9
   },
   {
     "wikiId": 401,
@@ -4419,7 +4419,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Morytania",
-    "completionPct": 4.7
+    "completionPct": 7.9
   },
   {
     "wikiId": 402,
@@ -4430,7 +4430,7 @@
     "points": 6,
     "type": "KILL_COUNT",
     "leagueRegion": "Morytania",
-    "completionPct": 3.8
+    "completionPct": 6.7
   },
   {
     "wikiId": 403,
@@ -4441,7 +4441,7 @@
     "points": 6,
     "type": "PERFECTION",
     "leagueRegion": "Morytania",
-    "completionPct": 3
+    "completionPct": 5.5
   },
   {
     "wikiId": 404,
@@ -4452,7 +4452,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 4.2
+    "completionPct": 7.5
   },
   {
     "wikiId": 405,
@@ -4463,7 +4463,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 2.8
+    "completionPct": 5.5
   },
   {
     "wikiId": 406,
@@ -4474,7 +4474,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 4.5
+    "completionPct": 7.7
   },
   {
     "wikiId": 407,
@@ -4485,7 +4485,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 4.2
+    "completionPct": 7.2
   },
   {
     "wikiId": 408,
@@ -4496,7 +4496,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 4.4
+    "completionPct": 7.6
   },
   {
     "wikiId": 409,
@@ -4507,7 +4507,7 @@
     "points": 6,
     "type": "STAMINA",
     "leagueRegion": "Morytania",
-    "completionPct": 2
+    "completionPct": 3.8
   },
   {
     "wikiId": 410,
@@ -4518,7 +4518,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia",
-    "completionPct": 16.6
+    "completionPct": 23.8
   },
   {
     "wikiId": 411,
@@ -4529,7 +4529,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia",
-    "completionPct": 12.7
+    "completionPct": 18.6
   },
   {
     "wikiId": 412,
@@ -4540,7 +4540,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 15.6
+    "completionPct": 22.7
   },
   {
     "wikiId": 413,
@@ -4551,7 +4551,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Asgarnia",
-    "completionPct": 14.5
+    "completionPct": 21
   },
   {
     "wikiId": 414,
@@ -4562,7 +4562,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Asgarnia",
-    "completionPct": 15.6
+    "completionPct": 22.6
   },
   {
     "wikiId": 415,
@@ -4573,7 +4573,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Asgarnia",
-    "completionPct": 15.8
+    "completionPct": 22.9
   },
   {
     "wikiId": 416,
@@ -4584,7 +4584,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 5.6
+    "completionPct": 8.6
   },
   {
     "wikiId": 417,
@@ -4595,7 +4595,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 2.6
+    "completionPct": 4.3
   },
   {
     "wikiId": 418,
@@ -4606,7 +4606,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 10.9
+    "completionPct": 16
   },
   {
     "wikiId": 419,
@@ -4617,7 +4617,7 @@
     "points": 6,
     "type": "PERFECTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 11.8
+    "completionPct": 17.5
   },
   {
     "wikiId": 420,
@@ -4628,7 +4628,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Asgarnia",
-    "completionPct": 15.6
+    "completionPct": 22.6
   },
   {
     "wikiId": 421,
@@ -4639,7 +4639,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Desert",
-    "completionPct": 1.7
+    "completionPct": 3.1
   },
   {
     "wikiId": 422,
@@ -4650,7 +4650,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Desert",
-    "completionPct": 1.4
+    "completionPct": 2.5
   },
   {
     "wikiId": 423,
@@ -4661,7 +4661,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Desert",
-    "completionPct": 1.2
+    "completionPct": 2.1
   },
   {
     "wikiId": 424,
@@ -4672,7 +4672,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": "Desert",
-    "completionPct": 5
+    "completionPct": 8.3
   },
   {
     "wikiId": 425,
@@ -4683,7 +4683,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Desert",
-    "completionPct": 4.9
+    "completionPct": 8.2
   },
   {
     "wikiId": 426,
@@ -4694,7 +4694,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": "Desert",
-    "completionPct": 5.2
+    "completionPct": 8.4
   },
   {
     "wikiId": 427,
@@ -4705,7 +4705,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": "Desert",
-    "completionPct": 2.6
+    "completionPct": 4.5
   },
   {
     "wikiId": 428,
@@ -4716,7 +4716,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Desert",
-    "completionPct": 6.8
+    "completionPct": 11.1
   },
   {
     "wikiId": 429,
@@ -4727,7 +4727,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": "Desert",
-    "completionPct": 2.3
+    "completionPct": 3.8
   },
   {
     "wikiId": 430,
@@ -4738,7 +4738,7 @@
     "points": 4,
     "type": "PERFECTION",
     "leagueRegion": "Desert",
-    "completionPct": 22.8
+    "completionPct": 33
   },
   {
     "wikiId": 431,
@@ -4749,7 +4749,7 @@
     "points": 4,
     "type": "PERFECTION",
     "leagueRegion": "Desert",
-    "completionPct": 21.1
+    "completionPct": 30.8
   },
   {
     "wikiId": 432,
@@ -4760,7 +4760,7 @@
     "points": 4,
     "type": "PERFECTION",
     "leagueRegion": "Desert",
-    "completionPct": 23.1
+    "completionPct": 34.3
   },
   {
     "wikiId": 433,
@@ -4771,7 +4771,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Desert",
-    "completionPct": 1.8
+    "completionPct": 3
   },
   {
     "wikiId": 434,
@@ -4782,7 +4782,7 @@
     "points": 6,
     "type": "PERFECTION",
     "leagueRegion": "Desert",
-    "completionPct": 1.6
+    "completionPct": 2.7
   },
   {
     "wikiId": 435,
@@ -4793,7 +4793,7 @@
     "points": 4,
     "type": "PERFECTION",
     "leagueRegion": "Desert",
-    "completionPct": 19.5
+    "completionPct": 29.5
   },
   {
     "wikiId": 436,
@@ -4804,7 +4804,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Desert",
-    "completionPct": 6
+    "completionPct": 9.9
   },
   {
     "wikiId": 437,
@@ -4815,7 +4815,7 @@
     "points": 6,
     "type": "PERFECTION",
     "leagueRegion": "Desert",
-    "completionPct": 4.1
+    "completionPct": 6.9
   },
   {
     "wikiId": 438,
@@ -4826,7 +4826,7 @@
     "points": 4,
     "type": "PERFECTION",
     "leagueRegion": "Desert",
-    "completionPct": 24.9
+    "completionPct": 35.2
   },
   {
     "wikiId": 439,
@@ -4837,7 +4837,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Desert",
-    "completionPct": 11.1
+    "completionPct": 16.7
   },
   {
     "wikiId": 440,
@@ -4848,7 +4848,7 @@
     "points": 6,
     "type": "PERFECTION",
     "leagueRegion": "Desert",
-    "completionPct": 8.8
+    "completionPct": 13.2
   },
   {
     "wikiId": 441,
@@ -4859,7 +4859,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Desert",
-    "completionPct": 24.4
+    "completionPct": 35.1
   },
   {
     "wikiId": 442,
@@ -4870,7 +4870,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Desert",
-    "completionPct": 5.8
+    "completionPct": 9.5
   },
   {
     "wikiId": 443,
@@ -4881,7 +4881,7 @@
     "points": 6,
     "type": "PERFECTION",
     "leagueRegion": "Desert",
-    "completionPct": 3.8
+    "completionPct": 6.5
   },
   {
     "wikiId": 444,
@@ -4892,7 +4892,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Desert",
-    "completionPct": 1.6
+    "completionPct": 2.8
   },
   {
     "wikiId": 445,
@@ -4903,7 +4903,7 @@
     "points": 6,
     "type": "PERFECTION",
     "leagueRegion": "Desert",
-    "completionPct": 1.5
+    "completionPct": 2.6
   },
   {
     "wikiId": 446,
@@ -4914,7 +4914,7 @@
     "points": 6,
     "type": "MECHANICAL",
     "leagueRegion": "Desert",
-    "completionPct": 4.8
+    "completionPct": 7.5
   },
   {
     "wikiId": 447,
@@ -4925,7 +4925,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Desert",
-    "completionPct": 13.7
+    "completionPct": 20.6
   },
   {
     "wikiId": 448,
@@ -4936,7 +4936,7 @@
     "points": 6,
     "type": "MECHANICAL",
     "leagueRegion": "Desert",
-    "completionPct": 1.6
+    "completionPct": 2.8
   },
   {
     "wikiId": 449,
@@ -4947,7 +4947,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Desert",
-    "completionPct": 25.4
+    "completionPct": 36.9
   },
   {
     "wikiId": 450,
@@ -4958,7 +4958,7 @@
     "points": 6,
     "type": "MECHANICAL",
     "leagueRegion": "Desert",
-    "completionPct": 2.4
+    "completionPct": 3.8
   },
   {
     "wikiId": 451,
@@ -4969,7 +4969,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Desert",
-    "completionPct": 5.9
+    "completionPct": 9.8
   },
   {
     "wikiId": 452,
@@ -4980,7 +4980,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Desert",
-    "completionPct": 17.6
+    "completionPct": 26.1
   },
   {
     "wikiId": 453,
@@ -4991,7 +4991,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Desert",
-    "completionPct": 7
+    "completionPct": 11
   },
   {
     "wikiId": 454,
@@ -5002,7 +5002,7 @@
     "points": 6,
     "type": "MECHANICAL",
     "leagueRegion": "Desert",
-    "completionPct": 1.6
+    "completionPct": 2.5
   },
   {
     "wikiId": 455,
@@ -5013,7 +5013,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Desert",
-    "completionPct": 5.4
+    "completionPct": 8.5
   },
   {
     "wikiId": 456,
@@ -5024,7 +5024,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Desert",
-    "completionPct": 2.2
+    "completionPct": 3.6
   },
   {
     "wikiId": 457,
@@ -5035,7 +5035,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Desert",
-    "completionPct": 4.6
+    "completionPct": 6.8
   },
   {
     "wikiId": 458,
@@ -5046,7 +5046,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Desert",
-    "completionPct": 15.4
+    "completionPct": 22.9
   },
   {
     "wikiId": 459,
@@ -5057,7 +5057,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Desert",
-    "completionPct": 13.3
+    "completionPct": 20
   },
   {
     "wikiId": 460,
@@ -5068,7 +5068,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Desert",
-    "completionPct": 13.4
+    "completionPct": 19.9
   },
   {
     "wikiId": 461,
@@ -5079,7 +5079,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Desert",
-    "completionPct": 36.3
+    "completionPct": 49.5
   },
   {
     "wikiId": 462,
@@ -5090,7 +5090,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Desert",
-    "completionPct": 19.8
+    "completionPct": 29.2
   },
   {
     "wikiId": 463,
@@ -5101,7 +5101,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Desert",
-    "completionPct": 15.3
+    "completionPct": 23
   },
   {
     "wikiId": 464,
@@ -5112,7 +5112,7 @@
     "points": 3,
     "type": "RESTRICTION",
     "leagueRegion": "Desert",
-    "completionPct": 34.1
+    "completionPct": 46.8
   },
   {
     "wikiId": 465,
@@ -5123,7 +5123,7 @@
     "points": 3,
     "type": "RESTRICTION",
     "leagueRegion": "Desert",
-    "completionPct": 32.7
+    "completionPct": 45.3
   },
   {
     "wikiId": 466,
@@ -5134,7 +5134,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Desert",
-    "completionPct": 18.6
+    "completionPct": 27.6
   },
   {
     "wikiId": 467,
@@ -5145,7 +5145,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Desert",
-    "completionPct": 14.6
+    "completionPct": 22
   },
   {
     "wikiId": 468,
@@ -5156,7 +5156,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Desert",
-    "completionPct": 32.1
+    "completionPct": 44.6
   },
   {
     "wikiId": 469,
@@ -5167,7 +5167,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Desert",
-    "completionPct": 21.2
+    "completionPct": 30.9
   },
   {
     "wikiId": 470,
@@ -5178,7 +5178,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Desert",
-    "completionPct": 11.7
+    "completionPct": 18.2
   },
   {
     "wikiId": 471,
@@ -5189,7 +5189,7 @@
     "points": 6,
     "type": "KILL_COUNT",
     "leagueRegion": "Desert",
-    "completionPct": 9.1
+    "completionPct": 14.4
   },
   {
     "wikiId": 472,
@@ -5200,7 +5200,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": "Fremennik",
-    "completionPct": 4.4
+    "completionPct": 7.5
   },
   {
     "wikiId": 473,
@@ -5211,7 +5211,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Fremennik",
-    "completionPct": 9.4
+    "completionPct": 15.4
   },
   {
     "wikiId": 474,
@@ -5222,7 +5222,7 @@
     "points": 5,
     "type": "STAMINA",
     "leagueRegion": "Fremennik",
-    "completionPct": 6.2
+    "completionPct": 10.4
   },
   {
     "wikiId": 475,
@@ -5233,7 +5233,7 @@
     "points": 4,
     "type": "SPEED",
     "leagueRegion": "Fremennik",
-    "completionPct": 14.1
+    "completionPct": 22.1
   },
   {
     "wikiId": 476,
@@ -5244,7 +5244,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Fremennik",
-    "completionPct": 5.3
+    "completionPct": 8.8
   },
   {
     "wikiId": 477,
@@ -5255,7 +5255,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Fremennik",
-    "completionPct": 2
+    "completionPct": 3.5
   },
   {
     "wikiId": 478,
@@ -5266,7 +5266,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Fremennik",
-    "completionPct": 21.7
+    "completionPct": 32.4
   },
   {
     "wikiId": 479,
@@ -5277,7 +5277,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Fremennik",
-    "completionPct": 16.6
+    "completionPct": 25.6
   },
   {
     "wikiId": 480,
@@ -5288,7 +5288,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Fremennik",
-    "completionPct": 14.3
+    "completionPct": 22.4
   },
   {
     "wikiId": 481,
@@ -5299,7 +5299,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Fremennik",
-    "completionPct": 12.4
+    "completionPct": 19.8
   },
   {
     "wikiId": 482,
@@ -5310,7 +5310,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Fremennik",
-    "completionPct": 11.2
+    "completionPct": 18.3
   },
   {
     "wikiId": 483,
@@ -5321,7 +5321,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Fremennik",
-    "completionPct": 15
+    "completionPct": 23.4
   },
   {
     "wikiId": 484,
@@ -5332,7 +5332,7 @@
     "points": 6,
     "type": "PERFECTION",
     "leagueRegion": "Fremennik",
-    "completionPct": 4
+    "completionPct": 6.9
   },
   {
     "wikiId": 485,
@@ -5343,7 +5343,7 @@
     "points": 4,
     "type": "SPEED",
     "leagueRegion": "Varlamore",
-    "completionPct": 9
+    "completionPct": 15.5
   },
   {
     "wikiId": 486,
@@ -5354,7 +5354,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Varlamore",
-    "completionPct": 7.2
+    "completionPct": 12.6
   },
   {
     "wikiId": 487,
@@ -5365,7 +5365,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Varlamore",
-    "completionPct": 4.3
+    "completionPct": 7.9
   },
   {
     "wikiId": 488,
@@ -5376,7 +5376,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Varlamore",
-    "completionPct": 16
+    "completionPct": 25.2
   },
   {
     "wikiId": 489,
@@ -5387,7 +5387,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Varlamore",
-    "completionPct": 10.8
+    "completionPct": 17.6
   },
   {
     "wikiId": 490,
@@ -5398,7 +5398,7 @@
     "points": 6,
     "type": "KILL_COUNT",
     "leagueRegion": "Varlamore",
-    "completionPct": 2.7
+    "completionPct": 4.3
   },
   {
     "wikiId": 491,
@@ -5409,7 +5409,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Varlamore",
-    "completionPct": 6.2
+    "completionPct": 10.9
   },
   {
     "wikiId": 492,
@@ -5420,7 +5420,7 @@
     "points": 6,
     "type": "MECHANICAL",
     "leagueRegion": "Varlamore",
-    "completionPct": 2.8
+    "completionPct": 5
   },
   {
     "wikiId": 493,
@@ -5431,7 +5431,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": "Varlamore",
-    "completionPct": 6
+    "completionPct": 10.4
   },
   {
     "wikiId": 494,
@@ -5442,7 +5442,7 @@
     "points": 4,
     "type": "SPEED",
     "leagueRegion": "Asgarnia",
-    "completionPct": 5.5
+    "completionPct": 9.5
   },
   {
     "wikiId": 495,
@@ -5453,7 +5453,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Asgarnia",
-    "completionPct": 3.1
+    "completionPct": 5.6
   },
   {
     "wikiId": 496,
@@ -5464,7 +5464,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Asgarnia",
-    "completionPct": 1.5
+    "completionPct": 2.7
   },
   {
     "wikiId": 497,
@@ -5475,7 +5475,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia",
-    "completionPct": 10
+    "completionPct": 16.1
   },
   {
     "wikiId": 498,
@@ -5486,7 +5486,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia",
-    "completionPct": 5.5
+    "completionPct": 9.6
   },
   {
     "wikiId": 499,
@@ -5497,7 +5497,7 @@
     "points": 6,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia",
-    "completionPct": 2.5
+    "completionPct": 3.9
   },
   {
     "wikiId": 500,
@@ -5508,7 +5508,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 3.7
+    "completionPct": 6.7
   },
   {
     "wikiId": 501,
@@ -5519,7 +5519,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Asgarnia&Kourend,Asgarnia,(with Grimoire Relic)",
-    "completionPct": 6.3
+    "completionPct": 10.9
   },
   {
     "wikiId": 502,
@@ -5530,7 +5530,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 4.1
+    "completionPct": 7.2
   },
   {
     "wikiId": 503,
@@ -5541,7 +5541,7 @@
     "points": 4,
     "type": "SPEED",
     "leagueRegion": "Desert",
-    "completionPct": 5.1
+    "completionPct": 8.9
   },
   {
     "wikiId": 504,
@@ -5552,7 +5552,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Desert",
-    "completionPct": 3
+    "completionPct": 5.5
   },
   {
     "wikiId": 505,
@@ -5563,7 +5563,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Desert",
-    "completionPct": 2.1
+    "completionPct": 3.8
   },
   {
     "wikiId": 506,
@@ -5574,7 +5574,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Desert",
-    "completionPct": 10.8
+    "completionPct": 17.2
   },
   {
     "wikiId": 507,
@@ -5585,7 +5585,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Desert",
-    "completionPct": 6.2
+    "completionPct": 10.5
   },
   {
     "wikiId": 508,
@@ -5596,7 +5596,7 @@
     "points": 6,
     "type": "KILL_COUNT",
     "leagueRegion": "Desert",
-    "completionPct": 2.4
+    "completionPct": 3.8
   },
   {
     "wikiId": 509,
@@ -5607,7 +5607,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Desert",
-    "completionPct": 3.3
+    "completionPct": 6
   },
   {
     "wikiId": 510,
@@ -5618,7 +5618,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Desert",
-    "completionPct": 7.9
+    "completionPct": 13.3
   },
   {
     "wikiId": 511,
@@ -5629,7 +5629,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Desert",
-    "completionPct": 2.4
+    "completionPct": 4.2
   },
   {
     "wikiId": 512,
@@ -5640,7 +5640,7 @@
     "points": 4,
     "type": "SPEED",
     "leagueRegion": "Fremennik",
-    "completionPct": 9
+    "completionPct": 16.3
   },
   {
     "wikiId": 513,
@@ -5651,7 +5651,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Fremennik",
-    "completionPct": 6.8
+    "completionPct": 12.7
   },
   {
     "wikiId": 514,
@@ -5662,7 +5662,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Fremennik",
-    "completionPct": 4.1
+    "completionPct": 8
   },
   {
     "wikiId": 515,
@@ -5673,7 +5673,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Fremennik",
-    "completionPct": 19.2
+    "completionPct": 29.9
   },
   {
     "wikiId": 516,
@@ -5684,7 +5684,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Fremennik",
-    "completionPct": 13.1
+    "completionPct": 21.5
   },
   {
     "wikiId": 517,
@@ -5695,7 +5695,7 @@
     "points": 6,
     "type": "KILL_COUNT",
     "leagueRegion": "Fremennik",
-    "completionPct": 2.5
+    "completionPct": 4
   },
   {
     "wikiId": 518,
@@ -5706,7 +5706,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Fremennik",
-    "completionPct": 10.2
+    "completionPct": 17.9
   },
   {
     "wikiId": 519,
@@ -5717,7 +5717,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": "Fremennik",
-    "completionPct": 4.6
+    "completionPct": 8.4
   },
   {
     "wikiId": 520,
@@ -5728,7 +5728,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Fremennik",
-    "completionPct": 3.8
+    "completionPct": 6.7
   },
   {
     "wikiId": 521,
@@ -5739,7 +5739,7 @@
     "points": 1,
     "type": "KILL_COUNT",
     "leagueRegion": "Misthalin",
-    "completionPct": 44.2
+    "completionPct": 57.2
   },
   {
     "wikiId": 522,
@@ -5750,7 +5750,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Misthalin",
-    "completionPct": 35.9
+    "completionPct": 48.1
   },
   {
     "wikiId": 523,
@@ -5761,7 +5761,7 @@
     "points": 1,
     "type": "RESTRICTION",
     "leagueRegion": "Misthalin",
-    "completionPct": 26.9
+    "completionPct": 37.3
   },
   {
     "wikiId": 524,
@@ -5772,7 +5772,7 @@
     "points": 2,
     "type": "PERFECTION",
     "leagueRegion": "Misthalin",
-    "completionPct": 30.2
+    "completionPct": 42
   },
   {
     "wikiId": 525,
@@ -5783,7 +5783,7 @@
     "points": 2,
     "type": "MECHANICAL",
     "leagueRegion": "Misthalin",
-    "completionPct": 24.1
+    "completionPct": 34.4
   },
   {
     "wikiId": 526,
@@ -5794,7 +5794,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Varlamore",
-    "completionPct": 24.3
+    "completionPct": 37.4
   },
   {
     "wikiId": 527,
@@ -5805,7 +5805,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Varlamore",
-    "completionPct": 36.5
+    "completionPct": 52.4
   },
   {
     "wikiId": 528,
@@ -5816,7 +5816,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Varlamore",
-    "completionPct": 43.1
+    "completionPct": 59.1
   },
   {
     "wikiId": 529,
@@ -5827,7 +5827,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Varlamore",
-    "completionPct": 35.7
+    "completionPct": 50.9
   },
   {
     "wikiId": 530,
@@ -5838,7 +5838,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Varlamore",
-    "completionPct": 29
+    "completionPct": 43.2
   },
   {
     "wikiId": 531,
@@ -5849,7 +5849,7 @@
     "points": 3,
     "type": "PERFECTION",
     "leagueRegion": "Varlamore",
-    "completionPct": 19.5
+    "completionPct": 31.1
   },
   {
     "wikiId": 532,
@@ -5860,7 +5860,7 @@
     "points": 3,
     "type": "RESTRICTION",
     "leagueRegion": "Varlamore",
-    "completionPct": 33.3
+    "completionPct": 48.9
   },
   {
     "wikiId": 533,
@@ -5871,7 +5871,7 @@
     "points": 3,
     "type": "RESTRICTION",
     "leagueRegion": "Varlamore",
-    "completionPct": 20.3
+    "completionPct": 32.1
   },
   {
     "wikiId": 534,
@@ -5882,7 +5882,7 @@
     "points": 2,
     "type": "RESTRICTION",
     "leagueRegion": "Varlamore",
-    "completionPct": 22.3
+    "completionPct": 34.3
   },
   {
     "wikiId": 535,
@@ -5893,7 +5893,7 @@
     "points": 2,
     "type": "SPEED",
     "leagueRegion": "Varlamore",
-    "completionPct": 33.2
+    "completionPct": 48.5
   },
   {
     "wikiId": 536,
@@ -5904,7 +5904,7 @@
     "points": 3,
     "type": "SPEED",
     "leagueRegion": "Varlamore",
-    "completionPct": 27.5
+    "completionPct": 41.8
   },
   {
     "wikiId": 537,
@@ -5915,7 +5915,7 @@
     "points": 3,
     "type": "STAMINA",
     "leagueRegion": "Varlamore",
-    "completionPct": 28.1
+    "completionPct": 42.1
   },
   {
     "wikiId": 538,
@@ -5926,7 +5926,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Varlamore",
-    "completionPct": 9.5
+    "completionPct": 13.4
   },
   {
     "wikiId": 539,
@@ -5937,7 +5937,7 @@
     "points": 6,
     "type": "KILL_COUNT",
     "leagueRegion": "Varlamore",
-    "completionPct": 1.9
+    "completionPct": 3.3
   },
   {
     "wikiId": 540,
@@ -5948,7 +5948,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": "Varlamore",
-    "completionPct": 2.2
+    "completionPct": 4
   },
   {
     "wikiId": 541,
@@ -5959,7 +5959,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Varlamore",
-    "completionPct": 1.2
+    "completionPct": 2.1
   },
   {
     "wikiId": 542,
@@ -5970,7 +5970,7 @@
     "points": 4,
     "type": "PERFECTION",
     "leagueRegion": "Varlamore",
-    "completionPct": 11.9
+    "completionPct": 17.2
   },
   {
     "wikiId": 543,
@@ -5981,7 +5981,7 @@
     "points": 6,
     "type": "PERFECTION",
     "leagueRegion": "Varlamore",
-    "completionPct": 3.3
+    "completionPct": 4.4
   },
   {
     "wikiId": 544,
@@ -5992,7 +5992,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Varlamore",
-    "completionPct": 1.2
+    "completionPct": 2.1
   },
   {
     "wikiId": 545,
@@ -6003,7 +6003,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Varlamore",
-    "completionPct": 10.5
+    "completionPct": 15.4
   },
   {
     "wikiId": 546,
@@ -6014,7 +6014,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Varlamore",
-    "completionPct": 6
+    "completionPct": 9.1
   },
   {
     "wikiId": 547,
@@ -6025,7 +6025,7 @@
     "points": 6,
     "type": "MECHANICAL",
     "leagueRegion": "Varlamore",
-    "completionPct": 1
+    "completionPct": 1.7
   },
   {
     "wikiId": 548,
@@ -6036,7 +6036,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Varlamore",
-    "completionPct": 6.1
+    "completionPct": 10.4
   },
   {
     "wikiId": 549,
@@ -6047,7 +6047,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Varlamore",
-    "completionPct": 2.8
+    "completionPct": 4.4
   },
   {
     "wikiId": 550,
@@ -6058,7 +6058,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Varlamore",
-    "completionPct": 1.7
+    "completionPct": 2.8
   },
   {
     "wikiId": 551,
@@ -6069,7 +6069,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Misthalin",
-    "completionPct": 28.3
+    "completionPct": 43.1
   },
   {
     "wikiId": 552,
@@ -6080,7 +6080,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Misthalin",
-    "completionPct": 27.4
+    "completionPct": 42
   },
   {
     "wikiId": 553,
@@ -6091,7 +6091,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Misthalin",
-    "completionPct": 3.6
+    "completionPct": 6.3
   },
   {
     "wikiId": 554,
@@ -6102,7 +6102,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": "Misthalin",
-    "completionPct": 2.5
+    "completionPct": 4.5
   },
   {
     "wikiId": 555,
@@ -6113,7 +6113,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Misthalin",
-    "completionPct": 4.5
+    "completionPct": 7.9
   },
   {
     "wikiId": 556,
@@ -6124,7 +6124,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Morytania",
-    "completionPct": 16.2
+    "completionPct": 26.4
   },
   {
     "wikiId": 557,
@@ -6135,7 +6135,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Morytania",
-    "completionPct": 14.5
+    "completionPct": 24.1
   },
   {
     "wikiId": 558,
@@ -6146,7 +6146,7 @@
     "points": 4,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 15
+    "completionPct": 24.8
   },
   {
     "wikiId": 559,
@@ -6157,7 +6157,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 11.2
+    "completionPct": 18.8
   },
   {
     "wikiId": 560,
@@ -6168,7 +6168,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Morytania",
-    "completionPct": 5.3
+    "completionPct": 9.1
   },
   {
     "wikiId": 561,
@@ -6179,7 +6179,7 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": "Morytania",
-    "completionPct": 11.2
+    "completionPct": 19.3
   },
   {
     "wikiId": 562,
@@ -6190,7 +6190,7 @@
     "points": 6,
     "type": "PERFECTION",
     "leagueRegion": "Morytania",
-    "completionPct": 5.1
+    "completionPct": 9.1
   },
   {
     "wikiId": 563,
@@ -6201,7 +6201,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": "Morytania",
-    "completionPct": 10.3
+    "completionPct": 17.8
   },
   {
     "wikiId": 564,
@@ -6212,7 +6212,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Morytania",
-    "completionPct": 9.2
+    "completionPct": 16
   },
   {
     "wikiId": 565,
@@ -6223,7 +6223,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Morytania",
-    "completionPct": 12.8
+    "completionPct": 21.4
   },
   {
     "wikiId": 566,
@@ -6234,7 +6234,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Morytania",
-    "completionPct": 7.2
+    "completionPct": 12.7
   },
   {
     "wikiId": 567,
@@ -6245,7 +6245,7 @@
     "points": 5,
     "type": "STAMINA",
     "leagueRegion": "Morytania",
-    "completionPct": 8.7
+    "completionPct": 15.1
   },
   {
     "wikiId": 568,
@@ -6256,7 +6256,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Varlamore",
-    "completionPct": 26.8
+    "completionPct": 41.3
   },
   {
     "wikiId": 569,
@@ -6267,7 +6267,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Varlamore",
-    "completionPct": 23.1
+    "completionPct": 36.3
   },
   {
     "wikiId": 570,
@@ -6278,7 +6278,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Varlamore",
-    "completionPct": 18.6
+    "completionPct": 30.1
   },
   {
     "wikiId": 571,
@@ -6289,7 +6289,7 @@
     "points": 4,
     "type": "PERFECTION",
     "leagueRegion": "Varlamore",
-    "completionPct": 10.5
+    "completionPct": 18.1
   },
   {
     "wikiId": 572,
@@ -6300,7 +6300,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Varlamore",
-    "completionPct": 21.2
+    "completionPct": 33.4
   },
   {
     "wikiId": 573,
@@ -6311,7 +6311,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": "Varlamore",
-    "completionPct": 11.3
+    "completionPct": 19
   },
   {
     "wikiId": 574,
@@ -6322,7 +6322,7 @@
     "points": 2,
     "type": "RESTRICTION",
     "leagueRegion": "Varlamore",
-    "completionPct": 14.1
+    "completionPct": 23.6
   },
   {
     "wikiId": 575,
@@ -6333,7 +6333,7 @@
     "points": 3,
     "type": "RESTRICTION",
     "leagueRegion": "Varlamore",
-    "completionPct": 7.7
+    "completionPct": 13.5
   },
   {
     "wikiId": 576,
@@ -6344,7 +6344,7 @@
     "points": 4,
     "type": "SPEED",
     "leagueRegion": "Varlamore",
-    "completionPct": 21.1
+    "completionPct": 33.6
   },
   {
     "wikiId": 577,
@@ -6355,7 +6355,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Varlamore",
-    "completionPct": 8
+    "completionPct": 13.7
   },
   {
     "wikiId": 578,
@@ -6366,7 +6366,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Varlamore",
-    "completionPct": 2.9
+    "completionPct": 5.3
   },
   {
     "wikiId": 579,
@@ -6377,7 +6377,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Varlamore",
-    "completionPct": 25.6
+    "completionPct": 40.8
   },
   {
     "wikiId": 580,
@@ -6388,7 +6388,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": "Varlamore",
-    "completionPct": 20
+    "completionPct": 32.7
   },
   {
     "wikiId": 581,
@@ -6399,7 +6399,7 @@
     "points": 3,
     "type": "SPEED",
     "leagueRegion": "Varlamore",
-    "completionPct": 16.8
+    "completionPct": 28
   },
   {
     "wikiId": 582,
@@ -6410,7 +6410,7 @@
     "points": 4,
     "type": "SPEED",
     "leagueRegion": "Varlamore",
-    "completionPct": 4.3
+    "completionPct": 7.6
   },
   {
     "wikiId": 583,
@@ -6421,7 +6421,7 @@
     "points": 3,
     "type": "PERFECTION",
     "leagueRegion": "Varlamore",
-    "completionPct": 21.7
+    "completionPct": 35.4
   },
   {
     "wikiId": 584,
@@ -6432,7 +6432,7 @@
     "points": 2,
     "type": "RESTRICTION",
     "leagueRegion": "Varlamore",
-    "completionPct": 15.6
+    "completionPct": 25.8
   },
   {
     "wikiId": 585,
@@ -6443,7 +6443,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Varlamore",
-    "completionPct": 13.6
+    "completionPct": 23.1
   },
   {
     "wikiId": 586,
@@ -6454,7 +6454,7 @@
     "points": 3,
     "type": "STAMINA",
     "leagueRegion": "Varlamore",
-    "completionPct": 18.4
+    "completionPct": 30.6
   },
   {
     "wikiId": 587,
@@ -6465,7 +6465,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Varlamore",
-    "completionPct": 24.6
+    "completionPct": 39.6
   },
   {
     "wikiId": 588,
@@ -6476,7 +6476,7 @@
     "points": 3,
     "type": "PERFECTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 23.9
+    "completionPct": 37.6
   },
   {
     "wikiId": 589,
@@ -6487,7 +6487,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia",
-    "completionPct": 29.8
+    "completionPct": 45.2
   },
   {
     "wikiId": 590,
@@ -6498,7 +6498,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Asgarnia",
-    "completionPct": 26.7
+    "completionPct": 41.4
   },
   {
     "wikiId": 591,
@@ -6509,7 +6509,7 @@
     "points": 1,
     "type": "RESTRICTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 21.8
+    "completionPct": 34.7
   },
   {
     "wikiId": 592,
@@ -6520,7 +6520,7 @@
     "points": 3,
     "type": "SPEED",
     "leagueRegion": "Asgarnia",
-    "completionPct": 17.7
+    "completionPct": 28.1
   },
   {
     "wikiId": 593,
@@ -6531,7 +6531,7 @@
     "points": 3,
     "type": "STAMINA",
     "leagueRegion": "Asgarnia",
-    "completionPct": 10.4
+    "completionPct": 17.7
   },
   {
     "wikiId": 594,
@@ -6542,7 +6542,7 @@
     "points": 1,
     "type": "RESTRICTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 23.3
+    "completionPct": 36.7
   },
   {
     "wikiId": 595,
@@ -6553,7 +6553,7 @@
     "points": 3,
     "type": "RESTRICTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 23.7
+    "completionPct": 37.4
   },
   {
     "wikiId": 596,
@@ -6564,7 +6564,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 10.5
+    "completionPct": 17.7
   },
   {
     "wikiId": 597,
@@ -6575,7 +6575,7 @@
     "points": 1,
     "type": "RESTRICTION",
     "leagueRegion": "Asgarnia",
-    "completionPct": 22.7
+    "completionPct": 36
   },
   {
     "wikiId": 598,
@@ -6586,7 +6586,7 @@
     "points": 2,
     "type": "MECHANICAL",
     "leagueRegion": "Asgarnia",
-    "completionPct": 24.2
+    "completionPct": 38.2
   },
   {
     "wikiId": 599,
@@ -6597,7 +6597,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Kourend",
-    "completionPct": 12.7
+    "completionPct": 22.2
   },
   {
     "wikiId": 600,
@@ -6608,7 +6608,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Kourend",
-    "completionPct": 9.6
+    "completionPct": 17.3
   },
   {
     "wikiId": 601,
@@ -6619,7 +6619,7 @@
     "points": 4,
     "type": "SPEED",
     "leagueRegion": "Kourend",
-    "completionPct": 8.5
+    "completionPct": 15.6
   },
   {
     "wikiId": 602,
@@ -6630,7 +6630,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Kourend",
-    "completionPct": 3.1
+    "completionPct": 5.7
   },
   {
     "wikiId": 603,
@@ -6641,7 +6641,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Kourend",
-    "completionPct": 0.9
+    "completionPct": 1.7
   },
   {
     "wikiId": 604,
@@ -6652,7 +6652,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": "Kourend",
-    "completionPct": 4.1
+    "completionPct": 7.7
   },
   {
     "wikiId": 605,
@@ -6663,7 +6663,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 8.7
+    "completionPct": 16.1
   },
   {
     "wikiId": 606,
@@ -6674,7 +6674,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 10.1
+    "completionPct": 18.1
   },
   {
     "wikiId": 607,
@@ -6685,7 +6685,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Kourend",
-    "completionPct": 11.7
+    "completionPct": 20.6
   },
   {
     "wikiId": 608,
@@ -6696,7 +6696,7 @@
     "points": 6,
     "type": "PERFECTION",
     "leagueRegion": "Kourend",
-    "completionPct": 7.3
+    "completionPct": 13.8
   },
   {
     "wikiId": 609,
@@ -6707,7 +6707,7 @@
     "points": 6,
     "type": "KILL_COUNT",
     "leagueRegion": "Kourend",
-    "completionPct": 1.8
+    "completionPct": 3.3
   },
   {
     "wikiId": 610,
@@ -6718,7 +6718,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": "Varlamore",
-    "completionPct": 12.3
+    "completionPct": 23.4
   },
   {
     "wikiId": 611,
@@ -6729,7 +6729,7 @@
     "points": 5,
     "type": "KILL_COUNT",
     "leagueRegion": "Varlamore",
-    "completionPct": 5.2
+    "completionPct": 10.5
   },
   {
     "wikiId": 612,
@@ -6740,7 +6740,7 @@
     "points": 6,
     "type": "STAMINA",
     "leagueRegion": "Varlamore",
-    "completionPct": 1.5
+    "completionPct": 3.3
   },
   {
     "wikiId": 613,
@@ -6751,7 +6751,7 @@
     "points": 4,
     "type": "MECHANICAL",
     "leagueRegion": "Varlamore",
-    "completionPct": 11
+    "completionPct": 21.9
   },
   {
     "wikiId": 614,
@@ -6762,7 +6762,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Varlamore",
-    "completionPct": 2.9
+    "completionPct": 6.2
   },
   {
     "wikiId": 615,
@@ -6773,7 +6773,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": "Varlamore",
-    "completionPct": 3.1
+    "completionPct": 6.8
   },
   {
     "wikiId": 616,
@@ -6784,7 +6784,7 @@
     "points": 6,
     "type": "PERFECTION",
     "leagueRegion": "Varlamore",
-    "completionPct": 1.1
+    "completionPct": 2.4
   },
   {
     "wikiId": 617,
@@ -6795,7 +6795,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Varlamore",
-    "completionPct": 1.1
+    "completionPct": 2.4
   },
   {
     "wikiId": 618,
@@ -6806,7 +6806,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Varlamore",
-    "completionPct": 0.7
+    "completionPct": 1.5
   },
   {
     "wikiId": 619,
@@ -6817,7 +6817,7 @@
     "points": 6,
     "type": "RESTRICTION",
     "leagueRegion": "Varlamore",
-    "completionPct": 1.1
+    "completionPct": 2.4
   },
   {
     "wikiId": 620,
@@ -6828,7 +6828,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": "Varlamore",
-    "completionPct": 0.9
+    "completionPct": 2
   },
   {
     "wikiId": 621,
@@ -6839,7 +6839,7 @@
     "points": 4,
     "type": "SPEED",
     "leagueRegion": "Varlamore",
-    "completionPct": 2.7
+    "completionPct": 5.4
   },
   {
     "wikiId": 622,
@@ -6850,7 +6850,7 @@
     "points": 5,
     "type": "SPEED",
     "leagueRegion": "Varlamore",
-    "completionPct": 2.5
+    "completionPct": 5.1
   },
   {
     "wikiId": 623,
@@ -6861,7 +6861,7 @@
     "points": 6,
     "type": "SPEED",
     "leagueRegion": "Varlamore",
-    "completionPct": 0.6
+    "completionPct": 1.3
   },
   {
     "wikiId": 624,
@@ -6872,7 +6872,7 @@
     "points": 6,
     "type": "MECHANICAL",
     "leagueRegion": "Varlamore",
-    "completionPct": 2.7
+    "completionPct": 6
   },
   {
     "wikiId": 625,
@@ -6883,7 +6883,7 @@
     "points": 1,
     "type": "KILL_COUNT",
     "leagueRegion": "No",
-    "completionPct": 7.2
+    "completionPct": 20.9
   },
   {
     "wikiId": 626,
@@ -6894,7 +6894,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "No",
-    "completionPct": 6.8
+    "completionPct": 19.7
   },
   {
     "wikiId": 627,
@@ -6905,7 +6905,7 @@
     "points": 2,
     "type": "PERFECTION",
     "leagueRegion": "No",
-    "completionPct": 5.9
+    "completionPct": 20
   },
   {
     "wikiId": 628,
@@ -6916,7 +6916,7 @@
     "points": 2,
     "type": "SPEED",
     "leagueRegion": "No",
-    "completionPct": 4.6
+    "completionPct": 15.8
   },
   {
     "wikiId": 629,
@@ -6927,7 +6927,7 @@
     "points": 3,
     "type": "STAMINA",
     "leagueRegion": "No",
-    "completionPct": 4.3
+    "completionPct": 14.4
   },
   {
     "wikiId": 630,
@@ -6938,7 +6938,7 @@
     "points": 1,
     "type": "MECHANICAL",
     "leagueRegion": "No",
-    "completionPct": 4.3
+    "completionPct": 14.5
   },
   {
     "wikiId": 631,
@@ -6949,7 +6949,7 @@
     "points": 3,
     "type": "RESTRICTION",
     "leagueRegion": "No",
-    "completionPct": 4.3
+    "completionPct": 14.4
   },
   {
     "wikiId": 632,
@@ -6960,7 +6960,7 @@
     "points": 1,
     "type": "KILL_COUNT",
     "leagueRegion": "Misthalin",
-    "completionPct": 25
+    "completionPct": 54
   },
   {
     "wikiId": 633,
@@ -6971,7 +6971,7 @@
     "points": 2,
     "type": "KILL_COUNT",
     "leagueRegion": "Misthalin",
-    "completionPct": 23.7
+    "completionPct": 51.1
   },
   {
     "wikiId": 634,
@@ -6982,7 +6982,7 @@
     "points": 4,
     "type": "SPEED",
     "leagueRegion": "Misthalin",
-    "completionPct": 12.7
+    "completionPct": 28.1
   },
   {
     "wikiId": 635,
@@ -6993,7 +6993,7 @@
     "points": 2,
     "type": "PERFECTION",
     "leagueRegion": "Misthalin",
-    "completionPct": 16.2
+    "completionPct": 36.6
   },
   {
     "wikiId": 636,
@@ -7004,7 +7004,7 @@
     "points": 3,
     "type": "MECHANICAL",
     "leagueRegion": "Misthalin",
-    "completionPct": 17.8
+    "completionPct": 39.7
   },
   {
     "wikiId": 637,
@@ -7015,7 +7015,7 @@
     "points": 3,
     "type": "KILL_COUNT",
     "leagueRegion": null,
-    "completionPct": null
+    "completionPct": 10.2
   },
   {
     "wikiId": 638,
@@ -7026,7 +7026,7 @@
     "points": 4,
     "type": "KILL_COUNT",
     "leagueRegion": null,
-    "completionPct": null
+    "completionPct": 7.9
   },
   {
     "wikiId": 639,
@@ -7037,18 +7037,18 @@
     "points": 5,
     "type": "STAMINA",
     "leagueRegion": null,
-    "completionPct": null
+    "completionPct": 2.5
   },
   {
     "wikiId": 640,
     "name": "Maggot King Speed Chaser",
     "monster": "Maggot King",
-    "description": "Kill the Maggot King 5 times in 9 minutes.",
-    "tier": "MASTER",
-    "points": 5,
+    "description": "Complete the first 5 kills of the Maggot King within 9 minutes after entering the arena.",
+    "tier": "GRANDMASTER",
+    "points": 6,
     "type": "SPEED",
     "leagueRegion": null,
-    "completionPct": null
+    "completionPct": 1.1
   },
   {
     "wikiId": 641,
@@ -7059,7 +7059,7 @@
     "points": 4,
     "type": "RESTRICTION",
     "leagueRegion": null,
-    "completionPct": null
+    "completionPct": 2.6
   },
   {
     "wikiId": 642,
@@ -7070,7 +7070,7 @@
     "points": 5,
     "type": "MECHANICAL",
     "leagueRegion": null,
-    "completionPct": null
+    "completionPct": 5.7
   },
   {
     "wikiId": 643,
@@ -7081,7 +7081,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": null,
-    "completionPct": null
+    "completionPct": 3.1
   },
   {
     "wikiId": 644,
@@ -7092,7 +7092,7 @@
     "points": 5,
     "type": "RESTRICTION",
     "leagueRegion": null,
-    "completionPct": null
+    "completionPct": 3
   },
   {
     "wikiId": 645,
@@ -7103,6 +7103,105 @@
     "points": 5,
     "type": "PERFECTION",
     "leagueRegion": null,
-    "completionPct": null
+    "completionPct": 2.2
+  },
+  {
+    "wikiId": 646,
+    "name": "Mad Angel Adept",
+    "monster": "Mad Angel",
+    "description": "Kill the Mad Angel 25 times.",
+    "tier": "MEDIUM",
+    "points": 2,
+    "type": "KILL_COUNT",
+    "leagueRegion": null,
+    "completionPct": 5.1
+  },
+  {
+    "wikiId": 647,
+    "name": "Mad Angel Veteran",
+    "monster": "Mad Angel",
+    "description": "Kill the Mad Angel 50 times.",
+    "tier": "HARD",
+    "points": 3,
+    "type": "KILL_COUNT",
+    "leagueRegion": null,
+    "completionPct": 4.2
+  },
+  {
+    "wikiId": 648,
+    "name": "Perfect Mad Angel",
+    "monster": "Mad Angel",
+    "description": "Kill the Mad Angel without taking any avoidable damage.",
+    "tier": "HARD",
+    "points": 3,
+    "type": "PERFECTION",
+    "leagueRegion": null,
+    "completionPct": 3
+  },
+  {
+    "wikiId": 649,
+    "name": "This Is Madness",
+    "monster": "Mad Angel",
+    "description": "Kill the Mad Angel 15 times without leaving her arena.",
+    "tier": "ELITE",
+    "points": 4,
+    "type": "STAMINA",
+    "leagueRegion": null,
+    "completionPct": 2.2
+  },
+  {
+    "wikiId": 650,
+    "name": "Mad Angel Speed-Runner",
+    "monster": "Mad Angel",
+    "description": "Kill the Mad Angel 5 times within 10 minutes of entering her arena.",
+    "tier": "HARD",
+    "points": 3,
+    "type": "SPEED",
+    "leagueRegion": null,
+    "completionPct": 2.8
+  },
+  {
+    "wikiId": 651,
+    "name": "Dancing Queen",
+    "monster": "Mad Angel",
+    "description": "Kill the Mad Angel after getting 6 consecutive enhanced attacks by dodging the sweep attack successfully during her enrage phase.",
+    "tier": "MEDIUM",
+    "points": 2,
+    "type": "MECHANICAL",
+    "leagueRegion": null,
+    "completionPct": 2.5
+  },
+  {
+    "wikiId": 652,
+    "name": "Smite Fight",
+    "monster": "Mad Angel",
+    "description": "Kill the Mad Angel after getting 3 consecutive enhanced attacks by successfully praying against the smite attacks during her enrage phase.",
+    "tier": "MEDIUM",
+    "points": 2,
+    "type": "MECHANICAL",
+    "leagueRegion": null,
+    "completionPct": 2.9
+  },
+  {
+    "wikiId": 653,
+    "name": "Juggling Act",
+    "monster": "Mad Angel",
+    "description": "Kill the Mad Angel after attacking her between each bounce of the blast attack during her enrage phase.",
+    "tier": "MEDIUM",
+    "points": 2,
+    "type": "MECHANICAL",
+    "leagueRegion": null,
+    "completionPct": 3.2
+  },
+  {
+    "wikiId": 654,
+    "name": "The Pen Is Mightier",
+    "monster": "Mad Angel",
+    "description": "Kill the Mad Angel without equipping any weapon.",
+    "tier": "ELITE",
+    "points": 4,
+    "type": "RESTRICTION",
+    "leagueRegion": null,
+    "completionPct": 2.7
   }
 ]

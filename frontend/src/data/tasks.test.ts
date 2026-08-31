@@ -10,20 +10,20 @@ import { TIERS, TIER_POINTS, TASK_TYPES, type Tier } from '@/lib/types'
 
 const TIER_COUNTS: Record<Tier, number> = {
   EASY: 41,
-  MEDIUM: 60,
-  HARD: 86,
-  ELITE: 164,
-  MASTER: 174,
-  GRANDMASTER: 121,
+  MEDIUM: 64,
+  HARD: 89,
+  ELITE: 166,
+  MASTER: 173,
+  GRANDMASTER: 122,
 }
 
 describe('bundle shape', () => {
-  it('has 646 tasks', () => {
-    expect(TASKS).toHaveLength(646)
+  it('has 655 tasks', () => {
+    expect(TASKS).toHaveLength(655)
   })
 
-  it('totals 2671 tier points', () => {
-    expect(TASKS.reduce((sum, t) => sum + t.points, 0)).toBe(2671)
+  it('totals 2697 tier points', () => {
+    expect(TASKS.reduce((sum, t) => sum + t.points, 0)).toBe(2697)
   })
 
   it.each(TIERS)('has the expected number of %s tasks', (tier) => {
@@ -117,23 +117,28 @@ describe('the rows sanitization actually changed', () => {
   })
 })
 
-describe('the newest release', () => {
-  // Maggot King (637-645) has no league region and no completion data yet. Both
-  // fields are nullable; this documents that the nulls are expected, not a bug.
-  const maggotKing = TASKS.filter((t) => t.wikiId >= 637 && t.wikiId <= 645)
+describe('the two newest releases', () => {
+  // Maggot King (637-645) and Mad Angel (646-654) have no league region. The
+  // field is nullable; this documents that the nulls are expected, not a bug.
+  // Both now carry completion data -- the wiki's globals caught up with Maggot
+  // King between refreshes, and shipped Mad Angel already populated.
+  const unregioned = TASKS.filter((t) => t.wikiId >= 637 && t.wikiId <= 654)
 
-  it('is nine tasks', () => {
-    expect(maggotKing).toHaveLength(9)
+  it('is eighteen tasks', () => {
+    expect(unregioned).toHaveLength(18)
   })
 
-  it('has no completion data or league region yet', () => {
-    for (const task of maggotKing) {
-      expect(task.completionPct).toBeNull()
+  it('has no league region yet', () => {
+    for (const task of unregioned) {
       expect(task.leagueRegion).toBeNull()
     }
   })
 
-  it('accounts for every task lacking a completion percentage', () => {
-    expect(TASKS.filter((t) => t.completionPct === null)).toHaveLength(9)
+  it('accounts for every task lacking a league region', () => {
+    expect(TASKS.filter((t) => t.leagueRegion === null)).toHaveLength(18)
+  })
+
+  it('has a completion percentage on every task, new ones included', () => {
+    expect(TASKS.filter((t) => t.completionPct === null)).toHaveLength(0)
   })
 })
