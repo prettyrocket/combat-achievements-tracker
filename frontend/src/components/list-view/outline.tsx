@@ -178,7 +178,7 @@ function OutlineLine({
     <li
       ref={setNodeRef}
       style={{ transform: CSS.Translate.toString(transform), transition }}
-      className={`group flex items-center ${
+      className={`group hover:bg-muted flex items-center transition-colors ${
         isDragging ? "bg-muted relative z-10 shadow-md" : ""
       }`}
     >
@@ -190,14 +190,17 @@ function OutlineLine({
         {...attributes}
         {...listeners}
         aria-label={`Reorder ${name}`}
-        className="text-muted-foreground hover:text-foreground cursor-grab touch-none py-1.5 pl-2 opacity-40 group-hover:opacity-100 focus-visible:opacity-100 active:cursor-grabbing"
+        className="text-muted-foreground hover:text-foreground flex cursor-grab touch-none items-center self-stretch pl-2 opacity-40 group-hover:opacity-100 focus-visible:opacity-100 active:cursor-grabbing"
       >
-        <GripVertical className="size-3.5" aria-hidden />
+        {/* 16px, not 14: at 150% display scaling that is 24 device pixels, one
+            per unit of the icon's grid, so the dots land on whole pixels instead
+            of being rounded away from the text beside them. */}
+        <GripVertical className="size-4" aria-hidden />
       </button>
       <button
         type="button"
         onClick={() => onSelect(anchor)}
-        className={`hover:bg-muted min-w-0 flex-1 truncate py-1.5 pr-3 pl-1.5 text-left text-sm transition-colors ${
+        className={`min-w-0 flex-1 truncate py-1.5 pr-3 pl-1.5 text-left text-sm ${
           finished ? "text-muted-foreground" : ""
         } ${trip.monster === null ? "italic" : ""}`}
       >
