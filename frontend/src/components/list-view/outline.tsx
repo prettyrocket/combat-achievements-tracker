@@ -40,10 +40,14 @@ const verticalOnly: Modifier = ({ transform }) => ({ ...transform, x: 0 });
 export function ListOutline({
   trips,
   anchorOf,
+  editing,
   onSelect,
   onMoveTrip,
 }: {
   trips: readonly Trip[];
+  /** Whether the grips are out. Without them the outline is only a way to get
+   *  to a trip. */
+  editing: boolean;
   anchorOf: (trip: Trip) => number;
   onSelect: (anchor: number) => void;
   /** Moves the trip named by `anchor` to trip index `to` -- see moveTripTo. */
@@ -117,6 +121,7 @@ export function ListOutline({
                   key={anchorOf(trip)}
                   trip={trip}
                   anchor={anchorOf(trip)}
+                  editing={editing}
                   onSelect={onSelect}
                 />
               ))}
@@ -156,10 +161,12 @@ function EdgeShadow({
 function OutlineLine({
   trip,
   anchor,
+  editing,
   onSelect,
 }: {
   trip: Trip;
   anchor: number;
+  editing: boolean;
   onSelect: (anchor: number) => void;
 }) {
   const {
@@ -170,7 +177,7 @@ function OutlineLine({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: tripId(anchor) });
+  } = useSortable({ id: tripId(anchor), disabled: !editing });
   const finished = trip.entries.every((entry) => entry.completed);
   const name = trip.monster ?? "Any monster";
 
@@ -184,23 +191,27 @@ function OutlineLine({
     >
       {/* The handle, not the line: the line is the button that takes you to
           the trip, and Enter on it should go there rather than pick it up. */}
-      <button
-        type="button"
-        ref={setActivatorNodeRef}
-        {...attributes}
-        {...listeners}
-        aria-label={`Reorder ${name}`}
-        className="text-muted-foreground hover:text-foreground flex cursor-grab touch-none items-center self-stretch pl-2 opacity-40 group-hover:opacity-100 focus-visible:opacity-100 active:cursor-grabbing"
-      >
-        {/* 16px, not 14: at 150% display scaling that is 24 device pixels, one
+      {editing && (
+        <button
+          type="button"
+          ref={setActivatorNodeRef}
+          {...attributes}
+          {...listeners}
+          aria-label={`Reorder ${name}`}
+          className="text-muted-foreground hover:text-foreground flex cursor-grab touch-none items-center self-stretch pl-2 opacity-40 group-hover:opacity-100 focus-visible:opacity-100 active:cursor-grabbing"
+        >
+          {/* 16px, not 14: at 150% display scaling that is 24 device pixels, one
             per unit of the icon's grid, so the dots land on whole pixels instead
             of being rounded away from the text beside them. */}
-        <GripVertical className="size-4" aria-hidden />
-      </button>
+          <GripVertical className="size-4" aria-hidden />
+        </button>
+      )}
       <button
         type="button"
         onClick={() => onSelect(anchor)}
-        className={`min-w-0 flex-1 truncate py-1.5 pr-3 pl-1.5 text-left text-sm ${
+        className={`min-w-0 flex-1 truncate py-1.5 pr-3 text-left text-sm ${
+          editing ? "pl-1.5" : "pl-3"
+        } ${
           finished ? "text-muted-foreground" : ""
         } ${trip.monster === null ? "italic" : ""}`}
       >

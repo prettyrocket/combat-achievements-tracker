@@ -36,6 +36,7 @@ export function ListRow({
   entry,
   requires,
   inTrip,
+  editing,
   onToggleCompleted,
   onRemove,
 }: {
@@ -44,6 +45,8 @@ export function ListRow({
   requires: string | null;
   /** Whether the trip heading above already names the monster. */
   inTrip: boolean;
+  /** Whether the handle and the remove button are out -- see ListView. */
+  editing: boolean;
   onToggleCompleted: (wikiId: number) => void;
   onRemove: (wikiId: number) => void;
 }) {
@@ -57,7 +60,7 @@ export function ListRow({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: dragId("plan", task.wikiId) });
+  } = useSortable({ id: dragId("plan", task.wikiId), disabled: !editing });
 
   return (
     <li
@@ -72,21 +75,23 @@ export function ListRow({
           Outside the card and centred on it, so it reads as the thing you hold
           the card by rather than one more control on it -- and lines up under
           the trip's arrow above. */}
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            type="button"
-            ref={setActivatorNodeRef}
-            {...attributes}
-            {...listeners}
-            aria-label={`Reorder "${task.name}", currently ${position}`}
-            className="text-muted-foreground hover:text-foreground -ml-0.5 shrink-0 cursor-grab touch-none rounded p-0.5 active:cursor-grabbing"
-          >
-            <GripVertical className="size-4" aria-hidden />
-          </button>
-        </TooltipTrigger>
-        <TooltipContent>Drag to reorder</TooltipContent>
-      </Tooltip>
+      {editing && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              ref={setActivatorNodeRef}
+              {...attributes}
+              {...listeners}
+              aria-label={`Reorder "${task.name}", currently ${position}`}
+              className="text-muted-foreground hover:text-foreground -ml-0.5 shrink-0 cursor-grab touch-none rounded p-0.5 active:cursor-grabbing"
+            >
+              <GripVertical className="size-4" aria-hidden />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Drag to reorder</TooltipContent>
+        </Tooltip>
+      )}
 
       {/* Done is a state of the whole card, not a mark on one corner of it:
           green and stood down, so a finished plan reads as a column of things
@@ -194,39 +199,41 @@ export function ListRow({
         Outside the card, opposite the handle: the handle holds the card and
         this throws it away, and neither is something you do to the task. Red,
         because it is the one control on the row that loses something. */}
-      <AlertDialog>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <AlertDialogTrigger asChild>
-              <button
-                type="button"
-                aria-label={`Remove "${task.name}" from my list`}
-                className="text-destructive hover:bg-destructive/15 shrink-0 rounded p-1 transition-colors"
-              >
-                <ListX className="size-4" aria-hidden />
-              </button>
-            </AlertDialogTrigger>
-          </TooltipTrigger>
-          <TooltipContent>Remove from my list</TooltipContent>
-        </Tooltip>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remove from my list?</AlertDialogTitle>
-            {/* The name, because a row of icons all look the same at the
+      {editing && (
+        <AlertDialog>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <AlertDialogTrigger asChild>
+                <button
+                  type="button"
+                  aria-label={`Remove "${task.name}" from my list`}
+                  className="text-destructive hover:bg-destructive/15 shrink-0 rounded p-1 transition-colors"
+                >
+                  <ListX className="size-4" aria-hidden />
+                </button>
+              </AlertDialogTrigger>
+            </TooltipTrigger>
+            <TooltipContent>Remove from my list</TooltipContent>
+          </Tooltip>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Remove from my list?</AlertDialogTitle>
+              {/* The name, because a row of icons all look the same at the
               moment you realise you clicked the wrong one. */}
-            <AlertDialogDescription>
-              “{task.name}” comes off the plan. Anything you have ticked stays
-              ticked.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Keep it</AlertDialogCancel>
-            <AlertDialogAction onClick={() => onRemove(task.wikiId)}>
-              Remove
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              <AlertDialogDescription>
+                “{task.name}” comes off the plan. Anything you have ticked stays
+                ticked.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Keep it</AlertDialogCancel>
+              <AlertDialogAction onClick={() => onRemove(task.wikiId)}>
+                Remove
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </li>
   );
 }

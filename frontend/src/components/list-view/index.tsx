@@ -13,12 +13,14 @@ import {
 import {
   ArrowDown,
   ArrowUp,
+  Check,
   CheckCheck,
   ChevronDown,
   ChevronRight,
   ChevronsDownUp,
   ChevronsUpDown,
   ListTree,
+  Pencil,
 } from "lucide-react";
 import { dragId } from "@/lib/dnd";
 import { gateReason, type GateCheck } from "@/lib/requirements";
@@ -62,6 +64,12 @@ export function ListView({
   // trip that moves is still the trip you shut. View-local and not stored --
   // collapsing is how you look at the plan for a minute, not a fact about it.
   const [shut, setShut] = useState<ReadonlySet<number>>(new Set());
+  // Whether the controls that change the plan are out: the handles, remove,
+  // the trip arrows, and the two buttons that rewrite the list. Off by default
+  // and not stored -- you come here to work the list, and arranging it is a
+  // detour you take on purpose and come back from. Ticking and collapsing
+  // stay either way; those are working it.
+  const [editing, setEditing] = useState(false);
   const summary = summarize(entries);
   // Always on here, unlike the panel: at this width a heading costs nothing and
   // the shape of the evening is the thing you came to look at.
@@ -136,30 +144,53 @@ export function ListView({
           </Button>
         )}
         <div className="ml-auto flex shrink-0 items-center gap-2">
-          {/* Gone entirely with nothing ticked, rather than sitting there
+          {editing && (
+            <>
+              {/* Gone entirely with nothing ticked, rather than sitting there
                 disabled: it is the leftmost thing in a group pinned to the right
                 edge, so it can appear without moving anything that was already
                 on screen. What it takes is off the plan, not off your record --
                 the way back is to add the task again, not to undo. */}
-          {summary.completed > 0 && (
-            <Button variant="outline" size="sm" onClick={onClearCompleted}>
-              <CheckCheck className="size-3.5" aria-hidden />
-              Clear completed
-            </Button>
-          )}
-          {/* Held rather than hidden, unlike its neighbour: this one is
+              {summary.completed > 0 && (
+                <Button variant="outline" size="sm" onClick={onClearCompleted}>
+                  <CheckCheck className="size-3.5" aria-hidden />
+                  Clear completed
+                </Button>
+              )}
+              {/* Held rather than hidden, unlike its neighbour: this one is
                 pinned to the right edge, and letting it vanish would slide the
                 clear button across to take its place. Disabled says "already
                 grouped" in the spot the button was in anyway. */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onGather}
-            disabled={!canGather}
-          >
-            <ListTree className="size-3.5" aria-hidden />
-            Group by monster
-          </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onGather}
+                disabled={!canGather}
+              >
+                <ListTree className="size-3.5" aria-hidden />
+                Group by monster
+              </Button>
+            </>
+          )}
+          {/* Pinned to the right edge, so it is in the same place to press
+              going in and coming out, and the two plan buttons open to its
+              left without moving it. One button rather than two so focus
+              stays on it across the switch. */}
+          {entries.length > 0 && (
+            <Button
+              variant={editing ? "secondary" : "outline"}
+              size="sm"
+              aria-pressed={editing}
+              onClick={() => setEditing((current) => !current)}
+            >
+              {editing ? (
+                <Check className="size-3.5" aria-hidden />
+              ) : (
+                <Pencil className="size-3.5" aria-hidden />
+              )}
+              {editing ? "Done" : "Edit"}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -172,6 +203,7 @@ export function ListView({
           <ListOutline
             trips={trips}
             anchorOf={anchorOf}
+            editing={editing}
             onSelect={jumpTo}
             onMoveTrip={onMoveTripTo}
           />
@@ -243,7 +275,7 @@ export function ListView({
                         drag: a shut trip is one line, and moving a stop of the
                         route past another is a decision with two answers, not a
                         gesture that needs aiming. */}
-                    {trips.length > 1 && (
+                    {editing && trips.length > 1 && (
                       <span className="ml-auto flex items-center gap-0.5">
                         <button
                           type="button"
@@ -276,6 +308,7 @@ export function ListView({
                           entry={entry}
                           requires={gateReason(gates, entry.task.monster)}
                           inTrip={trip.monster !== null}
+                          editing={editing}
                           onToggleCompleted={onToggleCompleted}
                           onRemove={onRemove}
                         />
