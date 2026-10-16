@@ -8,6 +8,7 @@ import {
   dropCompleted,
   gatherByMonster,
   moveTrip,
+  moveTripTo,
   insertAt,
   move,
   moveId,
@@ -455,5 +456,42 @@ describe("dropCompleted", () => {
   // the plan is not un-finishing it, and this returns a list, not a verdict.
   it("ignores completions that were never planned", () => {
     expect(dropCompleted([1], new Set([1, 99]))).toEqual([]);
+  });
+});
+
+describe("moveTripTo", () => {
+  const tasks = [
+    task({ wikiId: 0, monster: "Cerberus" }),
+    task({ wikiId: 1, monster: "Cerberus" }),
+    task({ wikiId: 2, monster: "Zulrah" }),
+    task({ wikiId: 3, monster: "Vorkath" }),
+    task({ wikiId: 4, monster: "Vorkath" }),
+  ];
+  const list = [0, 1, 2, 3, 4];
+
+  it("moves a trip down past several, tasks and all", () => {
+    expect(moveTripTo(list, tasks, 0, 2)).toEqual([2, 3, 4, 0, 1]);
+  });
+
+  it("moves a trip up past several", () => {
+    expect(moveTripTo(list, tasks, 3, 0)).toEqual([3, 4, 0, 1, 2]);
+  });
+
+  it("can be named by any task in the trip, not just its first", () => {
+    expect(moveTripTo(list, tasks, 4, 1)).toEqual([0, 1, 3, 4, 2]);
+  });
+
+  it("does nothing for its own slot, a slot off the end, or a stranger", () => {
+    expect(moveTripTo(list, tasks, 2, 1)).toEqual(list);
+    expect(moveTripTo(list, tasks, 2, 3)).toEqual(list);
+    expect(moveTripTo(list, tasks, 2, -1)).toEqual(list);
+    expect(moveTripTo(list, tasks, 99, 0)).toEqual(list);
+  });
+
+  // Two visits to one boss are two trips; moving the one between them away
+  // leaves them side by side, and the view reads them as one.
+  it("lets two visits to one boss meet", () => {
+    const route = [0, 2, 1];
+    expect(moveTripTo(route, tasks, 2, 2)).toEqual([0, 1, 2]);
   });
 });

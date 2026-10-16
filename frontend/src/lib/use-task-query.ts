@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { parseQuery, serializeQuery } from "@/lib/task-query";
 import type { TaskQuery } from "@/lib/types";
+import { carryView, toUrl } from "@/lib/view";
 
 function currentQuery(): TaskQuery {
   if (typeof window === "undefined") return {};
@@ -54,12 +55,14 @@ export function useTaskQuery(): UseTaskQuery {
     (next: TaskQuery, mode: HistoryMode = "coalesce") => {
       setQueryState(next);
 
-      const params = serializeQuery(next).toString();
-      // Keep the path and hash; only the search is ours to rewrite. A bare pathname
-      // when there are no filters avoids leaving a lone "?" in the address bar.
-      const url = params
-        ? `${window.location.pathname}?${params}${window.location.hash}`
-        : `${window.location.pathname}${window.location.hash}`;
+      // Keep the path and hash; only the filters are ours to rewrite. The view
+      // shares the search with them, so it's carried across (view.ts).
+      const { pathname, search, hash } = window.location;
+      const params = carryView(
+        serializeQuery(next),
+        new URLSearchParams(search),
+      );
+      const url = toUrl(pathname, params, hash);
 
       const now = Date.now();
       const push =

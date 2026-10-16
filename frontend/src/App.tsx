@@ -7,6 +7,7 @@
 // thing an App file should be for.
 
 import { useCallback, useMemo, useState } from "react";
+import { ListChecks, Table2 } from "lucide-react";
 import { TASKS } from "@/data/tasks";
 import { TaskTable } from "@/components/task-table";
 import { ProgressToolbar } from "@/components/toolbar";
@@ -19,6 +20,8 @@ import { Toast } from "@/components/toast";
 import { TaskDragProvider } from "@/components/task-drag-provider";
 import { PlanOverlay } from "@/components/plan-overlay";
 import { TaskListPanel } from "@/components/tasklist-panel";
+import { ListView } from "@/components/list-view";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { importBackup } from "@/lib/backup";
 import type { Notice } from "@/lib/notice";
 import { summarize, summarizeMonster } from "@/lib/progress-summary";
@@ -34,6 +37,7 @@ import {
   dropCompleted,
   gatherByMonster,
   moveTrip,
+  moveTripTo,
   resolve,
 } from "@/lib/tasklist";
 import { DEFAULT_SORT, applyQuery } from "@/lib/task-query";
@@ -46,6 +50,8 @@ import { useShareCode } from "@/lib/use-share-code";
 import { useTaskList } from "@/lib/use-tasklist";
 import { useTaskQuery } from "@/lib/use-task-query";
 import { useUiPrefs } from "@/lib/use-ui-prefs";
+import { useView } from "@/lib/use-view";
+import type { View } from "@/lib/view";
 
 // Source order is panel-then-table, which is already "above" and is also the
 // stacked fallback the two side positions want under lg. So the side positions
@@ -78,6 +84,7 @@ export default function App() {
     storageError,
   } = useProgress();
   const { query, setQuery, clear } = useTaskQuery();
+  const { view, setView } = useView();
   const taskList = useTaskList();
   const profile = useProfile();
   // Pulled out because it's the one part of `profile` that is stable across
@@ -198,6 +205,12 @@ export default function App() {
     [taskList, completed],
   );
 
+  const moveTripToInPlan = useCallback(
+    (anchor: number, to: number) =>
+      taskList.replace(moveTripTo(taskList.list, TASKS, anchor, to)),
+    [taskList],
+  );
+
   const moveTripInPlan = useCallback(
     (anchor: number, delta: -1 | 1) =>
       taskList.replace(moveTrip(taskList.list, TASKS, anchor, delta)),
@@ -260,10 +273,29 @@ export default function App() {
           where nobody could reach it -- belong to a box you can see. */}
       <div className="mx-auto flex h-dvh max-w-[100rem] flex-col overflow-hidden px-6 py-6">
         <header className="flex shrink-0 flex-wrap items-start justify-between gap-4 border-b pb-4">
-          <div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <h1 className="text-2xl font-bold tracking-tight">
               Combat Achievements Tracker
             </h1>
+            {/* Radix lets a single group be emptied by clicking the pressed
+                item; there is always a screen, so that click is ignored. */}
+            <ToggleGroup
+              type="single"
+              variant="outline"
+              size="sm"
+              aria-label="View"
+              value={view}
+              onValueChange={(next) => next && setView(next as View)}
+            >
+              <ToggleGroupItem value="table" className="px-3">
+                <Table2 />
+                Table
+              </ToggleGroupItem>
+              <ToggleGroupItem value="list" className="px-3">
+                <ListChecks />
+                My list
+              </ToggleGroupItem>
+            </ToggleGroup>
           </div>
           <ProgressToolbar
             completed={completed}
@@ -293,41 +325,56 @@ export default function App() {
           </p>
         )}
 
-        <div className="shrink-0">
-          <ProgressHeader
-            summary={summary}
-            rewards={rewards}
-            rsn={prefs.lastRsn}
-            compact={prefs.compactSummary}
-            onCompactChange={prefs.setCompactSummary}
-          />
-
-          <FilterBar
-            query={query}
-            onChange={setQuery}
-            onClear={filter.clearAll}
-            monsters={MONSTERS}
-            onToggleMonster={filter.toggleMonster}
-            resultCount={visible.length}
-            totalCount={TASKS.length}
-            profileIsEmpty={profile.isEmpty}
-            onEditProfile={openProfileEditor}
-          />
-
-          {monsterSummaries.length > 0 && (
-            <MonsterBreadcrumb
-              summaries={monsterSummaries}
-              onClear={filter.unpivot}
-              onRemove={filter.dropMonster}
-              monsters={MONSTERS}
-              onToggleMonster={filter.toggleMonster}
-              parkedSearch={filter.parkedSearch}
-              onRestoreSearch={filter.restoreSearch}
+        {view === "list" ? (
+          <main className="mt-3 min-h-0 flex-1">
+            <ListView
+              entries={entries}
+              gates={gates}
+              onToggleCompleted={toggle}
+              onRemove={taskList.remove}
+              onGather={gatherPlan}
+              onMoveTrip={moveTripInPlan}
+              onMoveTripTo={moveTripToInPlan}
+              onClearCompleted={clearCompletedFromPlan}
             />
-          )}
-        </div>
+          </main>
+        ) : (
+          <>
+            <div className="shrink-0">
+              <ProgressHeader
+                summary={summary}
+                rewards={rewards}
+                rsn={prefs.lastRsn}
+                compact={prefs.compactSummary}
+                onCompactChange={prefs.setCompactSummary}
+              />
 
-        {/* The split, and the only part allowed to grow: min-h-0 is what lets a
+              <FilterBar
+                query={query}
+                onChange={setQuery}
+                onClear={filter.clearAll}
+                monsters={MONSTERS}
+                onToggleMonster={filter.toggleMonster}
+                resultCount={visible.length}
+                totalCount={TASKS.length}
+                profileIsEmpty={profile.isEmpty}
+                onEditProfile={openProfileEditor}
+              />
+
+              {monsterSummaries.length > 0 && (
+                <MonsterBreadcrumb
+                  summaries={monsterSummaries}
+                  onClear={filter.unpivot}
+                  onRemove={filter.dropMonster}
+                  monsters={MONSTERS}
+                  onToggleMonster={filter.toggleMonster}
+                  parkedSearch={filter.parkedSearch}
+                  onRestoreSearch={filter.restoreSearch}
+                />
+              )}
+            </div>
+
+            {/* The split, and the only part allowed to grow: min-h-0 is what lets a
             flex child be *shorter* than its content so the table can scroll
             inside it.
 
@@ -336,51 +383,53 @@ export default function App() {
             stranded below a table that owns the rest of the screen. Above and
             below are a column at every width -- that is what was asked for, and
             a bar can't be squeezed out the way a side column can. */}
-        <div
-          className={`mt-3 flex min-h-0 flex-1 flex-col gap-3 ${
-            sideDocked ? "lg:flex-row lg:items-stretch" : ""
-          }`}
-        >
-          <div className={`shrink-0 ${PANEL_ORDER[prefs.listPosition]}`}>
-            <TaskListPanel
-              entries={entries}
-              rewardTiers={REWARD_TIERS}
-              pointsEarned={summary.pointsEarned}
-              open={prefs.panelOpen}
-              onOpenChange={prefs.setPanelOpen}
-              position={prefs.listPosition}
-              gates={gates}
-              onExpand={() => setPlanOpen(true)}
-              manualTracking={prefs.manualTracking}
-              onToggleCompleted={toggle}
-              onRemove={taskList.remove}
-              onClear={taskList.clear}
-            />
-          </div>
+            <div
+              className={`mt-3 flex min-h-0 flex-1 flex-col gap-3 ${
+                sideDocked ? "lg:flex-row lg:items-stretch" : ""
+              }`}
+            >
+              <div className={`shrink-0 ${PANEL_ORDER[prefs.listPosition]}`}>
+                <TaskListPanel
+                  entries={entries}
+                  rewardTiers={REWARD_TIERS}
+                  pointsEarned={summary.pointsEarned}
+                  open={prefs.panelOpen}
+                  onOpenChange={prefs.setPanelOpen}
+                  position={prefs.listPosition}
+                  gates={gates}
+                  onExpand={() => setPlanOpen(true)}
+                  manualTracking={prefs.manualTracking}
+                  onToggleCompleted={toggle}
+                  onRemove={taskList.remove}
+                  onClear={taskList.clear}
+                />
+              </div>
 
-          <main
-            className={`min-h-0 min-w-0 flex-1 ${TABLE_ORDER[prefs.listPosition]}`}
-          >
-            {visible.length === 0 ? (
-              <p className="text-muted-foreground rounded-lg border border-dashed py-12 text-center text-sm">
-                No tasks match these filters.
-              </p>
-            ) : (
-              <TaskTable
-                tasks={visible}
-                completed={completed}
-                onToggle={toggle}
-                manualTracking={prefs.manualTracking}
-                onList={listedIds}
-                onToggleListed={taskList.toggle}
-                onAddManyToList={taskList.addMany}
-                gates={gates}
-                sort={query.sort ?? DEFAULT_SORT}
-                onSortChange={filter.setSort}
-              />
-            )}
-          </main>
-        </div>
+              <main
+                className={`min-h-0 min-w-0 flex-1 ${TABLE_ORDER[prefs.listPosition]}`}
+              >
+                {visible.length === 0 ? (
+                  <p className="text-muted-foreground rounded-lg border border-dashed py-12 text-center text-sm">
+                    No tasks match these filters.
+                  </p>
+                ) : (
+                  <TaskTable
+                    tasks={visible}
+                    completed={completed}
+                    onToggle={toggle}
+                    manualTracking={prefs.manualTracking}
+                    onList={listedIds}
+                    onToggleListed={taskList.toggle}
+                    onAddManyToList={taskList.addMany}
+                    gates={gates}
+                    sort={query.sort ?? DEFAULT_SORT}
+                    onSortChange={filter.setSort}
+                  />
+                )}
+              </main>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Owned here rather than by the toolbar: the requirement filter opens it

@@ -340,3 +340,29 @@ export function moveTrip(
   swapped[to] = runs[from];
   return swapped.flat();
 }
+
+/**
+ * Move a whole trip to another place in the route: the drag version of
+ * moveTrip, for when the stop you want is more than one away.
+ *
+ * `to` is a trip index, read before the move -- the slot the trip lands in, as
+ * a sortable list reports it. Landing beside another visit to the same boss
+ * makes them one trip, because the plan is the order and a trip is only ever a
+ * reading of it.
+ */
+export function moveTripTo(
+  list: readonly number[],
+  tasks: readonly TaskRow[],
+  anchor: number,
+  to: number,
+): number[] {
+  const runs = idRuns(list, tasks);
+  const from = runs.findIndex((run) => run.includes(anchor));
+  if (from === -1 || to < 0 || to >= runs.length || to === from)
+    return [...list];
+
+  const moved = [...runs];
+  const [run] = moved.splice(from, 1);
+  moved.splice(to, 0, run);
+  return moved.flat();
+}
