@@ -16,6 +16,8 @@ import {
   CheckCheck,
   ChevronDown,
   ChevronRight,
+  ChevronsDownUp,
+  ChevronsUpDown,
   ListTree,
 } from "lucide-react";
 import { dragId } from "@/lib/dnd";
@@ -78,6 +80,14 @@ export function ListView({
       return next;
     });
 
+  // Collapse while anything is open, expand once nothing is: the one press
+  // that changes what you see. Built from the trips on screen rather than
+  // added to the old set, so anchors from trips that have since merged away
+  // don't linger.
+  const anyOpen = trips.some((trip) => !isShut(trip));
+  const shutAll = (close: boolean) =>
+    setShut(close ? new Set(trips.map(anchorOf)) : new Set());
+
   // Keyed by anchor like `shut`, so a trip that moves keeps its target.
   const sections = useRef(new Map<number, HTMLElement>());
 
@@ -112,6 +122,19 @@ export function ListView({
           {summary.completed}/{summary.total} done · {summary.pointsEarned}/
           {summary.pointsTotal} pts
         </span>
+        {/* Beside the summary rather than with the buttons on the right: it
+            changes what you see, not the plan, and on this side its label can
+            change length without moving anything. */}
+        {trips.length > 0 && (
+          <Button variant="ghost" size="sm" onClick={() => shutAll(anyOpen)}>
+            {anyOpen ? (
+              <ChevronsDownUp className="size-3.5" aria-hidden />
+            ) : (
+              <ChevronsUpDown className="size-3.5" aria-hidden />
+            )}
+            {anyOpen ? "Collapse all" : "Expand all"}
+          </Button>
+        )}
         <div className="ml-auto flex shrink-0 items-center gap-2">
           {/* Gone entirely with nothing ticked, rather than sitting there
                 disabled: it is the leftmost thing in a group pinned to the right
@@ -188,7 +211,13 @@ export function ListView({
                   <h3 className="bg-background sticky top-0 z-10 flex items-center gap-1 py-2 text-sm font-semibold">
                     <button
                       type="button"
-                      onClick={() => toggleShut(anchorOf(trip))}
+                      // Alt sends every trip the way this one is going, as
+                      // file trees do.
+                      onClick={(event) =>
+                        event.altKey
+                          ? shutAll(!isShut(trip))
+                          : toggleShut(anchorOf(trip))
+                      }
                       aria-expanded={!isShut(trip)}
                       className="hover:bg-muted -ml-1 flex min-w-0 items-center gap-1.5 rounded px-1 py-0.5 transition-colors"
                     >
@@ -207,9 +236,6 @@ export function ListView({
                         className={`truncate ${trip.monster === null ? "italic" : ""}`}
                       >
                         {trip.monster ?? "Any monster"}
-                      </span>
-                      <span className="text-muted-foreground text-xs font-normal tabular-nums">
-                        {trip.entries.length}
                       </span>
                     </button>
 
