@@ -11,16 +11,38 @@ import {
   DragOverlay,
   KeyboardSensor,
   PointerSensor,
+  closestCenter,
+  rectIntersection,
   useSensor,
   useSensors,
+  type CollisionDetection,
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { GripVertical } from "lucide-react";
-import { TASKLIST_DROPPABLE, parseDragId } from "@/lib/dnd";
+import { TASKLIST_DROPPABLE, parseDragId, parseTripDragId } from "@/lib/dnd";
 import { BY_ID } from "@/lib/task-index";
 import { TierBadge } from "@/components/tier-badge";
+
+// The list view drags whole trips through this context as well as tasks, and the
+// two must only ever land among their own kind: a task dropped on a trip heading
+// is a drop that means nothing, and a trip landing on a task row would have to
+// guess which trip that row is in. So each drag only sees droppables of its own
+// kind. Tasks keep the detection they always had; trips are a sorted column of
+// sections of very different heights, which closestCenter reads far better than
+// overlap does.
+const collisionDetection: CollisionDetection = (args) => {
+  const isTrip = (id: unknown) => parseTripDragId(id) !== null;
+  const draggingTrip = isTrip(args.active.id);
+  const droppableContainers = args.droppableContainers.filter(
+    (container) => isTrip(container.id) === draggingTrip,
+  );
+  return (draggingTrip ? closestCenter : rectIntersection)({
+    ...args,
+    droppableContainers,
+  });
+};
 
 export interface TaskDragProviderProps {
   /** The plan, in order -- a drop is positional, so it needs to be read. */
@@ -78,6 +100,7 @@ export function TaskDragProvider({
   return (
     <DndContext
       sensors={sensors}
+      collisionDetection={collisionDetection}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       onDragCancel={() => setDragging(null)}

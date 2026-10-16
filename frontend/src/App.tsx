@@ -205,6 +205,16 @@ export default function App() {
     [taskList, completed],
   );
 
+  // A whole trip at once. By id rather than by monster: a plan can visit one
+  // boss twice, and this is one of those visits.
+  const removeFromPlan = useCallback(
+    (wikiIds: readonly number[]) => {
+      const gone = new Set(wikiIds);
+      taskList.replace(taskList.list.filter((id) => !gone.has(id)));
+    },
+    [taskList],
+  );
+
   const moveTripToInPlan = useCallback(
     (anchor: number, to: number) =>
       taskList.replace(moveTripTo(taskList.list, TASKS, anchor, to)),
@@ -347,8 +357,8 @@ export default function App() {
               gates={gates}
               onToggleCompleted={toggle}
               onRemove={taskList.remove}
+              onRemoveTrip={removeFromPlan}
               onGather={gatherPlan}
-              onMoveTrip={moveTripInPlan}
               onMoveTripTo={moveTripToInPlan}
               onClearCompleted={clearCompletedFromPlan}
             />

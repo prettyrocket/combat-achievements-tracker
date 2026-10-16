@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { TASKLIST_DROPPABLE, dragId, parseDragId } from "@/lib/dnd";
+import {
+  TASKLIST_DROPPABLE,
+  dragId,
+  parseDragId,
+  parseTripDragId,
+  tripDragId,
+} from "@/lib/dnd";
 
 describe("dragId / parseDragId", () => {
   it("round-trips both origins", () => {
@@ -35,5 +41,25 @@ describe("dragId / parseDragId", () => {
     ["null", null],
   ])("returns null for %s", (_label, input) => {
     expect(parseDragId(input)).toBeNull();
+  });
+});
+
+describe("tripDragId / parseTripDragId", () => {
+  it("round-trips an anchor", () => {
+    expect(parseTripDragId(tripDragId(42))).toBe(42);
+  });
+
+  // The two kinds share one drag context in the list view, so each side has to
+  // refuse the other's ids.
+  it("is never mistaken for a task, or a task for it", () => {
+    expect(parseDragId(tripDragId(42))).toBeNull();
+    expect(parseTripDragId(dragId("plan", 42))).toBeNull();
+    expect(parseTripDragId(TASKLIST_DROPPABLE)).toBeNull();
+  });
+
+  it("refuses anything malformed", () => {
+    expect(parseTripDragId("trip:")).toBeNull();
+    expect(parseTripDragId("trip:abc")).toBeNull();
+    expect(parseTripDragId(42)).toBeNull();
   });
 });

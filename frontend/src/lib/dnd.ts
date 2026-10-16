@@ -30,3 +30,21 @@ export function parseDragId(id: unknown): ParsedDragId | null {
   if (!Number.isInteger(wikiId)) return null;
   return { origin, wikiId };
 }
+
+// A whole trip, in the list view: one stop of the route, dragged by its heading.
+// Kept out of DragOrigin on purpose -- it names a run of tasks, not a task, and
+// parseDragId saying null for it is what keeps every task handler away from it.
+const TRIP_PREFIX = "trip:";
+
+/** A trip is named by a task in it, the way the list view keys trips. */
+export function tripDragId(anchor: number): string {
+  return `${TRIP_PREFIX}${anchor}`;
+}
+
+/** The trip's anchor, or null for anything that isn't a trip. */
+export function parseTripDragId(id: unknown): number | null {
+  if (typeof id !== "string" || !id.startsWith(TRIP_PREFIX)) return null;
+  // Digits only: Number("") is 0, so a bare "trip:" would otherwise name one.
+  const raw = id.slice(TRIP_PREFIX.length);
+  return /^\d+$/.test(raw) ? Number(raw) : null;
+}

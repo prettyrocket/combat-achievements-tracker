@@ -6,23 +6,20 @@
 // only the dialog around them is gone.
 
 import { useRef, useState } from "react";
+import { useDndMonitor } from "@dnd-kit/core";
 import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import {
-  ArrowDown,
-  ArrowUp,
-  Check,
   CheckCheck,
-  ChevronDown,
-  ChevronRight,
   ChevronsDownUp,
   ChevronsUpDown,
+  Eye,
   ListTree,
   Pencil,
 } from "lucide-react";
-import { dragId } from "@/lib/dnd";
+import { dragId, parseTripDragId, tripDragId } from "@/lib/dnd";
 import { gateReason, type GateCheck } from "@/lib/requirements";
 import {
   summarize,
@@ -32,7 +29,9 @@ import {
 } from "@/lib/tasklist";
 import { ListOutline } from "@/components/list-view/outline";
 import { ListRow } from "@/components/list-view/row";
+import { TripSection } from "@/components/list-view/trip";
 import { Button } from "@/components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 export interface ListViewProps {
   entries: readonly TaskListEntry[];
@@ -40,10 +39,10 @@ export interface ListViewProps {
   gates: ReadonlyMap<string, GateCheck>;
   onToggleCompleted: (wikiId: number) => void;
   onRemove: (wikiId: number) => void;
+  /** Takes a whole trip's tasks off the plan, and nothing else. */
+  onRemoveTrip: (wikiIds: readonly number[]) => void;
   /** Gathers each monster's tasks together -- see gatherByMonster. */
   onGather: () => void;
-  /** Moves one trip past its neighbour, tasks and all -- see moveTrip. */
-  onMoveTrip: (anchor: number, delta: -1 | 1) => void;
   /** Moves one trip to another slot in the route -- see moveTripTo. */
   onMoveTripTo: (anchor: number, to: number) => void;
   /** Takes the finished tasks off the plan -- see dropCompleted. */
@@ -55,8 +54,8 @@ export function ListView({
   gates,
   onToggleCompleted,
   onRemove,
+  onRemoveTrip,
   onGather,
-  onMoveTrip,
   onMoveTripTo,
   onClearCompleted,
 }: ListViewProps) {
@@ -65,7 +64,7 @@ export function ListView({
   // collapsing is how you look at the plan for a minute, not a fact about it.
   const [shut, setShut] = useState<ReadonlySet<number>>(new Set());
   // Whether the controls that change the plan are out: the handles, remove,
-  // the trip arrows, and the two buttons that rewrite the list. Off by default
+  // and the two buttons that rewrite the list. Off by default
   // and not stored -- you come here to work the list, and arranging it is a
   // detour you take on purpose and come back from. Ticking and collapsing
   // stay either way; those are working it.
@@ -93,8 +92,29 @@ export function ListView({
   // added to the old set, so anchors from trips that have since merged away
   // don't linger.
   const anyOpen = trips.some((trip) => !isShut(trip));
+
+  // Only what is on screen: a row inside a shut trip isn't rendered, and
+  // listing it would leave the context holding an id with no node behind it.
+  const taskIds = trips
+    .filter((trip) => !isShut(trip))
+    .flatMap((trip) =>
+      trip.entries.map((entry) => dragId("plan", entry.task.wikiId)),
+    );
   const shutAll = (close: boolean) =>
     setShut(close ? new Set(trips.map(anchorOf)) : new Set());
+
+  // A trip dropped among the trips. The drag runs through the app's context,
+  // which only handles tasks and lets trip ids fall through -- this is where
+  // they land. The index is read before the move, as moveTripTo wants it.
+  useDndMonitor({
+    onDragEnd({ active, over }) {
+      const from = parseTripDragId(active.id);
+      const onto = over ? parseTripDragId(over.id) : null;
+      if (from === null || onto === null || from === onto) return;
+      const to = trips.findIndex((trip) => anchorOf(trip) === onto);
+      if (to !== -1) onMoveTripTo(from, to);
+    },
+  });
 
   // Keyed by anchor like `shut`, so a trip that moves keeps its target.
   const sections = useRef(new Map<number, HTMLElement>());
@@ -174,22 +194,29 @@ export function ListView({
           )}
           {/* Pinned to the right edge, so it is in the same place to press
               going in and coming out, and the two plan buttons open to its
-              left without moving it. One button rather than two so focus
-              stays on it across the switch. */}
+              left without moving it. A switch rather than a button, like the
+              one between screens: two states you are in, both always named,
+              rather than a button whose label says the one you aren't. Radix
+              lets the pressed item be clicked off; there is always a mode, so
+              that click is ignored. */}
           {entries.length > 0 && (
-            <Button
-              variant={editing ? "secondary" : "outline"}
+            <ToggleGroup
+              type="single"
+              variant="outline"
               size="sm"
-              aria-pressed={editing}
-              onClick={() => setEditing((current) => !current)}
+              aria-label="Mode"
+              value={editing ? "edit" : "view"}
+              onValueChange={(next) => next && setEditing(next === "edit")}
             >
-              {editing ? (
-                <Check className="size-3.5" aria-hidden />
-              ) : (
-                <Pencil className="size-3.5" aria-hidden />
-              )}
-              {editing ? "Done" : "Edit"}
-            </Button>
+              <ToggleGroupItem value="view" className="px-3">
+                <Eye />
+                View
+              </ToggleGroupItem>
+              <ToggleGroupItem value="edit" className="px-3">
+                <Pencil />
+                Edit
+              </ToggleGroupItem>
+            </ToggleGroup>
           )}
         </div>
       </div>
@@ -208,14 +235,7 @@ export function ListView({
             onMoveTrip={onMoveTripTo}
           />
           <SortableContext
-            // Only what is on screen: a row inside a shut trip isn't rendered,
-            // and listing it here would leave the context holding an id with no
-            // node behind it.
-            items={trips
-              .filter((trip) => !isShut(trip))
-              .flatMap((trip) =>
-                trip.entries.map((entry) => dragId("plan", entry.task.wikiId)),
-              )}
+            items={trips.map((trip) => tripDragId(anchorOf(trip)))}
             strategy={verticalListSortingStrategy}
           >
             {/* No padding at the top of the scrollport. A sticky heading sticks
@@ -224,98 +244,46 @@ export function ListView({
                 carry their own top spacing instead, where it travels with them
                 and is painted in. */}
             <div className="min-h-0 min-w-0 flex-1 space-y-4 overflow-y-auto px-4 pb-3">
-              {trips.map((trip, index) => (
-                // Keyed by position as well as name: a plan can visit the same
-                // boss twice, and those two trips are not one section.
-                <section
-                  key={`${index}:${trip.monster ?? ""}`}
-                  ref={(node) => {
+              {trips.map((trip) => (
+                // Keyed by anchor rather than position, so a trip that moves
+                // is the same section moving. A plan can visit one boss twice,
+                // and those two trips have different first tasks.
+                <TripSection
+                  key={anchorOf(trip)}
+                  trip={trip}
+                  anchor={anchorOf(trip)}
+                  shut={isShut(trip)}
+                  editing={editing}
+                  taskIds={taskIds}
+                  onRemove={() =>
+                    onRemoveTrip(trip.entries.map((entry) => entry.task.wikiId))
+                  }
+                  sectionRef={(node) => {
                     if (node) sections.current.set(anchorOf(trip), node);
                     else sections.current.delete(anchorOf(trip));
                   }}
+                  // Alt sends every trip the way this one is going, as file
+                  // trees do.
+                  onToggle={(event) =>
+                    event.altKey
+                      ? shutAll(!isShut(trip))
+                      : toggleShut(anchorOf(trip))
+                  }
                 >
-                  {/* Sticky, so the boss whose tasks you are reading stays
-                      overhead while you scroll them. Three controls rather than
-                      one clickable strip: shutting a trip is cheap and
-                      reversible, moving one rewrites the plan, and a strip that
-                      did the safe thing everywhere except two patches is how you
-                      reorganise an evening by accident. */}
-                  <h3 className="bg-background sticky top-0 z-10 flex items-center gap-1 py-2 text-sm font-semibold">
-                    <button
-                      type="button"
-                      // Alt sends every trip the way this one is going, as
-                      // file trees do.
-                      onClick={(event) =>
-                        event.altKey
-                          ? shutAll(!isShut(trip))
-                          : toggleShut(anchorOf(trip))
-                      }
-                      aria-expanded={!isShut(trip)}
-                      className="hover:bg-muted -ml-1 flex min-w-0 items-center gap-1.5 rounded px-1 py-0.5 transition-colors"
-                    >
-                      {isShut(trip) ? (
-                        <ChevronRight
-                          className="size-4 shrink-0 opacity-70"
-                          aria-hidden
-                        />
-                      ) : (
-                        <ChevronDown
-                          className="size-4 shrink-0 opacity-70"
-                          aria-hidden
-                        />
-                      )}
-                      <span
-                        className={`truncate ${trip.monster === null ? "italic" : ""}`}
-                      >
-                        {trip.monster ?? "Any monster"}
-                      </span>
-                    </button>
-
-                    {/* Only where there is somewhere to go. Buttons rather than a
-                        drag: a shut trip is one line, and moving a stop of the
-                        route past another is a decision with two answers, not a
-                        gesture that needs aiming. */}
-                    {editing && trips.length > 1 && (
-                      <span className="ml-auto flex items-center gap-0.5">
-                        <button
-                          type="button"
-                          onClick={() => onMoveTrip(anchorOf(trip), -1)}
-                          disabled={index === 0}
-                          title={`Move ${trip.monster ?? "these tasks"} earlier`}
-                          aria-label={`Move ${trip.monster ?? "the tasks with no monster"} earlier in my list`}
-                          className="text-muted-foreground hover:bg-muted hover:text-foreground rounded p-1 font-normal transition-colors disabled:pointer-events-none disabled:opacity-30"
-                        >
-                          <ArrowUp className="size-3.5" aria-hidden />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => onMoveTrip(anchorOf(trip), 1)}
-                          disabled={index === trips.length - 1}
-                          title={`Move ${trip.monster ?? "these tasks"} later`}
-                          aria-label={`Move ${trip.monster ?? "the tasks with no monster"} later in my list`}
-                          className="text-muted-foreground hover:bg-muted hover:text-foreground rounded p-1 font-normal transition-colors disabled:pointer-events-none disabled:opacity-30"
-                        >
-                          <ArrowDown className="size-3.5" aria-hidden />
-                        </button>
-                      </span>
-                    )}
-                  </h3>
-                  {!isShut(trip) && (
-                    <ul className="space-y-2">
-                      {trip.entries.map((entry) => (
-                        <ListRow
-                          key={entry.task.wikiId}
-                          entry={entry}
-                          requires={gateReason(gates, entry.task.monster)}
-                          inTrip={trip.monster !== null}
-                          editing={editing}
-                          onToggleCompleted={onToggleCompleted}
-                          onRemove={onRemove}
-                        />
-                      ))}
-                    </ul>
-                  )}
-                </section>
+                  <ul className="space-y-2">
+                    {trip.entries.map((entry) => (
+                      <ListRow
+                        key={entry.task.wikiId}
+                        entry={entry}
+                        requires={gateReason(gates, entry.task.monster)}
+                        inTrip={trip.monster !== null}
+                        editing={editing}
+                        onToggleCompleted={onToggleCompleted}
+                        onRemove={onRemove}
+                      />
+                    ))}
+                  </ul>
+                </TripSection>
               ))}
             </div>
           </SortableContext>
