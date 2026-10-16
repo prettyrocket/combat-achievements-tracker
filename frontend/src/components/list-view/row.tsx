@@ -63,16 +63,15 @@ export function ListRow({
     <li
       ref={setNodeRef}
       style={{ transform: CSS.Translate.toString(transform), transition }}
-      // Done is a state of the whole row, not a mark on one corner of it: green
-      // and stood down, so a finished plan reads as a column of things you no
-      // longer have to look at. Dragging still wins the fade -- that one says
-      // "this is in your hand", and it outranks anything the row is otherwise.
-      className={`flex items-start gap-3 rounded-md border p-3 transition-colors ${
-        completed ? "border-emerald-500/30 bg-emerald-500/10" : "bg-card"
-      } ${isDragging ? "opacity-40" : completed ? "opacity-70" : ""}`}
+      // Dragging fades the handle along with the card -- "this is in your
+      // hand" is about the whole thing that moves.
+      className={`flex items-center gap-1 ${isDragging ? "opacity-40" : ""}`}
     >
       {/* The handle, not the row: the row holds a wiki link and two buttons at
-          the far end, and a drag surface over those would eat their clicks. */}
+          the far end, and a drag surface over those would eat their clicks.
+          Outside the card and centred on it, so it reads as the thing you hold
+          the card by rather than one more control on it -- and lines up under
+          the trip's arrow above. */}
       <Tooltip>
         <TooltipTrigger asChild>
           <button
@@ -81,7 +80,7 @@ export function ListRow({
             {...attributes}
             {...listeners}
             aria-label={`Reorder "${task.name}", currently ${position}`}
-            className="text-muted-foreground hover:text-foreground mt-0.5 cursor-grab touch-none rounded p-0.5 active:cursor-grabbing"
+            className="text-muted-foreground hover:text-foreground -ml-0.5 shrink-0 cursor-grab touch-none rounded p-0.5 active:cursor-grabbing"
           >
             <GripVertical className="size-4" aria-hidden />
           </button>
@@ -89,52 +88,64 @@ export function ListRow({
         <TooltipContent>Drag to reorder</TooltipContent>
       </Tooltip>
 
-      <div className="min-w-0 flex-1">
-        <div
-          className={`flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm font-medium ${
-            completed ? "text-muted-foreground line-through" : ""
-          }`}
-        >
-          {/* The name is the wiki page, as it is in the table. Same gesture in
+      {/* Done is a state of the whole card, not a mark on one corner of it:
+          green and stood down, so a finished plan reads as a column of things
+          you no longer have to look at. */}
+      <div
+        className={`flex min-w-0 flex-1 items-start gap-3 rounded-md border p-3 transition-colors ${
+          completed
+            ? "border-emerald-500/30 bg-emerald-500/10 opacity-70"
+            : "bg-card"
+        }`}
+      >
+        <div className="min-w-0 flex-1">
+          <div
+            className={`flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm font-medium ${
+              completed ? "text-muted-foreground line-through" : ""
+            }`}
+          >
+            {/* The name is the wiki page, as it is in the table. Same gesture in
               both places, and it is the answer to most "what does this even
               mean" questions the description leaves standing. */}
-          <WikiName value={task.name} href={taskWikiUrl(task.name)} />
-          {showLock && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="inline-flex items-center gap-1 text-xs font-normal text-amber-500/80">
-                  <Lock className="size-3.5" aria-hidden />
-                  {/* Room for the words here, unlike the panel, where the same
+            <WikiName value={task.name} href={taskWikiUrl(task.name)} />
+            {showLock && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex items-center gap-1 text-xs font-normal text-amber-500/80">
+                    <Lock className="size-3.5" aria-hidden />
+                    {/* Room for the words here, unlike the panel, where the same
                       sentence has to hide inside a tooltip to fit. */}
-                  {requires}
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>{requires}</TooltipContent>
-            </Tooltip>
-          )}
-        </div>
+                    {requires}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>{requires}</TooltipContent>
+              </Tooltip>
+            )}
+          </div>
 
-        {/* No second dimming for a finished task: the row is already standing
+          {/* No second dimming for a finished task: the row is already standing
             down as a whole, and stacking the two makes the description of
             something you just did the hardest line on screen to read. */}
-        <p className="text-muted-foreground mt-1 text-sm">{task.description}</p>
+          <p className="text-muted-foreground mt-1 text-sm">
+            {task.description}
+          </p>
 
-        <p className="mt-1.5 flex items-center gap-2 text-xs">
-          <TierBadge tier={task.tier} />
-          <span className="text-muted-foreground tabular-nums">
-            {task.points} pt{task.points === 1 ? "" : "s"}
-          </span>
-          {/* The monster only where the heading isn't already saying it. */}
-          {!inTrip && task.monster && (
-            <span className="text-muted-foreground truncate">
-              {task.monster}
+          <p className="mt-1.5 flex items-center gap-2 text-xs">
+            <TierBadge tier={task.tier} />
+            <span className="text-muted-foreground tabular-nums">
+              {task.points} pt{task.points === 1 ? "" : "s"}
             </span>
-          )}
-        </p>
-      </div>
+            {/* The monster only where the heading isn't already saying it. */}
+            {!inTrip && task.monster && (
+              <span className="text-muted-foreground truncate">
+                {task.monster}
+              </span>
+            )}
+          </p>
+        </div>
 
-      <div className="flex shrink-0 items-center gap-0.5">
-        {/* A button rather than the checkbox the panel and the table use, and on
+        <div className="flex shrink-0 items-center gap-0.5">
+          {/* A button rather than the checkbox the panel and the table use, and on
             the doing end of the row rather than the reading end: you come here
             with the game open beside you, finish something, and reach for the
             end of the line you just read.
@@ -146,70 +157,71 @@ export function ListRow({
 
             The way back is the same button, because the mistake this guards
             against is the click itself. */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              onClick={() => onToggleCompleted(task.wikiId)}
-              aria-pressed={completed}
-              aria-label={`Mark "${task.name}" as ${completed ? "not completed" : "completed"}`}
-              className={`rounded p-1 transition-colors ${
-                completed
-                  ? "text-emerald-600 hover:bg-emerald-500/15 dark:text-emerald-400"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
-            >
-              {completed ? (
-                <Undo2 className="size-4" aria-hidden />
-              ) : (
-                <Check className="size-4" aria-hidden />
-              )}
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>
-            {completed ? "Mark as not done" : "Mark as done"}
-          </TooltipContent>
-        </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={() => onToggleCompleted(task.wikiId)}
+                aria-pressed={completed}
+                aria-label={`Mark "${task.name}" as ${completed ? "not completed" : "completed"}`}
+                className={`rounded p-1 transition-colors ${
+                  completed
+                    ? "text-emerald-600 hover:bg-emerald-500/15 dark:text-emerald-400"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
+              >
+                {completed ? (
+                  <Undo2 className="size-4" aria-hidden />
+                ) : (
+                  <Check className="size-4" aria-hidden />
+                )}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {completed ? "Mark as not done" : "Mark as done"}
+            </TooltipContent>
+          </Tooltip>
 
-        {/* Asked about, unlike everywhere else this button appears. In the table
+          {/* Asked about, unlike everywhere else this button appears. In the table
             and the panel it sits beside the thing that put it there, so an
             accident is one click to undo. Here it is the last control on a row
             you may have spent a while arranging, and the task takes its place in
             the plan with it -- add it back and it lands at the bottom, not where
             it was. */}
-        <AlertDialog>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <AlertDialogTrigger asChild>
-                <button
-                  type="button"
-                  aria-label={`Remove "${task.name}" from my list`}
-                  className="text-muted-foreground hover:text-foreground hover:bg-muted rounded p-1"
-                >
-                  <X className="size-4" aria-hidden />
-                </button>
-              </AlertDialogTrigger>
-            </TooltipTrigger>
-            <TooltipContent>Remove from my list</TooltipContent>
-          </Tooltip>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Remove from my list?</AlertDialogTitle>
-              {/* The name, because a row of icons all look the same at the
+          <AlertDialog>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <AlertDialogTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label={`Remove "${task.name}" from my list`}
+                    className="text-muted-foreground hover:text-foreground hover:bg-muted rounded p-1"
+                  >
+                    <X className="size-4" aria-hidden />
+                  </button>
+                </AlertDialogTrigger>
+              </TooltipTrigger>
+              <TooltipContent>Remove from my list</TooltipContent>
+            </Tooltip>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Remove from my list?</AlertDialogTitle>
+                {/* The name, because a row of icons all look the same at the
                   moment you realise you clicked the wrong one. */}
-              <AlertDialogDescription>
-                “{task.name}” comes off the plan. Anything you have ticked stays
-                ticked.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Keep it</AlertDialogCancel>
-              <AlertDialogAction onClick={() => onRemove(task.wikiId)}>
-                Remove
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+                <AlertDialogDescription>
+                  “{task.name}” comes off the plan. Anything you have ticked
+                  stays ticked.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Keep it</AlertDialogCancel>
+                <AlertDialogAction onClick={() => onRemove(task.wikiId)}>
+                  Remove
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
     </li>
   );
