@@ -5,9 +5,7 @@
 // slowest to type back in.
 
 import { useState } from "react";
-import { RotateCcw } from "lucide-react";
 import type { Notice } from "@/lib/notice";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
@@ -17,7 +15,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
 /** What Reset is allowed to clear, ticked one by one. */
@@ -77,6 +74,9 @@ function ResetOption({
 }
 
 export interface ResetDialogProps {
+  /** Opened from the toolbar's menu, so the open state lives there. */
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   completedCount: number;
   listCount: number;
   profileIsEmpty: boolean;
@@ -88,6 +88,8 @@ export interface ResetDialogProps {
 }
 
 export function ResetDialog({
+  open,
+  onOpenChange,
   completedCount,
   listCount,
   profileIsEmpty,
@@ -96,11 +98,8 @@ export function ResetDialog({
   onClearProfile,
   onNotice,
 }: ResetDialogProps) {
-  const [open, setOpen] = useState(false);
   const [targets, setTargets] = useState<ResetTargets>(DEFAULT_RESET_TARGETS);
 
-  const nothingToReset =
-    completedCount === 0 && listCount === 0 && profileIsEmpty;
   const willReset =
     (targets.completed && completedCount > 0) ||
     (targets.list && listCount > 0) ||
@@ -127,19 +126,13 @@ export function ResetDialog({
     <AlertDialog
       open={open}
       onOpenChange={(next) => {
-        setOpen(next);
+        onOpenChange(next);
         // Back to defaults on the way in, not on the way out: a dialog that
         // reopens still holding "and my levels" from last time is how you
         // clear something you didn't mean to.
         if (next) setTargets(DEFAULT_RESET_TARGETS);
       }}
     >
-      <AlertDialogTrigger asChild>
-        <Button variant="outline" size="sm" disabled={nothingToReset}>
-          <RotateCcw className="size-4" aria-hidden />
-          Reset
-        </Button>
-      </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Reset</AlertDialogTitle>

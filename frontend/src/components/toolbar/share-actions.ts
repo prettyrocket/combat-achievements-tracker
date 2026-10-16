@@ -1,4 +1,5 @@
-// Share: the two ways progress leaves this browser.
+// Share: the two ways progress leaves this browser, as actions for the
+// toolbar's menu to call.
 //
 // Two answers to the same question with a different trade: the file is the
 // durable copy, the link is the one that fits in a message. Neither is a server,
@@ -8,18 +9,10 @@
 // trap, so it stays one click from the top level -- inside a menu, but never
 // behind a settings screen the player finds only after losing their data.
 
-import { ChevronDown, Download, Link2, Share2 } from "lucide-react";
 import { buildBackup } from "@/lib/backup";
 import { buildShareUrl, profileWireLoss } from "@/lib/share-code";
 import type { Notice } from "@/lib/notice";
 import type { PlayerProfile } from "@/lib/requirements";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 function exportFilename(): string {
   // Local date, not ISO: this filename is for a human sorting their own backups.
@@ -32,7 +25,7 @@ function exportFilename(): string {
   return `combat-achievements-${stamp}.json`;
 }
 
-export interface ShareMenuProps {
+export interface ShareActionsInput {
   completed: ReadonlySet<number>;
   completedCount: number;
   /** The plan itself, in order -- the share link carries it, not just its size. */
@@ -43,7 +36,7 @@ export interface ShareMenuProps {
   onNotice: (notice: Notice) => void;
 }
 
-export function ShareMenu({
+export function shareActions({
   completed,
   completedCount,
   list,
@@ -51,7 +44,7 @@ export function ShareMenu({
   profile,
   profileIsEmpty,
   onNotice,
-}: ShareMenuProps) {
+}: ShareActionsInput) {
   function handleExport() {
     const blob = new Blob([JSON.stringify(buildBackup(), null, 2)], {
       type: "application/json",
@@ -109,25 +102,8 @@ export function ShareMenu({
     }
   }
 
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Share2 className="size-4" aria-hidden />
-          Share
-          <ChevronDown className="size-3.5 opacity-60" aria-hidden />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuItem onSelect={() => void handleCopyLink()}>
-          <Link2 aria-hidden />
-          Copy link
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={handleExport}>
-          <Download aria-hidden />
-          Export a file
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
+  return {
+    copyLink: () => void handleCopyLink(),
+    exportFile: handleExport,
+  };
 }

@@ -1,4 +1,4 @@
-// Load / Share / Reset / Settings.
+// Load, and a menu holding Share / Settings / Reset.
 //
 // The first three are grouped by direction rather than by mechanism: Load is
 // everything that writes your progress from somewhere else, Share is everything
@@ -8,18 +8,37 @@
 //
 // Load is one button here and nothing more. The dialog it opens is App's, not
 // this bar's -- the requirement filter opens it too, and routing that through
-// the toolbar meant seven props existed only to be forwarded. Share is a menu,
-// because copying a link and saving a file are two acts rather than two sources
-// for one; Reset is a dialog, because it can clear three separate stores.
+// the toolbar meant seven props existed only to be forwarded. The rest share one
+// menu, in the same order and split by the same lines: the two ways progress
+// leaves, then Settings, then Reset last and in red. Reset is still a dialog,
+// because it can clear three separate stores.
+//
+// One button and one menu at every width, so the header never has to wrap or
+// rearrange itself to fit a narrow window.
 
-import { Upload } from "lucide-react";
+import { useState } from "react";
+import {
+  Download,
+  Ellipsis,
+  Link2,
+  RotateCcw,
+  Settings,
+  Upload,
+} from "lucide-react";
 import type { ListPosition } from "@/lib/list-position";
 import type { Notice } from "@/lib/notice";
 import type { PlayerProfile } from "@/lib/requirements";
 import { SettingsDialog } from "@/components/settings";
 import { ResetDialog } from "@/components/toolbar/reset-dialog";
-import { ShareMenu } from "@/components/toolbar/share-menu";
+import { shareActions } from "@/components/toolbar/share-actions";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export interface ProgressToolbarProps {
   completed: ReadonlySet<number>;
@@ -66,44 +85,84 @@ export function ProgressToolbar({
   listPosition,
   onListPositionChange,
 }: ProgressToolbarProps) {
+  const [resetOpen, setResetOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const share = shareActions({
+    completed,
+    completedCount,
+    list,
+    listCount,
+    profile,
+    profileIsEmpty,
+    onNotice,
+  });
+  const nothingToReset =
+    completedCount === 0 && listCount === 0 && profileIsEmpty;
+
   return (
-    <div className="flex flex-col items-end gap-2">
-      <div className="flex items-center gap-2">
-        {/* One button, because there is one question -- where should this come
-            from -- and the dialog is where it gets asked. A menu here would be
-            the same five options with nowhere to say what any of them carry. */}
-        <Button variant="outline" size="sm" onClick={onLoadOpen}>
-          <Upload className="size-4" aria-hidden />
-          Load
-        </Button>
+    <div className="flex items-center gap-2">
+      {/* One button, because there is one question -- where should this come
+          from -- and the dialog is where it gets asked. A menu here would be
+          the same five options with nowhere to say what any of them carry. */}
+      <Button variant="outline" size="sm" onClick={onLoadOpen}>
+        <Upload className="size-4" aria-hidden />
+        Load
+      </Button>
 
-        <ShareMenu
-          completed={completed}
-          completedCount={completedCount}
-          list={list}
-          listCount={listCount}
-          profile={profile}
-          profileIsEmpty={profileIsEmpty}
-          onNotice={onNotice}
-        />
+      {/* Not modal: a modal menu hands focus back to its trigger as it closes,
+          which fights the dialog an item has just opened. */}
+      <DropdownMenu modal={false}>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm" aria-label="More">
+            <Ellipsis className="size-4" aria-hidden />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onSelect={share.copyLink}>
+            <Link2 aria-hidden />
+            Copy link
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={share.exportFile}>
+            <Download aria-hidden />
+            Export a file
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={() => setSettingsOpen(true)}>
+            <Settings aria-hidden />
+            Settings…
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            disabled={nothingToReset}
+            onSelect={() => setResetOpen(true)}
+            className="text-destructive focus:text-destructive [&_svg]:text-destructive focus:[&_svg]:text-destructive"
+          >
+            <RotateCcw aria-hidden />
+            Reset…
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-        <ResetDialog
-          completedCount={completedCount}
-          listCount={listCount}
-          profileIsEmpty={profileIsEmpty}
-          onReset={onReset}
-          onClearList={onClearList}
-          onClearProfile={onClearProfile}
-          onNotice={onNotice}
-        />
+      <ResetDialog
+        open={resetOpen}
+        onOpenChange={setResetOpen}
+        completedCount={completedCount}
+        listCount={listCount}
+        profileIsEmpty={profileIsEmpty}
+        onReset={onReset}
+        onClearList={onClearList}
+        onClearProfile={onClearProfile}
+        onNotice={onNotice}
+      />
 
-        <SettingsDialog
-          manualTracking={manualTracking}
-          onManualTrackingChange={onManualTrackingChange}
-          listPosition={listPosition}
-          onListPositionChange={onListPositionChange}
-        />
-      </div>
+      <SettingsDialog
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        manualTracking={manualTracking}
+        onManualTrackingChange={onManualTrackingChange}
+        listPosition={listPosition}
+        onListPositionChange={onListPositionChange}
+      />
     </div>
   );
 }

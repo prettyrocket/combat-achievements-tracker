@@ -5,25 +5,21 @@
 // persists on its own, so a footer would only add a way to lose the change you
 // just made. Reset has a footer because it destroys something; this doesn't.
 //
-// Owns its own trigger, the way ResetDialog does. Nothing else opens Settings,
-// so lifting the open state into App would buy nothing but two more props.
+// Opened from the toolbar's menu, which owns the open state; the dialog can't
+// be its own trigger from inside a menu that closes as you pick it.
 //
 // A setting is a label and a control. The controls that are more than a
 // checkbox get their own file -- layout-picker draws four little diagrams, and
 // that is a different job from listing what can be set.
 
-import { useState } from "react";
-import { Settings } from "lucide-react";
 import type { ListPosition } from "@/lib/list-position";
 import { LayoutPicker } from "@/components/settings/layout-picker";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 
 /** One switch: a label you can click, and the box it belongs to. */
@@ -64,6 +60,8 @@ function SettingField({
 }
 
 export interface SettingsDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   manualTracking: boolean;
   onManualTrackingChange: (allowed: boolean) => void;
   listPosition: ListPosition;
@@ -71,20 +69,15 @@ export interface SettingsDialogProps {
 }
 
 export function SettingsDialog({
+  open,
+  onOpenChange,
   manualTracking,
   onManualTrackingChange,
   listPosition,
   onListPositionChange,
 }: SettingsDialogProps) {
-  const [open, setOpen] = useState(false);
-
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" aria-label="Settings">
-          <Settings className="size-4" aria-hidden />
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>

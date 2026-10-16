@@ -271,49 +271,64 @@ export default function App() {
           Nothing above the table scrolls away, and the table's own scrollbars --
           including the horizontal one, which used to sit 646 rows below the fold
           where nobody could reach it -- belong to a box you can see. */}
-      <div className="mx-auto flex h-dvh max-w-[100rem] flex-col overflow-hidden px-6 py-6">
-        <header className="flex shrink-0 flex-wrap items-start justify-between gap-4 border-b pb-4">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <h1 className="text-2xl font-bold tracking-tight">
+      <div className="mx-auto flex h-dvh max-w-[100rem] flex-col overflow-hidden px-4 py-6 sm:px-6">
+        {/* One row at every width: name, screens, actions. The outer columns
+            are equal while there's room, which puts the switch at the true
+            centre; they never shrink below their contents, so on a narrow
+            window it settles between the two instead of overlapping either. */}
+        <header className="grid shrink-0 grid-cols-[minmax(max-content,1fr)_auto_minmax(max-content,1fr)] items-center gap-2 border-b pb-4 sm:gap-4">
+          <h1 className="text-xl font-bold lg:text-2xl tracking-tight whitespace-nowrap">
+            <span className="hidden min-[680px]:inline">
               Combat Achievements Tracker
-            </h1>
-            {/* Radix lets a single group be emptied by clicking the pressed
-                item; there is always a screen, so that click is ignored. */}
-            <ToggleGroup
-              type="single"
-              variant="outline"
-              size="sm"
-              aria-label="View"
-              value={view}
-              onValueChange={(next) => next && setView(next as View)}
+            </span>
+            <span className="min-[680px]:hidden">CA Tracker</span>
+          </h1>
+          {/* Radix lets a single group be emptied by clicking the pressed
+              item; there is always a screen, so that click is ignored. */}
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            size="sm"
+            aria-label="View"
+            value={view}
+            onValueChange={(next) => next && setView(next as View)}
+          >
+            <ToggleGroupItem
+              value="table"
+              aria-label="Catalog"
+              className="sm:px-3"
             >
-              <ToggleGroupItem value="table" className="px-3">
-                <Table2 />
-                Table
-              </ToggleGroupItem>
-              <ToggleGroupItem value="list" className="px-3">
-                <ListChecks />
-                My list
-              </ToggleGroupItem>
-            </ToggleGroup>
+              <Table2 />
+              <span className="max-sm:hidden">Catalog</span>
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="list"
+              aria-label="My list"
+              className="sm:px-3"
+            >
+              <ListChecks />
+              <span className="max-sm:hidden">My list</span>
+            </ToggleGroupItem>
+          </ToggleGroup>
+          <div className="justify-self-end">
+            <ProgressToolbar
+              completed={completed}
+              completedCount={completed.size}
+              list={taskList.list}
+              listCount={taskList.list.length}
+              profile={profile.profile}
+              profileIsEmpty={profile.isEmpty}
+              onReset={reset}
+              onClearList={taskList.clear}
+              onClearProfile={profile.clear}
+              onLoadOpen={openLoad}
+              onNotice={setNotice}
+              manualTracking={prefs.manualTracking}
+              onManualTrackingChange={prefs.setManualTracking}
+              listPosition={prefs.listPosition}
+              onListPositionChange={prefs.setListPosition}
+            />
           </div>
-          <ProgressToolbar
-            completed={completed}
-            completedCount={completed.size}
-            list={taskList.list}
-            listCount={taskList.list.length}
-            profile={profile.profile}
-            profileIsEmpty={profile.isEmpty}
-            onReset={reset}
-            onClearList={taskList.clear}
-            onClearProfile={profile.clear}
-            onLoadOpen={openLoad}
-            onNotice={setNotice}
-            manualTracking={prefs.manualTracking}
-            onManualTrackingChange={prefs.setManualTracking}
-            listPosition={prefs.listPosition}
-            onListPositionChange={prefs.setListPosition}
-          />
         </header>
 
         {storageError && (
