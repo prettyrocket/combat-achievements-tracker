@@ -1,6 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Check, GripVertical, Lock, Undo2, X } from "lucide-react";
+import { Check, GripVertical, ListX, Lock, Undo2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -181,48 +181,52 @@ export function ListRow({
               {completed ? "Mark as not done" : "Mark as done"}
             </TooltipContent>
           </Tooltip>
-
-          {/* Asked about, unlike everywhere else this button appears. In the table
-            and the panel it sits beside the thing that put it there, so an
-            accident is one click to undo. Here it is the last control on a row
-            you may have spent a while arranging, and the task takes its place in
-            the plan with it -- add it back and it lands at the bottom, not where
-            it was. */}
-          <AlertDialog>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <AlertDialogTrigger asChild>
-                  <button
-                    type="button"
-                    aria-label={`Remove "${task.name}" from my list`}
-                    className="text-muted-foreground hover:text-foreground hover:bg-muted rounded p-1"
-                  >
-                    <X className="size-4" aria-hidden />
-                  </button>
-                </AlertDialogTrigger>
-              </TooltipTrigger>
-              <TooltipContent>Remove from my list</TooltipContent>
-            </Tooltip>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Remove from my list?</AlertDialogTitle>
-                {/* The name, because a row of icons all look the same at the
-                  moment you realise you clicked the wrong one. */}
-                <AlertDialogDescription>
-                  “{task.name}” comes off the plan. Anything you have ticked
-                  stays ticked.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Keep it</AlertDialogCancel>
-                <AlertDialogAction onClick={() => onRemove(task.wikiId)}>
-                  Remove
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
         </div>
       </div>
+
+      {/* Asked about, unlike everywhere else this button appears. In the table
+        and the panel it sits beside the thing that put it there, so an
+        accident is one click to undo. Here it is the last control on a row
+        you may have spent a while arranging, and the task takes its place in
+        the plan with it -- add it back and it lands at the bottom, not where
+        it was.
+
+        Outside the card, opposite the handle: the handle holds the card and
+        this throws it away, and neither is something you do to the task. Red,
+        because it is the one control on the row that loses something. */}
+      <AlertDialog>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <AlertDialogTrigger asChild>
+              <button
+                type="button"
+                aria-label={`Remove "${task.name}" from my list`}
+                className="text-destructive hover:bg-destructive/15 shrink-0 rounded p-1 transition-colors"
+              >
+                <ListX className="size-4" aria-hidden />
+              </button>
+            </AlertDialogTrigger>
+          </TooltipTrigger>
+          <TooltipContent>Remove from my list</TooltipContent>
+        </Tooltip>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove from my list?</AlertDialogTitle>
+            {/* The name, because a row of icons all look the same at the
+              moment you realise you clicked the wrong one. */}
+            <AlertDialogDescription>
+              “{task.name}” comes off the plan. Anything you have ticked stays
+              ticked.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep it</AlertDialogCancel>
+            <AlertDialogAction onClick={() => onRemove(task.wikiId)}>
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </li>
   );
 }
