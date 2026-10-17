@@ -6,7 +6,7 @@
 // task-drag-provider. What's left is which component gets what, which is the one
 // thing an App file should be for.
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ListChecks, Table2, UserRound } from "lucide-react";
 import { TASKS } from "@/data/tasks";
 import { TaskTable } from "@/components/task-table";
@@ -16,6 +16,7 @@ import { FilterBar } from "@/components/filter-bar";
 import { MonsterBreadcrumb } from "@/components/monster-breadcrumb";
 import { ShareCodePrompt } from "@/components/share-code-prompt";
 import { Toast } from "@/components/toast";
+import { WelcomeDialog } from "@/components/welcome-dialog";
 import { TaskDragProvider } from "@/components/task-drag-provider";
 import { PlanOverlay } from "@/components/plan-overlay";
 import { TaskListPanel } from "@/components/tasklist-panel";
@@ -51,6 +52,7 @@ import { useTaskList } from "@/lib/use-tasklist";
 import { useTaskQuery } from "@/lib/use-task-query";
 import { useUiPrefs } from "@/lib/use-ui-prefs";
 import { useView } from "@/lib/use-view";
+import { markWelcomed, shouldWelcome } from "@/lib/welcome";
 import type { View } from "@/lib/view";
 
 // Source order is panel-then-table, which is already "above" and is also the
@@ -125,6 +127,42 @@ export default function App() {
   }, []);
 
   const openLoad = useCallback(() => setLoadOpen(true), []);
+
+  // Read once, on arrival -- see welcome.ts for what counts as a first visit.
+  const [welcomeOpen, setWelcomeOpen] = useState(shouldWelcome);
+  // Skipping points at Profile, where Load lives for good, rather than only
+  // saying so.
+  const [pointAtProfile, setPointAtProfile] = useState(false);
+
+  const pickWelcome = useCallback((source: LoadSourceId) => {
+    markWelcomed();
+    setWelcomeOpen(false);
+    setLoadSource(source);
+    setLoadOpen(true);
+  }, []);
+
+  const skipWelcome = useCallback(() => {
+    markWelcomed();
+    setWelcomeOpen(false);
+    if (view !== "table") setView("table");
+    setPointAtProfile(true);
+    setNotice({
+      tone: "ok",
+      message: "You can sync your progress any time from Profile.",
+      action: { label: "Go to Profile", onClick: () => setView("profile") },
+    });
+  }, [view, setView]);
+
+  // As long as the toast that names it, and not a moment after you've gone.
+  useEffect(() => {
+    if (!pointAtProfile) return;
+    if (view === "profile") {
+      setPointAtProfile(false);
+      return;
+    }
+    const timer = window.setTimeout(() => setPointAtProfile(false), 10000);
+    return () => window.clearTimeout(timer);
+  }, [pointAtProfile, view]);
 
   const onLoadOpenChange = useCallback((open: boolean) => {
     setLoadOpen(open);
@@ -322,7 +360,9 @@ export default function App() {
             <ToggleGroupItem
               value="profile"
               aria-label="Profile"
-              className="sm:px-3"
+              className={`sm:px-3 ${
+                pointAtProfile ? "ring-2 ring-sky-400/80 animate-pulse" : ""
+              }`}
             >
               <UserRound />
               <span className="max-sm:hidden">Profile</span>
@@ -364,6 +404,7 @@ export default function App() {
               summary={summary}
               rewards={rewards}
               rsn={prefs.lastRsn}
+              onLoadOpen={openLoad}
             />
           </main>
         ) : view === "list" ? (
@@ -500,6 +541,12 @@ export default function App() {
       />
 
       <Toast notice={notice} onDismiss={dismissNotice} />
+
+      <WelcomeDialog
+        open={welcomeOpen}
+        onPick={pickWelcome}
+        onSkip={skipWelcome}
+      />
 
       <ShareCodePrompt
         incoming={shareCode.incoming}

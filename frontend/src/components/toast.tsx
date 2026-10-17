@@ -37,7 +37,10 @@ export function Toast({
 }) {
   useEffect(() => {
     if (notice === null) return;
-    const timer = window.setTimeout(onDismiss, LINGER[notice.tone]);
+    // One with an action stays as long as an error: it is offering something,
+    // and the offer shouldn't be gone before you've reached for it.
+    const linger = notice.action ? LINGER.error : LINGER[notice.tone];
+    const timer = window.setTimeout(onDismiss, linger);
     // Cleared on the way out, so a second export arriving before the first has
     // faded restarts the clock rather than inheriting what was left of it --
     // every notice is a fresh object, so this effect runs again for each one.
@@ -65,6 +68,18 @@ export function Toast({
       }`}
     >
       <p className="min-w-0 flex-1">{notice.message}</p>
+      {notice.action && (
+        <button
+          type="button"
+          onClick={() => {
+            notice.action?.onClick();
+            onDismiss();
+          }}
+          className="hover:bg-muted -my-0.5 shrink-0 rounded px-1.5 py-0.5 font-medium transition-colors"
+        >
+          {notice.action.label}
+        </button>
+      )}
       <button
         type="button"
         onClick={onDismiss}

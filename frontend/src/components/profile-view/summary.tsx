@@ -22,7 +22,7 @@ export function SummaryCard({
   return (
     <section
       aria-label="Progress summary"
-      className="rounded-lg border p-4 xl:max-w-5xl"
+      className="w-full rounded-lg border p-4 xl:max-w-5xl"
     >
       {/* The two headline facts as a pair of columns: how much of the game is
           done, and what the next reward costs. Same three-part shape each --

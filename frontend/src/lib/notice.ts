@@ -8,4 +8,6 @@
 export interface Notice {
   tone: "ok" | "error";
   message: string;
+  /** Somewhere to go from here, as a button beside the message. */
+  action?: { label: string; onClick: () => void };
 }
