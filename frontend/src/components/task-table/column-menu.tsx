@@ -4,18 +4,11 @@
 // These were three things in three places -- click the header to sort, a picker
 // in the bar above to filter, and grouping only as a side effect of sorting by
 // monster. Every one of them is a question about this column, so they are asked
-// here. The header still says what is in force: an arrow for the sort, a count
-// for the filter, a stack for the grouping.
+// here. The header itself stays a plain label; what is in force shows as ticks
+// in the menu, not as marks on the header.
 
 import { useState, type ReactNode } from "react";
-import {
-  ArrowDown,
-  ArrowUp,
-  Check,
-  Ellipsis,
-  ListFilter,
-  Rows3,
-} from "lucide-react";
+import { Check, Ellipsis } from "lucide-react";
 import {
   TIERS,
   TASK_TYPES,
@@ -26,7 +19,7 @@ import {
   type TaskType,
   type Tier,
 } from "@/lib/types";
-import { COLUMN_SORT, sortDirection } from "@/lib/task-query";
+import { COLUMN_SORT } from "@/lib/task-query";
 import { MonsterOptions } from "@/components/monster-picker";
 import { TierBadge } from "@/components/tier-badge";
 import {
@@ -154,19 +147,8 @@ export function ColumnMenu({
 }: ColumnMenuProps) {
   const [open, setOpen] = useState(false);
   const pair: readonly SortKey[] = COLUMN_SORT[column];
-  const sorted = pair.includes(sort);
-  const SortIcon = sortDirection(sort) === "asc" ? ArrowUp : ArrowDown;
   const groupable = isGroupColumn(column);
   const grouped = groupable && query.group === column;
-
-  const filtered =
-    column === "monster"
-      ? (query.monster?.length ?? 0)
-      : column === "tier"
-        ? (query.tier?.length ?? 0)
-        : column === "type"
-          ? (query.type?.length ?? 0)
-          : 0;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -174,21 +156,9 @@ export function ColumnMenu({
         <button
           type="button"
           aria-label={`${name} column options`}
-          className={`hover:text-foreground hover:bg-muted -mx-1 inline-flex items-center gap-1 rounded px-1 py-0.5 transition-colors ${
-            sorted || filtered > 0 || grouped
-              ? "text-foreground"
-              : "text-muted-foreground"
-          }`}
+          className="hover:text-foreground hover:bg-muted text-muted-foreground -mx-1 inline-flex items-center gap-1 rounded px-1 py-0.5 transition-colors"
         >
           {label}
-          {sorted && <SortIcon className="size-3.5" aria-hidden />}
-          {grouped && <Rows3 className="size-3.5" aria-hidden />}
-          {filtered > 0 && (
-            <span className="inline-flex items-center gap-0.5">
-              <ListFilter className="size-3.5" aria-hidden />
-              <span className="text-xs tabular-nums">{filtered}</span>
-            </span>
-          )}
           <Ellipsis className="size-3.5 opacity-50" aria-hidden />
         </button>
       </PopoverTrigger>
