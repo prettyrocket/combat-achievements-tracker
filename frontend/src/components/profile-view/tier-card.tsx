@@ -1,16 +1,16 @@
-// Progress per tier, a row apiece: name, bar, and one figure, read as a
-// percentage, a task count or points.
+// Progress per tier, a row apiece, and the total under them: name, bar, and one
+// figure, read as a percentage, a task count or points.
 
 import { useState } from "react";
 import { percent } from "@/lib/progress-summary";
 import { TIER_BAR_CLASS } from "@/lib/tier-style";
-import { TIER_LABEL, type TierProgress } from "@/lib/types";
+import { TIER_LABEL, type ProgressSummary } from "@/lib/types";
 import { Meter } from "@/components/profile-view/meter";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 type Measure = "percent" | "tasks" | "points";
 
-export function TierCard({ perTier }: { perTier: readonly TierProgress[] }) {
+export function TierCard({ summary }: { summary: ProgressSummary }) {
   const [measure, setMeasure] = useState<Measure>("percent");
 
   return (
@@ -44,23 +44,65 @@ export function TierCard({ perTier }: { perTier: readonly TierProgress[] }) {
       </div>
 
       <ul className="grid grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-2.5 text-sm tabular-nums">
-        {perTier.map((tier) => (
-          <TierRow key={tier.tier} tier={tier} measure={measure} />
+        {summary.perTier.map((tier) => (
+          <Row
+            key={tier.tier}
+            label={TIER_LABEL[tier.tier]}
+            barClass={TIER_BAR_CLASS[tier.tier]}
+            done={tier.completed}
+            of={tier.total}
+            earned={tier.pointsEarned}
+            worth={tier.pointsTotal}
+            measure={measure}
+          />
         ))}
+        <Row
+          label="Total"
+          barClass="bg-foreground"
+          done={summary.completedTasks}
+          of={summary.totalTasks}
+          earned={summary.pointsEarned}
+          worth={summary.pointsTotal}
+          measure={measure}
+          className="border-t pt-2.5"
+        />
       </ul>
     </section>
   );
 }
 
-function TierRow({ tier, measure }: { tier: TierProgress; measure: Measure }) {
-  // Every task in a tier is worth the same, so the share of tasks done and the
-  // share of points earned are one number -- the bar is the same either way.
-  const value = percent(tier.completed, tier.total);
-  const label = TIER_LABEL[tier.tier];
+function Row({
+  label,
+  barClass,
+  done,
+  of,
+  earned,
+  worth,
+  measure,
+  className = "",
+}: {
+  label: string;
+  barClass: string;
+  /** Tasks done, of how many. */
+  done: number;
+  of: number;
+  /** Points earned, of how many. */
+  earned: number;
+  worth: number;
+  measure: Measure;
+  className?: string;
+}) {
+  // Within a tier every task is worth the same, so the two shares are one
+  // number. Across tiers they aren't: the total's bar follows tasks when
+  // counting tasks, and points -- the headline's measure -- otherwise.
+  const value =
+    measure === "tasks" ? percent(done, of) : percent(earned, worth);
   return (
     // Each row lends its cells to the list's grid, so the bars and figures
     // line up down the card.
-    <li className="col-span-3 grid grid-cols-subgrid items-center">
+    <li
+      className={`col-span-3 grid grid-cols-subgrid items-center ${className}`}
+    >
       <span className="font-medium">{label}</span>
       <div
         role="meter"
@@ -69,7 +111,7 @@ function TierRow({ tier, measure }: { tier: TierProgress; measure: Measure }) {
         aria-valuemax={100}
         aria-label={`${label} completion`}
       >
-        <Meter value={value} className={TIER_BAR_CLASS[tier.tier]} />
+        <Meter value={value} className={barClass} />
       </div>
       <span className="text-muted-foreground min-w-18 text-right text-xs">
         {measure === "percent" ? (
@@ -79,9 +121,9 @@ function TierRow({ tier, measure }: { tier: TierProgress; measure: Measure }) {
         ) : (
           <>
             <span className="text-foreground font-medium">
-              {measure === "tasks" ? tier.completed : tier.pointsEarned}
+              {measure === "tasks" ? done : earned}
             </span>{" "}
-            / {measure === "tasks" ? tier.total : tier.pointsTotal}
+            / {measure === "tasks" ? of : worth}
           </>
         )}
       </span>

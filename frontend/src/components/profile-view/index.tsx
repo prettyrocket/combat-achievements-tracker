@@ -46,7 +46,7 @@ export function ProfileView({
       <div className="grid w-full gap-3 md:grid-cols-2 xl:max-w-5xl">
         <SummaryCard summary={summary} rsn={rsn} />
         <RewardCard status={rewards} />
-        <TierCard perTier={summary.perTier} />
+        <TierCard summary={summary} />
       </div>
       <SyncSection
         kind={syncKind}

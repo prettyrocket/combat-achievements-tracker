@@ -43,17 +43,6 @@ export function SummaryCard({
       >
         <Meter value={overall} className="bg-foreground" />
       </div>
-
-      <p className="text-muted-foreground mt-1.5 text-xs tabular-nums">
-        <span className="text-foreground font-medium">
-          {summary.pointsEarned}
-        </span>{" "}
-        / {summary.pointsTotal} points ·{" "}
-        <span className="text-foreground font-medium">
-          {summary.completedTasks}
-        </span>{" "}
-        / {summary.totalTasks} tasks
-      </p>
     </section>
   );
 }
