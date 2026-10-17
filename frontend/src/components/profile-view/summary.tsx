@@ -63,11 +63,7 @@ export function SummaryCard({
 
   if (kind === "setup") {
     return (
-      // Across both columns: the four cards want a row of their own.
-      <section
-        aria-label="Account"
-        className="rounded-lg border p-4 md:col-span-2"
-      >
+      <section aria-label="Account" className="rounded-lg border p-4">
         {rsn && <h2 className="mb-3 text-lg font-semibold">{rsn}</h2>}
         <SourceCards onPick={onPick} className="sm:grid-cols-4" />
       </section>

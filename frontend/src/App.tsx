@@ -486,6 +486,7 @@ export default function App() {
             <ProfileView
               summary={summary}
               rewards={rewards}
+              rewardTiers={REWARD_TIERS}
               rsn={prefs.lastRsn}
               syncKind={quickLoadKind}
               syncBusy={quickLoad.busy}

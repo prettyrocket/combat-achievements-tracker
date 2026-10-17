@@ -6,7 +6,7 @@
 
 import type { LoadSourceId } from "@/lib/load-source";
 import type { QuickLoad } from "@/lib/quick-load";
-import type { RewardStatus } from "@/lib/rewards";
+import type { RewardStatus, RewardTier } from "@/lib/rewards";
 import type { ProgressSummary } from "@/lib/types";
 import { ProfileEmpty } from "@/components/profile-view/empty";
 import { RewardCard } from "@/components/profile-view/reward-card";
@@ -16,6 +16,7 @@ import { TierCard } from "@/components/profile-view/tier-card";
 export interface ProfileViewProps {
   summary: ProgressSummary;
   rewards: RewardStatus;
+  rewardTiers: readonly RewardTier[];
   /** Whose progress this is, or null before anything has been loaded. */
   rsn: string | null;
   /** How you last loaded, as the header's Load reads it. */
@@ -34,6 +35,7 @@ export interface ProfileViewProps {
 export function ProfileView({
   summary,
   rewards,
+  rewardTiers,
   rsn,
   syncKind,
   syncBusy,
@@ -51,21 +53,31 @@ export function ProfileView({
       </div>
     );
 
+  const account = (
+    <SummaryCard
+      kind={syncKind}
+      rsn={rsn}
+      busy={syncBusy}
+      onSync={onSync}
+      onChange={onLoadOpen}
+      onPick={onLoadSource}
+    />
+  );
+  // Before a source is set up the account card is the four source cards,
+  // which want a row of their own across both columns.
+  const setup = syncKind === "setup";
+
   return (
     <div className="flex h-full flex-col items-start gap-3 overflow-y-auto">
-      {/* Side by side once there's the width, so neither meter stretches into
-          the hairline a single full-width bar becomes. */}
-      <div className="grid w-full gap-3 md:grid-cols-2 xl:max-w-5xl">
-        <SummaryCard
-          kind={syncKind}
-          rsn={rsn}
-          busy={syncBusy}
-          onSync={onSync}
-          onChange={onLoadOpen}
-          onPick={onLoadSource}
-        />
-        <RewardCard status={rewards} />
-        <TierCard summary={summary} />
+      {/* Two columns once there's the width, each its own stack, so the reward
+          ladder's height never stretches the cards beside it. */}
+      <div className="grid w-full items-start gap-3 md:grid-cols-2 xl:max-w-5xl">
+        {setup && <div className="md:col-span-2">{account}</div>}
+        <div className="flex flex-col gap-3">
+          {!setup && account}
+          <TierCard summary={summary} />
+        </div>
+        <RewardCard status={rewards} tiers={rewardTiers} />
       </div>
     </div>
   );
