@@ -163,19 +163,20 @@ export function useImportFlow({
     (rsn: string) => {
       if (!diff) return "Import";
       if (diff.removed.length > 0) return confirming ? "Confirm" : "Replace";
+      // Nothing to tick or untick still lands: the lookup confirms this source,
+      // and its levels and quests can have moved even when the ticks haven't.
       if (diffIsNoop(diff))
-        return differentAccount(rsn) && clearList ? "Clear" : "Import";
+        return differentAccount(rsn) && clearList ? "Clear" : "Done";
       return "Import";
     },
     [diff, confirming, clearList, differentAccount],
   );
 
-  const disabled = useCallback(
-    (rsn: string) =>
-      diff === null ||
-      (diffIsNoop(diff) && !(differentAccount(rsn) && clearList)),
-    [diff, clearList, differentAccount],
-  );
+  // Only before a lookup. A lookup that changes nothing used to leave the
+  // button disabled, which meant it could never land -- so the source was never
+  // remembered, and a player whose ticks already matched could not make
+  // RuneProfile their way in at all.
+  const disabled = useCallback(() => diff === null, [diff]);
 
   const variant = useCallback(
     (rsn: string): "default" | "success" | "destructive" => {
