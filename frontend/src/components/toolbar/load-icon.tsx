@@ -1,26 +1,18 @@
 // The Load button's icon: the mark of wherever it will load from.
 
-import { PenLine, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
 import type { QuickLoad } from "@/lib/quick-load";
-import runeProfileLogo from "@/assets/logos/runeprofile.png";
-import wiseOldManLogo from "@/assets/logos/wiseoldman.svg";
+import { SourceLogo } from "@/components/source-cards";
 
 export function LoadIcon({ kind }: { kind: QuickLoad }) {
   switch (kind) {
     case "runeprofile":
       return (
-        <img
-          src={runeProfileLogo}
-          alt=""
-          className="size-4 rounded-[3px] object-cover"
-        />
+        <SourceLogo source="runeprofile" className="size-4 rounded-[3px]" />
       );
     case "wiseoldman":
-      return (
-        <img src={wiseOldManLogo} alt="" className="size-4 object-cover" />
-      );
     case "manual":
-      return <PenLine className="size-4" aria-hidden />;
+      return <SourceLogo source={kind} className="size-4" />;
     case "setup":
       return <Upload className="size-4" aria-hidden />;
   }

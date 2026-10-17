@@ -5,15 +5,8 @@
 // already chosen. This only asks which door, then hands them to Load standing
 // in front of it.
 
-import type { ReactNode } from "react";
-import { FileUp, PenLine } from "lucide-react";
-import {
-  LOAD_SOURCES,
-  type LoadSourceId,
-  type LoadSourceMeta,
-} from "@/lib/load-source";
-import runeProfileLogo from "@/assets/logos/runeprofile.png";
-import wiseOldManLogo from "@/assets/logos/wiseoldman.svg";
+import type { LoadSourceId } from "@/lib/load-source";
+import { SourceCards } from "@/components/source-cards";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -23,32 +16,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
-function Logo({ src }: { src: string }) {
-  return <img src={src} alt="" className="size-full object-cover" />;
-}
-
-// The two without a mark of their own get an icon on the same tile, so the five
-// cards still line up as five of a kind.
-const LOGO: Record<LoadSourceId, ReactNode> = {
-  manual: <PenLine className="size-8" aria-hidden />,
-  runeprofile: <Logo src={runeProfileLogo} />,
-  wiseoldman: <Logo src={wiseOldManLogo} />,
-  file: <FileUp className="size-8" aria-hidden />,
-};
-
-// Not the rail's order: the one that brings achievements leads, then levels,
-// then the two that need nothing fetched.
-const ORDER: readonly LoadSourceId[] = [
-  "runeprofile",
-  "wiseoldman",
-  "manual",
-  "file",
-];
-
-const CARDS: readonly LoadSourceMeta[] = ORDER.map((id) =>
-  LOAD_SOURCES.find((source) => source.id === id)!,
-);
 
 export interface WelcomeDialogProps {
   open: boolean;
@@ -78,31 +45,7 @@ export function WelcomeDialog({ open, onPick, onSkip }: WelcomeDialogProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <ul className="grid grid-cols-2 gap-3">
-          {CARDS.map((source) => (
-            <li key={source.id}>
-              <button
-                type="button"
-                onClick={() => onPick(source.id)}
-                className="hover:bg-muted/60 hover:border-foreground/30 focus-visible:ring-ring flex h-full w-full flex-col items-center gap-3 rounded-xl border px-4 py-6 text-center transition hover:-translate-y-0.5 hover:shadow-lg focus-visible:ring-2 focus-visible:outline-none"
-              >
-                <span className="bg-muted text-muted-foreground flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-md">
-                  {LOGO[source.id]}
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-base font-semibold">
-                    {source.label}
-                  </span>
-                  {source.carries && (
-                    <span className="text-muted-foreground mt-0.5 block text-xs">
-                      {source.carries}
-                    </span>
-                  )}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
+        <SourceCards onPick={onPick} />
 
         <DialogFooter>
           <Button variant="ghost" onClick={onSkip}>

@@ -32,6 +32,17 @@ export interface QuickLoadDeps {
   undoProfile: () => void;
   onNotice: (notice: Notice) => void;
   goToProfile: () => void;
+  /**
+   * A lookup came back and was dealt with -- applied, or found nothing new.
+   *
+   * Both count. "Already up to date." is a check that succeeded, and the date
+   * of the last successful check is exactly what somebody wondering whether
+   * their numbers are current wants to know. Only a failure isn't a sync.
+   */
+  onSynced: (
+    source: "runeprofile" | "wiseoldman",
+    dataAsOf: Date | null,
+  ) => void;
 }
 
 export interface UseQuickLoad {
@@ -55,6 +66,7 @@ export function useQuickLoad(deps: QuickLoadDeps): UseQuickLoad {
     undoProfile,
     onNotice,
     goToProfile,
+    onSynced,
   } = deps;
 
   const failed = useCallback(
@@ -80,6 +92,7 @@ export function useQuickLoad(deps: QuickLoadDeps): UseQuickLoad {
           found.profile !== null &&
           !sameProfile(sanitizeProfile(found.profile), profile);
         const message = runeProfileSyncMessage(diff, profileChanged);
+        onSynced("runeprofile", found.updatedAt);
         if (message === null) {
           onNotice({ tone: "ok", message: "Already up to date." });
           return;
@@ -102,6 +115,7 @@ export function useQuickLoad(deps: QuickLoadDeps): UseQuickLoad {
         const found = await fetchWomLevels(rsn);
         const next = { levels: sanitizeLevels(found.levels), quests: [] };
         const current = { levels: profile.levels, quests: [] };
+        onSynced("wiseoldman", found.updatedAt);
         if (sameProfile(next, current)) {
           onNotice({ tone: "ok", message: "Already up to date." });
           return;
@@ -138,6 +152,7 @@ export function useQuickLoad(deps: QuickLoadDeps): UseQuickLoad {
     undoProfile,
     onNotice,
     failed,
+    onSynced,
   ]);
 
   return { busy, sync };

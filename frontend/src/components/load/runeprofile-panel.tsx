@@ -32,11 +32,13 @@ export interface RuneProfilePanelProps {
   completed: ReadonlySet<number>;
   listCount: number;
   lastRsn: string | null;
+  /** `updatedAt` is when the plugin last uploaded, for the sync record. */
   onApply: (
     ids: number[],
     rsn: string,
     clearList: boolean,
     profile: PlayerProfile | null,
+    updatedAt: Date | null,
   ) => void;
   onFinished: (remember: boolean) => void;
 }
@@ -60,7 +62,10 @@ export function RuneProfilePanel({
     completed,
     listCount,
     lastRsn,
-    onApply,
+    // The flow only knows the payload it diffs; the date is this source's own,
+    // so it's added back here from the lookup that produced the payload.
+    onApply: (ids, name, clear, imported) =>
+      onApply(ids, name, clear, imported, found?.updatedAt ?? null),
     onApplied: () => onFinished(true),
   });
 

@@ -16,7 +16,7 @@
 // one shape would mean either a preview step for typing a number, or a silent
 // write for an import, and both are worse than the seam.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NameRow } from "@/components/load/name-row";
 import {
   DEFAULT_LOAD_SOURCE,
@@ -59,11 +59,22 @@ export interface LoadDialogProps {
     clearList: boolean,
     profile: PlayerProfile | null,
     source: AccountSource,
+    updatedAt: Date | null,
   ) => void;
-  onImportLevels: (levels: Record<string, number>) => void;
+  onImportLevels: (
+    levels: Record<string, number>,
+    updatedAt: Date | null,
+  ) => void;
   onImportFile: (file: File) => Promise<void>;
   /** The name, on close. Typing it counts -- it's who this browser tracks. */
   onRsnCommit: (rsn: string) => void;
+  /**
+   * The by-hand pane was edited and Manual is now how this browser loads.
+   *
+   * Its own callback because the form has no Import to hang it on -- see
+   * close().
+   */
+  onManualLanded: () => void;
 
   profile: PlayerProfile;
   profileIsEmpty: boolean;
@@ -83,6 +94,7 @@ export function LoadDialog({
   onImportLevels,
   onImportFile,
   onRsnCommit,
+  onManualLanded,
   profile,
   profileIsEmpty,
   onSetLevel,
@@ -91,6 +103,10 @@ export function LoadDialog({
 }: LoadDialogProps) {
   const [active, setActive] = useState<LoadSourceId>(DEFAULT_LOAD_SOURCE);
   const [rsn, setRsn] = useState("");
+  // Whether the form was actually typed into this opening. Remembering Manual
+  // only asks that a profile exists, because it is a guess at where you'll go
+  // next; calling it a sync needs something to have been entered.
+  const edited = useRef(false);
 
   // Chosen on open rather than held between openings: the remembered source is
   // a fact about the last import, and reading it fresh each time means another
@@ -100,6 +116,7 @@ export function LoadDialog({
     if (!open) return;
     setActive(initialSource ?? readLastSource());
     setRsn(lastRsn ?? "");
+    edited.current = false;
   }, [open, initialSource, lastRsn]);
 
   /**
@@ -118,8 +135,12 @@ export function LoadDialog({
     // landing. Only when nothing else is remembered, though: somebody who syncs
     // from RuneProfile and nudges one level by hand still syncs from RuneProfile.
     if (active === "manual" && !profileIsEmpty) {
-      const stored = readStoredSource();
-      if (stored === null || stored === "file") writeLastSource("manual");
+      let stored = readStoredSource();
+      if (stored === null || stored === "file") {
+        writeLastSource("manual");
+        stored = "manual";
+      }
+      if (stored === "manual" && edited.current) onManualLanded();
     }
     onOpenChange(false);
   }
@@ -204,8 +225,15 @@ export function LoadDialog({
                 completed={completed}
                 listCount={listCount}
                 lastRsn={lastRsn}
-                onApply={(ids, name, clear, imported) =>
-                  onImportApply(ids, name, clear, imported, "runeprofile")
+                onApply={(ids, name, clear, imported, updatedAt) =>
+                  onImportApply(
+                    ids,
+                    name,
+                    clear,
+                    imported,
+                    "runeprofile",
+                    updatedAt,
+                  )
                 }
                 onFinished={finish}
               />
@@ -225,8 +253,14 @@ export function LoadDialog({
               <ManualPanel
                 profile={profile}
                 isEmpty={profileIsEmpty}
-                onSetLevel={onSetLevel}
-                onSetQuest={onSetQuest}
+                onSetLevel={(skill, level) => {
+                  edited.current = true;
+                  onSetLevel(skill, level);
+                }}
+                onSetQuest={(quest, finished) => {
+                  edited.current = true;
+                  onSetQuest(quest, finished);
+                }}
                 onClear={onClearProfile}
               />
             )}

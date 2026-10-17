@@ -56,6 +56,7 @@ import { quickLoadFor } from "@/lib/quick-load";
 import { useQuickLoad } from "@/lib/use-quick-load";
 import { useProgress } from "@/lib/use-progress";
 import { useShareCode } from "@/lib/use-share-code";
+import { useSyncStatus } from "@/lib/use-sync-status";
 import { useTaskList } from "@/lib/use-tasklist";
 import { useTaskQuery } from "@/lib/use-task-query";
 import { useUiPrefs } from "@/lib/use-ui-prefs";
@@ -106,6 +107,11 @@ export default function App() {
   // on unless an account is already keeping the answers.
   const prefs = useUiPrefs(progressSource);
   const shareCode = useShareCode();
+  // Written from every door below that lands progress, and left alone by
+  // Reset: Reset clears what you've done, not how it gets here -- the
+  // remembered source and name survive it too, so the header's Load still
+  // knows where to go, and the date of the last pull is still true.
+  const { record: recordSync } = useSyncStatus();
   const filter = useMonsterFilter(query, setQuery, clear);
   // Same reason as `setProfile` above: the stable half of a hook result, pulled
   // out so the callback below doesn't depend on an object rebuilt every render.
@@ -201,6 +207,7 @@ export default function App() {
     undoProfile: profile.undo,
     onNotice: setNotice,
     goToProfile,
+    onSynced: recordSync,
   });
 
   const { sync } = quickLoad;
@@ -216,23 +223,50 @@ export default function App() {
    * reaches the notice line, because that message describes three stores at once
    * and is worth reading after the dialog has gone.
    */
-  const handleImportFile = useCallback(async (file: File) => {
-    const result = importBackup(await file.text());
-    setNotice({
-      tone: "ok",
-      message:
-        `Imported ${result.imported} completed tasks` +
-        (result.listImported > 0
-          ? ` and ${result.listImported} on your list.`
-          : ".") +
-        (result.profileImported
-          ? " Your levels and quests came with it."
-          : "") +
-        (result.dropped + result.listDropped > 0
-          ? ` Ignored ${result.dropped + result.listDropped} unrecognised entries.`
-          : ""),
-    });
-  }, []);
+  const handleImportFile = useCallback(
+    async (file: File) => {
+      const result = importBackup(await file.text());
+      // No date of its own worth claiming: the file says when it was exported,
+      // not when any of it was last true in the game.
+      recordSync("file", null);
+      setNotice({
+        tone: "ok",
+        message:
+          `Imported ${result.imported} completed tasks` +
+          (result.listImported > 0
+            ? ` and ${result.listImported} on your list.`
+            : ".") +
+          (result.profileImported
+            ? " Your levels and quests came with it."
+            : "") +
+          (result.dropped + result.listDropped > 0
+            ? ` Ignored ${result.dropped + result.listDropped} unrecognised entries.`
+            : ""),
+      });
+    },
+    [recordSync],
+  );
+
+  const importLevels = profile.importLevels;
+  const applyLevels = useCallback(
+    (levels: Record<string, number>, updatedAt: Date | null) => {
+      importLevels(levels);
+      recordSync("wiseoldman", updatedAt);
+    },
+    [importLevels, recordSync],
+  );
+
+  // The form edited from the header's Load counts as a sync only for somebody
+  // whose way in is Manual. The requirement filter opens the same form, and
+  // nudging a level there while RuneProfile keeps the rest doesn't change how
+  // you sync.
+  const onManualDialogLanded = useCallback(() => {
+    if (readStoredSource() === "manual") recordSync("manual", null);
+  }, [recordSync]);
+  const onLoadManualLanded = useCallback(
+    () => recordSync("manual", null),
+    [recordSync],
+  );
 
   // The summary deliberately ignores the query: it reports progress against the
   // whole game, not against whatever happens to be filtered in right now.
@@ -323,6 +357,7 @@ export default function App() {
       clearList: boolean,
       imported: PlayerProfile | null,
       source: AccountSource,
+      updatedAt: Date | null,
     ) => {
       setMany(ids, source);
       if (clearList) taskList.clear();
@@ -330,8 +365,9 @@ export default function App() {
       // must not wipe a profile the player typed in by hand.
       if (imported) setProfile(imported, source);
       rememberRsn(rsn);
+      recordSync(source, updatedAt);
     },
-    [setMany, taskList, setProfile, rememberRsn],
+    [setMany, taskList, setProfile, rememberRsn, recordSync],
   );
 
   const acceptShareCode = useCallback(
@@ -558,9 +594,10 @@ export default function App() {
         listCount={taskList.list.length}
         lastRsn={prefs.lastRsn}
         onImportApply={applyImport}
-        onImportLevels={profile.importLevels}
+        onImportLevels={applyLevels}
         onImportFile={handleImportFile}
         onRsnCommit={rememberRsn}
+        onManualLanded={onLoadManualLanded}
         profile={profile.profile}
         profileIsEmpty={profile.isEmpty}
         onSetLevel={profile.setLevel}
@@ -590,6 +627,7 @@ export default function App() {
         onSetLevel={profile.setLevel}
         onSetQuest={profile.setQuest}
         onClearProfile={profile.clear}
+        onManualLanded={onManualDialogLanded}
       />
 
       <WelcomeDialog

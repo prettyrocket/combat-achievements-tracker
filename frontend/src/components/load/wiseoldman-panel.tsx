@@ -28,8 +28,11 @@ export interface WiseOldManPanelProps {
   rsn: string;
   /** The account already stored, so the footer can say whose levels go. */
   lastRsn: string | null;
-  /** Replaces every level, leaving quests alone -- this source has none. */
-  onApply: (levels: Record<string, number>) => void;
+  /**
+   * Replaces every level, leaving quests alone -- this source has none.
+   * `updatedAt` is when WOM last refreshed the player, for the sync record.
+   */
+  onApply: (levels: Record<string, number>, updatedAt: Date | null) => void;
   onFinished: (remember: boolean) => void;
 }
 
@@ -118,7 +121,7 @@ export function WiseOldManPanel({
         variant={found === null ? "default" : "success"}
         onApply={() => {
           if (!found) return;
-          onApply(found.levels);
+          onApply(found.levels, found.updatedAt);
           onFinished(true);
         }}
       />
