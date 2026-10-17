@@ -9,6 +9,7 @@ import {
   SORT_KEYS,
   TIERS,
   TASK_TYPES,
+  TYPE_LABEL,
   GROUP_KEYS,
   type GroupKey,
   type RequirementFilter,
@@ -30,8 +31,12 @@ export const DEFAULT_SORT: SortKey = "comp_desc";
 const TIER_ORDER = new Map<Tier, number>(
   TIERS.map((tier, index) => [tier, index]),
 );
+// Alphabetical by the label you read, not the game's own order: types have no
+// ladder the way tiers do, so "A to Z" is the only order a player can predict.
 const TYPE_ORDER = new Map<TaskType, number>(
-  TASK_TYPES.map((type, index) => [type, index]),
+  [...TASK_TYPES]
+    .sort((a, b) => TYPE_LABEL[a].localeCompare(TYPE_LABEL[b]))
+    .map((type, index) => [type, index]),
 );
 
 // --- filtering --------------------------------------------------------------

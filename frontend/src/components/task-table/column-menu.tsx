@@ -42,8 +42,8 @@ export function isSortableColumn(id: string): id is SortableColumn {
 const SORT_LABEL: Record<SortKey, string> = {
   monster_asc: "A to Z",
   monster_desc: "Z to A",
-  type_asc: "Kill Count first",
-  type_desc: "Stamina first",
+  type_asc: "A to Z",
+  type_desc: "Z to A",
   tier_asc: "Easy first",
   tier_desc: "Grandmaster first",
   points_desc: "Most points first",

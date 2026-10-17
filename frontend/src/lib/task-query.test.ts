@@ -393,21 +393,22 @@ describe("sortTasks", () => {
     ]);
   });
 
-  it("sorts by type in the tier-like order the chips use", () => {
+  // Restriction comes before Mechanical in the game's order; A to Z it doesn't.
+  it("sorts by type alphabetically by label", () => {
     const tasks = [
-      task({ type: "SPEED" }),
-      task({ type: "KILL_COUNT" }),
-      task({ type: "PERFECTION" }),
+      task({ type: "RESTRICTION" }),
+      task({ type: "STAMINA" }),
+      task({ type: "MECHANICAL" }),
     ];
     expect(sortTasks(tasks, "type_asc").map((t) => t.type)).toEqual([
-      "KILL_COUNT",
-      "PERFECTION",
-      "SPEED",
+      "MECHANICAL",
+      "RESTRICTION",
+      "STAMINA",
     ]);
     expect(sortTasks(tasks, "type_desc").map((t) => t.type)).toEqual([
-      "SPEED",
-      "PERFECTION",
-      "KILL_COUNT",
+      "STAMINA",
+      "RESTRICTION",
+      "MECHANICAL",
     ]);
   });
 
