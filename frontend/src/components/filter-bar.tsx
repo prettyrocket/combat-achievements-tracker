@@ -1,4 +1,4 @@
-// Search, facet pickers, monster picker and completion toggle.
+// Search, facet pickers, monster picker and the menu of hide options.
 //
 // Every control writes through to the same TaskQuery, which is serialised to the
 // URL -- so there is no local state here to drift out of sync with the address
@@ -7,13 +7,12 @@
 // Sort left this bar: the column headers own it now, which is where you were
 // already pointing when you decided to re-sort.
 
-import { Lock, Search, X } from "lucide-react";
+import { Ellipsis, Search, X } from "lucide-react";
 import { isEmptyQuery } from "@/lib/task-query";
 import {
   TIERS,
   TASK_TYPES,
   TYPE_LABEL,
-  type RequirementFilter,
   type TaskQuery,
   type TaskType,
   type Tier,
@@ -22,6 +21,12 @@ import { FacetPicker } from "@/components/facet-picker";
 import { MonsterPicker } from "@/components/monster-picker";
 import { TierBadge } from "@/components/tier-badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 
 /** Adds or removes one value from a facet, returning undefined when it empties. */
@@ -30,71 +35,6 @@ function toggleFacet<T>(current: T[] | undefined, value: T): T[] | undefined {
     ? current.filter((v) => v !== value)
     : [...(current ?? []), value];
   return next.length ? next : undefined;
-}
-
-/**
- * The completion filter's three states, in the order you actually want them:
- * all -> only what's left to do -> only what's done.
- */
-const COMPLETED_STATES = [
-  { value: undefined, label: "All tasks" },
-  { value: false, label: "Not completed" },
-  { value: true, label: "Completed only" },
-] as const;
-
-function nextCompleted(current: boolean | undefined) {
-  const at = COMPLETED_STATES.findIndex((state) => state.value === current);
-  return COMPLETED_STATES[(at + 1) % COMPLETED_STATES.length].value;
-}
-
-/**
- * The requirement filter's three states. Same cycle-in-place shape as the
- * completion toggle above, and for the same reason: three states is one control
- * that says where it is, not a list to open.
- *
- * "Can't face yet" is not dead weight opposite "Can face" -- it is the training
- * plan. Sorted by Comp% it answers "what is one level away from being worth
- * training for".
- */
-const REQUIREMENT_STATES = [
-  { value: undefined, label: "Any monster" },
-  { value: "met", label: "Can face" },
-  { value: "unmet", label: "Can't face yet" },
-] as const satisfies readonly {
-  value: RequirementFilter | undefined;
-  label: string;
-}[];
-
-function nextRequirement(current: RequirementFilter | undefined) {
-  const at = REQUIREMENT_STATES.findIndex((state) => state.value === current);
-  return REQUIREMENT_STATES[(at + 1) % REQUIREMENT_STATES.length].value;
-}
-
-/**
- * All labels stacked in one grid cell, with the inactive ones hidden.
- * The button is then always as wide as its longest state and never resizes
- * under the cursor -- and it stays that way if the wording changes, which a
- * hard-coded width would not.
- */
-function CycleLabel<T>({
-  states,
-  current,
-}: {
-  states: readonly { readonly value: T; readonly label: string }[];
-  current: T;
-}) {
-  return (
-    <span className="grid">
-      {states.map((state) => (
-        <span
-          key={state.label}
-          className={`col-start-1 row-start-1 ${state.value === current ? "" : "invisible"}`}
-        >
-          {state.label}
-        </span>
-      ))}
-    </span>
-  );
 }
 
 export interface FilterBarProps {
@@ -126,6 +66,8 @@ export function FilterBar({
   const patch = (partial: Partial<TaskQuery>) =>
     onChange({ ...query, ...partial });
   const selected = query.monster ?? [];
+  const hidingCompleted = query.completed === false;
+  const hidingUnmet = !profileIsEmpty && query.reqs === "met";
 
   return (
     <section aria-label="Filters" className="mt-4 space-y-2.5">
@@ -179,48 +121,49 @@ export function FilterBar({
           className="h-9"
         />
 
-        {/* Not a picker -- one control cycling three states, so it says its
-            current state rather than opening a list. Filled when it is doing
-            something, outlined when it is letting everything through. */}
-        <Button
-          variant={query.completed === undefined ? "outline" : "default"}
-          size="sm"
-          className="h-9"
-          aria-pressed={query.completed !== undefined}
-          onClick={() => patch({ completed: nextCompleted(query.completed) })}
-        >
-          <CycleLabel states={COMPLETED_STATES} current={query.completed} />
-        </Button>
-
-        {/* Same control, one question later: not "have I done it" but "could I".
-            With nothing to check against it opens the levels dialog instead of
-            cycling -- a disabled button here would be a filter that looks broken
-            rather than one that needs a number first. */}
-        <Button
-          variant={
-            query.reqs === undefined || profileIsEmpty ? "outline" : "default"
-          }
-          size="sm"
-          className="h-9"
-          aria-pressed={!profileIsEmpty && query.reqs !== undefined}
-          title={
-            profileIsEmpty
-              ? "Enter your levels and quests to filter by what you can face"
-              : "Filter by whether you meet the requirements to fight the monster"
-          }
-          onClick={() =>
-            profileIsEmpty
-              ? onEditProfile()
-              : patch({ reqs: nextRequirement(query.reqs) })
-          }
-        >
-          <Lock className="size-3.5 opacity-60" aria-hidden />
-          {profileIsEmpty ? (
-            "Requirements"
-          ) : (
-            <CycleLabel states={REQUIREMENT_STATES} current={query.reqs} />
-          )}
-        </Button>
+        {/* Two yes/no questions rather than two three-state cycles: hiding
+            is the only direction anyone reached for. Filled while either is on,
+            so a narrowed table never looks like the whole catalog. Each pick
+            keeps the menu open, since you often want both. */}
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant={hidingCompleted || hidingUnmet ? "default" : "outline"}
+              size="sm"
+              className="h-9"
+              aria-label="More filters"
+            >
+              <Ellipsis className="size-4" aria-hidden />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuCheckboxItem
+              checked={hidingCompleted}
+              onSelect={(event) => event.preventDefault()}
+              onCheckedChange={(on) =>
+                patch({ completed: on ? false : undefined })
+              }
+            >
+              Hide completed tasks
+            </DropdownMenuCheckboxItem>
+            {/* With nothing to check against it opens the levels dialog
+                instead -- a disabled item would be a filter that looks broken
+                rather than one that needs a number first. */}
+            <DropdownMenuCheckboxItem
+              checked={hidingUnmet}
+              onSelect={(event) => {
+                if (!profileIsEmpty) event.preventDefault();
+              }}
+              onCheckedChange={(on) =>
+                profileIsEmpty
+                  ? onEditProfile()
+                  : patch({ reqs: on ? "met" : undefined })
+              }
+            >
+              Hide monsters you can't face yet
+            </DropdownMenuCheckboxItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Trails the controls rather than being pushed to the far edge --
             stranded against the right margin it read as a separate widget. The
