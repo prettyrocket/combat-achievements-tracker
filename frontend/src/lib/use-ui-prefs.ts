@@ -18,7 +18,7 @@ import { fromAnAccount, type ProgressSource } from "@/lib/progress-store";
 const PANEL_KEY = "ca-tracker:tasklist-open:v1";
 const MANUAL_TRACKING_KEY = "ca-tracker:manual-tracking:v1";
 const LIST_POSITION_KEY = "ca-tracker:list-position:v1";
-// The account the last WikiSync import came from, so a later import can tell
+// The account the last import came from, so a later import can tell
 // whether the planned list beside it was built for this account or another.
 const RSN_KEY = "ca-tracker:last-rsn:v1";
 

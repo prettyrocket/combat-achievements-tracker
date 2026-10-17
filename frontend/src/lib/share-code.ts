@@ -13,7 +13,7 @@
 // A positional format has to agree on what sits at each position, so this file
 // owns two append-only orderings -- SKILL_WIRE_ORDER and QUEST_WIRE_ORDER -- and
 // anything not on them cannot be encoded at all. That matters in practice:
-// WikiSync reports every quest an account has finished, and only nineteen of
+// an import reports every quest an account has finished, and only nineteen of
 // them gate anything here, so a real profile loses the rest on the way into a
 // link. The loss is silent by the time a code is decoded -- the bytes were never
 // written -- so it has to be reported at encode time instead, which is what

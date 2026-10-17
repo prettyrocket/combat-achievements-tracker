@@ -1,9 +1,6 @@
 // Combat Achievements, levels and quests from RuneProfile.
 //
-// The second door to the same three facts a WikiSync paste carries, for people
-// who happen to run RuneProfile's plugin instead. It is not a better door --
-// WikiSync has ~335k Plugin Hub installs to RuneProfile's ~92k -- but for
-// someone already on the far side of it there is no paste at all: type a name
+// For anyone running RuneProfile's plugin there is no paste at all: type a name
 // and the app fetches the lot itself. RuneProfile is the only service anywhere
 // that publishes per-task CA completion to third parties over CORS.
 //
@@ -13,7 +10,7 @@
 // no mapping table here and there should never need to be one.
 
 import { sanitizeIds } from "@/lib/progress-store";
-import { displayRsn } from "@/lib/wikisync";
+import { displayRsn } from "@/lib/rsn";
 import type { PlayerProfile } from "@/lib/requirements";
 
 const API_BASE = "https://api.runeprofile.com/v1/accounts/";
@@ -45,8 +42,8 @@ export class RuneProfileError extends Error {
 /**
  * What one lookup found.
  *
- * The first three fields are deliberately the shape `diffAgainst` in wikisync.ts
- * already takes -- an import is an import, and the diff has never cared where
+ * The first fields are deliberately the shape `diffAgainst` in import-diff.ts
+ * takes -- an import is an import, and the diff has never cared where
  * the ids came from. Everything below them is this door's own business.
  */
 export interface RuneProfileImport {
@@ -198,7 +195,7 @@ export function parseFull(body: unknown): {
       typeof full.accountType?.key === "string" ? full.accountType.key : null,
     updatedAt: parseDate(full.updatedAt),
     // Neither half means this profile can't answer a requirement question --
-    // the same rule the WikiSync reader uses, so a lookup that carried nothing
+    // so a lookup that carried nothing
     // useful never overwrites levels somebody typed by hand.
     profile:
       Object.keys(levels).length === 0 && quests.length === 0

@@ -3,21 +3,17 @@
 // The only thing about your own account this app fetches for itself, and it
 // took a detour to get here. The official hiscores carry every level and would
 // have done fine, but they answer with no Access-Control-Allow-Origin header,
-// so a browser on our own origin cannot read them -- the same wall WikiSync
-// puts up, for an entirely different reason. Wise Old Man already scrapes and
+// so a browser on our own origin cannot read them. Wise Old Man already scrapes and
 // caches those hiscores, publishes the result for third parties on purpose, and
 // answers `access-control-allow-origin: *`. That turns a backend into a fetch().
 //
 // Levels only, and that is the whole point of keeping it separate from the
-// WikiSync path: no quests live here, and no Combat Achievements live on the
+// RuneProfile path: no quests live here, and no Combat Achievements live on the
 // hiscores at all -- 91 tracked activities, and Collections Logged made the cut
 // while CAs did not. This fills in one half of the profile and never goes near
 // your progress.
 
-// displayRsn belongs to the WikiSync module by history rather than by right:
-// it is a plain RuneScape-name tidy-up ("Lynx_Titan" and " lynx  titan " are
-// one player), and both flows ask the same name of the same person.
-import { displayRsn } from "@/lib/wikisync";
+import { displayRsn } from "@/lib/rsn";
 
 const API_BASE = "https://api.wiseoldman.net/v2/players/";
 
@@ -47,11 +43,11 @@ export class WomLookupError extends Error {
 
 /**
  * WOM's metric keys are the OSRS skills in lower case, with one disagreement:
- * it says `runecrafting` where the game, the hiscores and WikiSync all say
+ * it says `runecrafting` where the game, the hiscores and RuneProfile all say
  * Runecraft.
  *
  * That matters more than one word should. These levels land in the same
- * `levels` record a WikiSync paste writes into, so two spellings of one skill
+ * `levels` record a RuneProfile lookup writes into, so two spellings of one skill
  * would sit there as two skills, and only the one the gate table happens to
  * name would ever be read.
  */

@@ -24,16 +24,17 @@ export interface StoredProfile {
   savedAt: string;
   levels: Record<string, number>;
   quests: string[];
-  /** Where it came from, so the editor can say "imported from WikiSync". */
+  /** Where it came from, so the editor can say "imported from RuneProfile". */
   source: ProfileSource;
 }
 
 /**
- * Hand-typed, read out of a WikiSync paste, or fetched from Wise Old Man or
- * RuneProfile.
+ * Hand-typed, or fetched from Wise Old Man or RuneProfile. "wikisync" stays
+ * readable for profiles written before WikiSync was retired (see
+ * load-source.ts).
  *
- * They are not equal in what they know: a paste and a RuneProfile lookup both
- * speak for the whole account, a Wise Old Man lookup only ever knows levels.
+ * They are not equal in what they know: a RuneProfile lookup speaks for the
+ * whole account, a Wise Old Man lookup only ever knows levels.
  */
 export type ProfileSource =
   "manual" | "wikisync" | "wiseoldman" | "runeprofile";
@@ -150,8 +151,8 @@ export function setProfile(
 /**
  * Every level at once, from a lookup, keeping the quests already stored.
  *
- * The asymmetry with setProfile is the whole reason this exists. A WikiSync
- * paste speaks for the account and replaces both halves; a hiscores lookup has
+ * The asymmetry with setProfile is the whole reason this exists. A RuneProfile
+ * lookup speaks for the account and replaces both halves; a hiscores lookup has
  * never heard of a quest, so wiping the checklist someone ticked by hand would
  * be destroying the only copy of something to make room for nothing. Levels
  * themselves *are* replaced -- asking for a lookup is asking for the account's

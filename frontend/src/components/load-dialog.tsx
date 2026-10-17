@@ -8,10 +8,10 @@
 //
 // So: one dialog, a rail of sources, and each source's own instructions beside
 // it. The rail carries a "carries" line under every name because that is the
-// real question -- four of the five look interchangeable until you notice only
-// three bring achievements and only one brings your plan.
+// real question -- three of the four look interchangeable until you notice only
+// two bring achievements and only one brings your plan.
 //
-// The panes are deliberately not uniform. Four fetch or read and end in an
+// The panes are deliberately not uniform. Three fetch or read and end in an
 // Import button; By hand writes as you type and ends in Done. Forcing those into
 // one shape would mean either a preview step for typing a number, or a silent
 // write for an import, and both are worse than the seam.
@@ -27,7 +27,6 @@ import {
   type LoadSourceId,
 } from "@/lib/load-source";
 import type { PlayerProfile } from "@/lib/requirements";
-import { WikiSyncPanel } from "@/components/load/wikisync-panel";
 import { RuneProfilePanel } from "@/components/load/runeprofile-panel";
 import { WiseOldManPanel } from "@/components/load/wiseoldman-panel";
 import { FilePanel } from "@/components/load/file-panel";
@@ -52,7 +51,7 @@ export interface LoadDialogProps {
   completed: ReadonlySet<number>;
   listCount: number;
   lastRsn: string | null;
-  /** Only the two panes that carry achievements call this -- see AccountSource. */
+  /** Only the pane that carries achievements calls this -- see AccountSource. */
   onImportApply: (
     ids: number[],
     rsn: string,
@@ -154,7 +153,7 @@ export function LoadDialog({
         <NameRow rsn={rsn} onChange={setRsn} />
 
         <div className="flex min-h-0 flex-1 gap-5">
-          {/* A listbox rather than tabs: five entries with a second line each is
+          {/* A listbox rather than tabs: four entries with a second line each is
               a column, not a row, and it leaves room to say what they carry. */}
           <nav
             aria-label="Import source"
@@ -188,25 +187,9 @@ export function LoadDialog({
           </nav>
 
           {/* min-w-0 is load-bearing. A flex item defaults to min-width:auto,
-              so this column refuses to shrink below its widest unbreakable
-              child -- and the WikiSync pane has one: the sync URL, a single
-              token with no break opportunity. Without this the column grows
-              past the dialog and takes the textarea and footer out with it,
-              while the `truncate` on the URL never gets to do anything because
-              nothing ever asked it to be narrower. */}
+              so without it this column refuses to shrink below its widest
+              unbreakable child and grows past the dialog. */}
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-            {active === "wikisync" && (
-              <WikiSyncPanel
-                rsn={rsn}
-                completed={completed}
-                listCount={listCount}
-                lastRsn={lastRsn}
-                onApply={(ids, name, clear, imported) =>
-                  onImportApply(ids, name, clear, imported, "wikisync")
-                }
-                onFinished={finish}
-              />
-            )}
             {active === "runeprofile" && (
               <RuneProfilePanel
                 rsn={rsn}

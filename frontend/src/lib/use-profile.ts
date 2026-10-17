@@ -1,7 +1,7 @@
 // React binding for profile-store.ts.
 //
 // Same reasoning as use-progress: the store is the system of record and can
-// change from outside React -- another tab writing, a WikiSync import -- so
+// change from outside React -- another tab writing, an import -- so
 // useSyncExternalStore rather than useState and an effect.
 
 import { useCallback, useEffect, useSyncExternalStore } from "react";

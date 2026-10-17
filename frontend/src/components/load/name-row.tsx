@@ -13,8 +13,7 @@
 // than as a fact.
 //
 // So: no action here, ever. The panes that fetch own their own button, because
-// fetching is what those panes do and it differs between them -- WikiSync
-// builds a URL for you to open yourself and has nothing to press at all.
+// fetching is what those panes do and it differs between them.
 
 import { Input } from "@/components/ui/input";
 

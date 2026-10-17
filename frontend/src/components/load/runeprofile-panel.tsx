@@ -1,8 +1,6 @@
 // The RuneProfile lookup pane.
 //
-// The same three facts the paste carries, fetched instead of copied. What it
-// buys over WikiSync is only the paste itself, and it costs a plugin far fewer
-// people have, which is why it sits second in the rail rather than first.
+// Achievements, levels and quests, fetched by name: no paste, no file.
 //
 // The failure that gets the most room is the one that isn't a failure on the
 // wire: a profile predating RuneProfile's per-task storage answers 200 with

@@ -1,7 +1,7 @@
 // The half of an import that is the same whatever door it came through.
 //
-// WikiSync and RuneProfile fetch differently and fail differently, but once
-// they have a list of ids the rest is identical: diff it against what's ticked,
+// Every import that carries achievements fetches and fails its own way, but once
+// it has a list of ids the rest is identical: diff it against what's ticked,
 // make a removal take two clicks, offer to drop a plan built for another
 // account, and word the button accordingly. That was duplicated across two
 // dialogs before this existed; now it is written down once and the panels only
@@ -13,12 +13,8 @@
 // for something it could have told you how to solve.
 
 import { useCallback, useState, type ReactNode } from "react";
-import {
-  diffAgainst,
-  diffIsNoop,
-  sameAccount,
-  type WikiSyncDiff,
-} from "@/lib/wikisync";
+import { diffAgainst, diffIsNoop, type ImportDiff } from "@/lib/import-diff";
+import { sameAccount } from "@/lib/rsn";
 import type { PlayerProfile } from "@/lib/requirements";
 
 /** The three things every import produces, whatever fetched them. */
@@ -50,7 +46,7 @@ function word(value: number) {
 }
 
 export interface ImportFlow {
-  diff: WikiSyncDiff | null;
+  diff: ImportDiff | null;
   clearList: boolean;
   setClearList: (next: boolean) => void;
   /** Whether the plan on screen was built while syncing somebody else. */
@@ -84,7 +80,7 @@ export function useImportFlow({
   onApply,
   onApplied,
 }: ImportFlowOptions): ImportFlow {
-  const [diff, setDiff] = useState<WikiSyncDiff | null>(null);
+  const [diff, setDiff] = useState<ImportDiff | null>(null);
   const [clearList, setClearList] = useState(false);
   const [confirming, setConfirming] = useState(false);
 

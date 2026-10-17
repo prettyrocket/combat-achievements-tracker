@@ -13,7 +13,6 @@ import {
   type LoadSourceMeta,
 } from "@/lib/load-source";
 import runeProfileLogo from "@/assets/logos/runeprofile.png";
-import wikiSyncLogo from "@/assets/logos/wikisync.png";
 import wiseOldManLogo from "@/assets/logos/wiseoldman.svg";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,17 +32,15 @@ function Logo({ src }: { src: string }) {
 // cards still line up as five of a kind.
 const LOGO: Record<LoadSourceId, ReactNode> = {
   manual: <PenLine className="size-8" aria-hidden />,
-  wikisync: <Logo src={wikiSyncLogo} />,
   runeprofile: <Logo src={runeProfileLogo} />,
   wiseoldman: <Logo src={wiseOldManLogo} />,
   file: <FileUp className="size-8" aria-hidden />,
 };
 
-// Not the rail's order: the two that bring achievements lead, then levels,
+// Not the rail's order: the one that brings achievements leads, then levels,
 // then the two that need nothing fetched.
 const ORDER: readonly LoadSourceId[] = [
   "runeprofile",
-  "wikisync",
   "wiseoldman",
   "manual",
   "file",
@@ -64,7 +61,7 @@ export function WelcomeDialog({ open, onPick, onSkip }: WelcomeDialogProps) {
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onSkip()}>
       <DialogContent
-        className="gap-6 sm:max-w-3xl"
+        className="gap-6 sm:max-w-2xl"
         // Focus the dialog rather than its first card, which would otherwise
         // open wearing a focus ring and read as Manual already chosen.
         onOpenAutoFocus={(event) => {
@@ -81,12 +78,9 @@ export function WelcomeDialog({ open, onPick, onSkip }: WelcomeDialogProps) {
           </DialogDescription>
         </DialogHeader>
 
-        {/* Three over two at sm and up, the two centred under the three: six
-            columns with every card spanning two, and the fourth nudged one
-            column in. */}
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-6 sm:[&>li:nth-child(4)]:col-start-2">
+        <ul className="grid grid-cols-2 gap-3">
           {CARDS.map((source) => (
-            <li key={source.id} className="sm:col-span-2">
+            <li key={source.id}>
               <button
                 type="button"
                 onClick={() => onPick(source.id)}

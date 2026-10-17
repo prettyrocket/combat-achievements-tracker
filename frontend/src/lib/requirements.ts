@@ -33,7 +33,7 @@
 //
 // Quests are named exactly as the game names them, which is also their wiki page
 // title -- checked against `bucket('quest')`. That matters more than it looks:
-// these strings are joined against the `quests` map in a WikiSync paste, and a
+// these strings are joined against the quests an import reports, and a
 // near-miss ("Desert Treasure II") would read as "not done" forever rather than
 // as an error.
 
@@ -171,7 +171,7 @@ const GATES: Readonly<Record<string, MonsterGate>> = {
 /**
  * Shorter names for the quest chips and tooltips, where the full in-game title
  * is unwieldy. Only where it earns it -- the full name is what the profile
- * stores and what WikiSync is joined on, so this is display only.
+ * stores and what imports are joined on, so this is display only.
  */
 const QUEST_LABEL: Readonly<Record<string, string>> = {
   [DT2]: "Desert Treasure II",
@@ -211,10 +211,10 @@ export function gatedQuests(): string[] {
 // --- the player -------------------------------------------------------------
 
 /**
- * What this browser knows about the account, from a WikiSync paste or typed in
- * by hand.
+ * What this browser knows about the account, from an import or typed in by
+ * hand.
  *
- * `levels` holds every skill WikiSync reported, not just the gated ten: it costs
+ * `levels` holds every skill an import reported, not just the gated ten: it costs
  * nothing to keep, and it means adding a gate on a new skill doesn't invalidate
  * every profile already stored. `quests` is the finished ones only.
  */

@@ -18,7 +18,7 @@ export { getStorageError };
 const STORAGE_KEY = "ca-tracker:progress:v1";
 const SCHEMA_VERSION = 1;
 
-/** Marks an export as ours, so #12's WikiSync paste can't be fed in by mistake. */
+/** Marks an export as ours, so somebody else's JSON can't be fed in by mistake. */
 export const EXPORT_APP = "combat-achievements-tracker";
 
 const KNOWN_IDS: ReadonlySet<number> = new Set(TASKS.map((t) => t.wikiId));
@@ -42,6 +42,8 @@ export interface ProgressExport {
  * write progress -- the hiscores don't carry Combat Achievements -- and it has
  * no room for a share code, which isn't a door in the Load dialog at all.
  */
+// "wikisync" stays readable though WikiSync is no longer a way in (see
+// load-source.ts): progress it wrote before then still names it.
 export type ProgressSource =
   "manual" | "wikisync" | "runeprofile" | "sharecode" | "file";
 
@@ -61,7 +63,7 @@ interface StoredProgress extends ProgressExport {
 /**
  * Whether something other than this browser is the authority on these ticks.
  *
- * A WikiSync paste, a RuneProfile lookup and a share code all speak for an
+ * A RuneProfile lookup, a share code and a past WikiSync paste all speak for an
  * account. A backup file does not: it is this app's own tracking coming home,
  * and most of what's in it was ticked by hand in the first place.
  */
@@ -294,9 +296,7 @@ export function importProgress(text: string): ImportResult {
     throw new Error("That file doesn't look like a progress export.");
   }
   if (data.app !== EXPORT_APP) {
-    throw new Error(
-      "That file was not exported by this app. WikiSync imports are a separate feature.",
-    );
+    throw new Error("That file was not exported by this app.");
   }
   if (!Array.isArray(data.completed)) {
     throw new Error("That export is missing its `completed` list.");

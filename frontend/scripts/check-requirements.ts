@@ -200,7 +200,7 @@ async function main(): Promise<void> {
     } else {
       problems.push(
         `"${quest}" is not a quest the wiki knows about.\n    The name has to match the game's ` +
-          `exactly -- it's what a WikiSync paste is joined on, and a near miss reads as ` +
+          `exactly -- it's what an import is joined on, and a near miss reads as ` +
           `"not done" forever.`,
       );
     }

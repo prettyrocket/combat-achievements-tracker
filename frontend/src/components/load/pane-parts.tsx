@@ -13,7 +13,7 @@
 
 import type { ReactNode } from "react";
 import { Loader2, Search } from "lucide-react";
-import { sameAccount } from "@/lib/wikisync";
+import { sameAccount } from "@/lib/rsn";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DialogClose } from "@/components/ui/dialog";

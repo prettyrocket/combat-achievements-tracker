@@ -274,9 +274,8 @@ export default function App() {
    * what's done. The planned list is not the account's to overwrite, so it
    * survives unless the import is for a different player and you say so.
    *
-   * Shared by both doors: a WikiSync paste and a RuneProfile lookup carry the
-   * same three facts and differ only in how they were fetched, so the only
-   * thing `source` changes is what the profile editor calls it afterwards.
+   * Shared by every door that carries achievements, so the only thing
+   * `source` changes is what the profile editor calls it afterwards.
    */
   const applyImport = useCallback(
     (
@@ -303,8 +302,8 @@ export default function App() {
       setMany(incoming.completed, "sharecode");
       taskList.replace(incoming.list);
       // Same rule as an imported file (backup.ts): a code without a profile is
-      // not an instruction to clear one. 'manual' rather than 'wikisync'
-      // because from here it is a thing you accepted, and the source only
+      // not an instruction to clear one. 'manual' rather than an import
+      // source because from here it is a thing you accepted, and the source only
       // decides which way of editing wins.
       if (!profileIsEmpty(incoming.profile))
         setProfile(incoming.profile, "manual");
