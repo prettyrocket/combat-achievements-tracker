@@ -9,6 +9,7 @@
 // profile. Both sides derive from the same game cache struct param, so there is
 // no mapping table here and there should never need to be one.
 
+import { parseAccountType, type AccountType } from "@/lib/account-type";
 import { sanitizeIds } from "@/lib/progress-store";
 import { displayRsn } from "@/lib/rsn";
 import type { PlayerProfile } from "@/lib/requirements";
@@ -54,8 +55,7 @@ export interface RuneProfileImport {
   profile: PlayerProfile | null;
   /** RuneProfile's capitalisation of the name, which is the player's own. */
   displayName: string;
-  /** 'regular', 'ironman', 'hardcore', 'ultimate'. */
-  accountType: string | null;
+  accountType: AccountType | null;
   /** When the plugin last uploaded. The player alone can refresh it. */
   updatedAt: Date | null;
 }
@@ -173,7 +173,7 @@ function readTierCompleted(input: unknown): number {
 /** Read `/full` -- everything except the per-task list. */
 export function parseFull(body: unknown): {
   displayName: string;
-  accountType: string | null;
+  accountType: AccountType | null;
   updatedAt: Date | null;
   profile: PlayerProfile | null;
   tierCompleted: number;
@@ -191,8 +191,7 @@ export function parseFull(body: unknown): {
 
   return {
     displayName: typeof full.username === "string" ? full.username : "",
-    accountType:
-      typeof full.accountType?.key === "string" ? full.accountType.key : null,
+    accountType: parseAccountType(full.accountType?.key),
     updatedAt: parseDate(full.updatedAt),
     // Neither half means this profile can't answer a requirement question --
     // so a lookup that carried nothing

@@ -11,6 +11,7 @@
 // the hiscores have never heard of a quest.
 
 import { useEffect, useRef, useState } from "react";
+import { recordAccountType } from "@/lib/account-type";
 import {
   fetchWomLevels,
   WISE_OLD_MAN_URL,
@@ -121,6 +122,7 @@ export function WiseOldManPanel({
         variant={found === null ? "default" : "success"}
         onApply={() => {
           if (!found) return;
+          recordAccountType(found.displayName || rsn, found.accountType);
           onApply(found.levels, found.updatedAt);
           onFinished(true);
         }}

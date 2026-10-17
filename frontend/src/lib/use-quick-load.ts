@@ -7,6 +7,7 @@
 // exactly that afterwards with a way back.
 
 import { useCallback, useState } from "react";
+import { recordAccountType } from "@/lib/account-type";
 import { diffAgainst, diffIsNoop } from "@/lib/import-diff";
 import type { Notice } from "@/lib/notice";
 import {
@@ -86,6 +87,7 @@ export function useQuickLoad(deps: QuickLoadDeps): UseQuickLoad {
     try {
       if (kind === "runeprofile") {
         const found = await fetchRuneProfile(rsn);
+        recordAccountType(rsn, found.accountType);
         const diff = diffAgainst(found, completed);
         const ticksChanged = !diffIsNoop(diff);
         const profileChanged =
@@ -113,6 +115,7 @@ export function useQuickLoad(deps: QuickLoadDeps): UseQuickLoad {
         });
       } else {
         const found = await fetchWomLevels(rsn);
+        recordAccountType(rsn, found.accountType);
         const next = { levels: sanitizeLevels(found.levels), quests: [] };
         const current = { levels: profile.levels, quests: [] };
         onSynced("wiseoldman", found.updatedAt);

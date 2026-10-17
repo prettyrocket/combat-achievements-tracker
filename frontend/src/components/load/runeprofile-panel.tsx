@@ -9,6 +9,7 @@
 // is telling a maxed account it has done nothing.
 
 import { useEffect, useRef, useState } from "react";
+import { recordAccountType } from "@/lib/account-type";
 import {
   fetchRuneProfile,
   RUNEPROFILE_PLUGIN_URL,
@@ -189,7 +190,9 @@ export function RuneProfilePanel({
         disabled={flow.disabled(rsn)}
         variant={flow.variant(rsn)}
         onApply={() => {
-          if (found) flow.apply(found.displayName, found);
+          if (!found) return;
+          recordAccountType(found.displayName, found.accountType);
+          flow.apply(found.displayName, found);
         }}
       />
     </div>

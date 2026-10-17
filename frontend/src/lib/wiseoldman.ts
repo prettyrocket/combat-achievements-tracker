@@ -13,6 +13,7 @@
 // while CAs did not. This fills in one half of the profile and never goes near
 // your progress.
 
+import { parseAccountType, type AccountType } from "@/lib/account-type";
 import { displayRsn } from "@/lib/rsn";
 
 const API_BASE = "https://api.wiseoldman.net/v2/players/";
@@ -78,8 +79,8 @@ export interface WomLookup {
   levels: Record<string, number>;
   /** When WOM last refreshed this player from the hiscores, if it said. */
   updatedAt: Date | null;
-  /** WOM's own word: 'regular', 'ironman', 'hardcore', 'ultimate'. */
-  accountType: string | null;
+  /** Null when WOM hasn't worked it out, which it says as `unknown`. */
+  accountType: AccountType | null;
 }
 
 interface WomSkill {
@@ -150,7 +151,7 @@ export function parseWomPlayer(body: unknown): WomLookup {
     displayName,
     levels,
     updatedAt: parseDate(player.updatedAt),
-    accountType: typeof player.type === "string" ? player.type : null,
+    accountType: parseAccountType(player.type),
   };
 }
 
