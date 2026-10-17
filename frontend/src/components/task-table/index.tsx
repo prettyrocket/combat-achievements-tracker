@@ -56,7 +56,6 @@ import {
 /** Each sortable column's name in words, where its header is an abbreviation. */
 const COLUMN_NAME: Record<keyof typeof COLUMN_SORT, string> = {
   monster: "Monster",
-  name: "Name",
   type: "Type",
   tier: "Tier",
   points: "Points",
@@ -191,7 +190,7 @@ export function TaskTable({
                       onToggleMonster={onToggleMonster}
                     />
                   ) : (
-                    // The checkbox columns and Description: nothing to sort,
+                    // The checkbox columns, Name and Description: nothing to sort,
                     // group or filter by, so the header is just its label.
                     flexRender(
                       header.column.columnDef.header,

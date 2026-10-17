@@ -121,7 +121,6 @@ export function sortDirection(sort: SortKey): SortDirection {
  */
 export const COLUMN_SORT = {
   monster: ["monster_asc", "monster_desc"],
-  name: ["name_asc", "name_desc"],
   type: ["type_asc", "type_desc"],
   tier: ["tier_asc", "tier_desc"],
   points: ["points_desc", "points_asc"],
@@ -163,9 +162,6 @@ function compare(a: TaskRow, b: TaskRow, sort: SortKey): number {
     case "points_asc":
     case "points_desc":
       return (a.points - b.points) * flip;
-    case "name_asc":
-    case "name_desc":
-      return a.name.localeCompare(b.name) * flip;
   }
 }
 
@@ -284,11 +280,10 @@ export function serializeQuery(query: TaskQuery): URLSearchParams {
 /**
  * Sorts as they were named before the headers became the control. Old links
  * still work; they just land on the ascending form, which is what those keys
- * used to do.
+ * used to do. `name` is gone with the name sort and falls back to the default.
  */
 const LEGACY_SORT: Record<string, SortKey> = {
   tier: "tier_asc",
-  name: "name_asc",
   monster: "monster_asc",
 };
 

@@ -290,7 +290,7 @@ describe("filterTasks: requirements", () => {
 describe("sortDirection", () => {
   it("reads the direction off the key", () => {
     expect(sortDirection("comp_desc")).toBe("desc");
-    expect(sortDirection("name_asc")).toBe("asc");
+    expect(sortDirection("tier_asc")).toBe("asc");
   });
 });
 
@@ -376,24 +376,6 @@ describe("sortTasks", () => {
       "MASTER",
       "ELITE",
       "EASY",
-    ]);
-  });
-
-  it("sorts by name in both directions", () => {
-    const tasks = [
-      task({ name: "Zebra" }),
-      task({ name: "apple" }),
-      task({ name: "Mango" }),
-    ];
-    expect(sortTasks(tasks, "name_asc").map((t) => t.name)).toEqual([
-      "apple",
-      "Mango",
-      "Zebra",
-    ]);
-    expect(sortTasks(tasks, "name_desc").map((t) => t.name)).toEqual([
-      "Zebra",
-      "Mango",
-      "apple",
     ]);
   });
 
@@ -501,7 +483,7 @@ describe("serializeQuery / parseQuery", () => {
 
   it("omits the default sort but keeps a non-default one", () => {
     expect(serializeQuery({ sort: DEFAULT_SORT }).toString()).toBe("");
-    expect(serializeQuery({ sort: "name_asc" }).get("sort")).toBe("name_asc");
+    expect(serializeQuery({ sort: "tier_desc" }).get("sort")).toBe("tier_desc");
   });
 
   it("omits empty facet lists and blank searches", () => {
@@ -538,7 +520,7 @@ describe("serializeQuery / parseQuery", () => {
         monster: ["Zulrah", "Vorkath"],
         q: "orb",
         completed: false,
-        sort: "name_asc" as const,
+        sort: "tier_desc" as const,
       },
     ],
   ])("round-trips %s", (_label, query) => {
@@ -554,7 +536,7 @@ describe("serializeQuery / parseQuery", () => {
   // Links shared before the headers took over sorting still have to work.
   it("accepts the old directionless sort names", () => {
     expect(parseQuery(new URLSearchParams("sort=tier")).sort).toBe("tier_asc");
-    expect(parseQuery(new URLSearchParams("sort=name")).sort).toBe("name_asc");
+    expect(parseQuery(new URLSearchParams("sort=name")).sort).toBeUndefined();
     expect(parseQuery(new URLSearchParams("sort=monster")).sort).toBe(
       "monster_asc",
     );
@@ -619,7 +601,7 @@ describe("isEmptyQuery", () => {
     expect(isEmptyQuery({ tier: ["EASY"] })).toBe(false);
     expect(isEmptyQuery({ q: "x" })).toBe(false);
     expect(isEmptyQuery({ completed: false })).toBe(false);
-    expect(isEmptyQuery({ sort: "name_asc" })).toBe(false);
+    expect(isEmptyQuery({ sort: "tier_desc" })).toBe(false);
     expect(isEmptyQuery({ monster: ["Zulrah"] })).toBe(false);
   });
 });
@@ -664,7 +646,7 @@ describe("pivotToMonster", () => {
   });
 
   it("round-trips through the URL", () => {
-    const pivoted = pivotToMonster({ sort: "name_asc" }, "Kree'arra");
+    const pivoted = pivotToMonster({ sort: "tier_desc" }, "Kree'arra");
     expect(parseQuery(serializeQuery(pivoted))).toEqual(pivoted);
   });
 });
@@ -717,12 +699,12 @@ describe("clearMonster", () => {
       monster: ["Zulrah", "Vorkath"],
       tier: ["ELITE"],
       completed: false,
-      sort: "name_asc",
+      sort: "tier_desc",
     };
     expect(clearMonster(query)).toEqual({
       tier: ["ELITE"],
       completed: false,
-      sort: "name_asc",
+      sort: "tier_desc",
     });
   });
 

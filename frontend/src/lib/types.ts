@@ -98,13 +98,14 @@ export interface ProgressSummary {
 // header has to be able to say which way it is pointing, and "Tier" with no
 // direction can't. The two `comp_*` names predate the convention and are kept
 // as they are, because they are already out there in shared URLs.
+//
+// There is no sort by task name: names are puzzles ("Perfect Zulrah", "Why Are
+// You Running?"), and alphabetising them groups nothing a player looks for.
 export const SORT_KEYS = [
   "comp_desc",
   "comp_asc",
   "tier_asc",
   "tier_desc",
-  "name_asc",
-  "name_desc",
   "monster_asc",
   "monster_desc",
   "type_asc",
