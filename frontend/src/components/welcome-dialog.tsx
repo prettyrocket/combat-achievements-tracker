@@ -28,11 +28,11 @@ function Logo({ src }: { src: string }) {
 // The two without a mark of their own get an icon on the same tile, so the five
 // cards still line up as five of a kind.
 const LOGO: Record<LoadSourceId, ReactNode> = {
-  manual: <PenLine className="size-5" aria-hidden />,
+  manual: <PenLine className="size-8" aria-hidden />,
   wikisync: <Logo src={wikiSyncLogo} />,
   runeprofile: <Logo src={runeProfileLogo} />,
   wiseoldman: <Logo src={wiseOldManLogo} />,
-  file: <FileUp className="size-5" aria-hidden />,
+  file: <FileUp className="size-8" aria-hidden />,
 };
 
 export interface WelcomeDialogProps {
@@ -46,7 +46,7 @@ export function WelcomeDialog({ open, onPick, onSkip }: WelcomeDialogProps) {
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onSkip()}>
       <DialogContent
-        className="sm:max-w-xl"
+        className="gap-6 sm:max-w-3xl"
         // Focus the dialog rather than its first card, which would otherwise
         // open wearing a focus ring and read as Manual already chosen.
         onOpenAutoFocus={(event) => {
@@ -54,32 +54,35 @@ export function WelcomeDialog({ open, onPick, onSkip }: WelcomeDialogProps) {
           (event.currentTarget as HTMLElement).focus();
         }}
       >
-        <DialogHeader>
-          <DialogTitle className="text-lg">
+        <DialogHeader className="items-center pt-4 text-center">
+          <DialogTitle className="text-2xl font-semibold tracking-tight">
             Welcome to prettyrocket's Combat Achievements Tracker
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-base">
             Would you like to sync your progress?
           </DialogDescription>
         </DialogHeader>
 
-        <ul className="grid gap-2 sm:grid-cols-2">
+        {/* Three over two at sm and up, the two centred under the three: six
+            columns with every card spanning two, and the fourth nudged one
+            column in. */}
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-6 sm:[&>li:nth-child(4)]:col-start-2">
           {LOAD_SOURCES.map((source) => (
-            <li key={source.id}>
+            <li key={source.id} className="sm:col-span-2">
               <button
                 type="button"
                 onClick={() => onPick(source.id)}
-                className="hover:bg-muted/60 hover:border-foreground/30 focus-visible:ring-ring flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                className="hover:bg-muted/60 hover:border-foreground/30 focus-visible:ring-ring flex h-full w-full flex-col items-center gap-3 rounded-xl border px-4 py-6 text-center transition hover:-translate-y-0.5 hover:shadow-lg focus-visible:ring-2 focus-visible:outline-none"
               >
-                <span className="bg-muted text-muted-foreground flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md">
+                <span className="bg-muted text-muted-foreground flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-md">
                   {LOGO[source.id]}
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-sm font-medium">
+                  <span className="block text-base font-semibold">
                     {source.label}
                   </span>
                   {source.carries && (
-                    <span className="text-muted-foreground block text-xs">
+                    <span className="text-muted-foreground mt-0.5 block text-xs">
                       {source.carries}
                     </span>
                   )}
