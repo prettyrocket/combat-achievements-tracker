@@ -84,9 +84,9 @@ export interface TaskTableProps {
   onAddManyToList: (wikiIds: number[]) => void;
   /** Per-monster requirement verdicts, for the lock marker. */
   gates: ReadonlyMap<string, GateCheck>;
-  /** Current sort, for the header menus. */
-  sort: SortKey;
-  onSortChange: (next: SortKey) => void;
+  /** Current sort, for the header menus; undefined is the wiki's own order. */
+  sort: SortKey | undefined;
+  onSortChange: (next: SortKey | undefined) => void;
   /** The whole query, for the header menus' group and filter options. */
   query: TaskQuery;
   onQueryChange: (next: TaskQuery) => void;

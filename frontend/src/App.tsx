@@ -45,7 +45,7 @@ import {
   moveTripTo,
   resolve,
 } from "@/lib/tasklist";
-import { DEFAULT_SORT, applyQuery } from "@/lib/task-query";
+import { applyQuery } from "@/lib/task-query";
 import { useMonsterFilter } from "@/lib/use-monster-filter";
 import { useProfile } from "@/lib/use-profile";
 import { isSideDocked, type ListPosition } from "@/lib/list-position";
@@ -594,7 +594,7 @@ export default function App() {
                   onToggleListed={taskList.toggle}
                   onAddManyToList={taskList.addMany}
                   gates={gates}
-                  sort={query.sort ?? DEFAULT_SORT}
+                  sort={query.sort}
                   onSortChange={filter.setSort}
                   query={query}
                   onQueryChange={setQuery}

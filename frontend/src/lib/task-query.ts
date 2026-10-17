@@ -26,7 +26,6 @@ import {
 } from "@/lib/requirements";
 
 /** Most-completed first: the "what can I actually go and do" view. */
-export const DEFAULT_SORT: SortKey = "comp";
 
 const TIER_ORDER = new Map<Tier, number>(
   TIERS.map((tier, index) => [tier, index]),
@@ -110,19 +109,34 @@ export function filterTasks(
 
 // --- sorting ----------------------------------------------------------------
 
-/** The sort each column's menu offers, keyed by column id. */
-export const COLUMN_SORT = {
-  monster: "monster",
-  type: "type",
-  tier: "tier",
-  points: "points",
-  completionPct: "comp",
-} as const satisfies Record<string, SortKey>;
+export type SortDirection = "asc" | "desc";
+
+export function sortDirection(sort: SortKey): SortDirection {
+  return sort.endsWith("_asc") ? "asc" : "desc";
+}
 
 /**
- * Nulls sort last. The 9 newest tasks have no completion data yet, and they
- * are not the most common or the least -- they're unknown, and belong after
- * everything that is. Same reasoning for tasks with no monster.
+ * Which sorts a column owns, in the order its Sort row cycles through them
+ * before coming back to no sort at all.
+ *
+ * The first entry is the direction a column starts in, chosen per column rather
+ * than uniformly: sorting Comp% means "show me the common ones", sorting Monster
+ * means A-Z. Starting every column ascending would make the useful click the
+ * second one everywhere.
+ */
+export const COLUMN_SORT = {
+  monster: ["monster_asc", "monster_desc"],
+  type: ["type_asc", "type_desc"],
+  tier: ["tier_asc", "tier_desc"],
+  points: ["points_desc", "points_asc"],
+  completionPct: ["comp_desc", "comp_asc"],
+} as const satisfies Record<string, readonly [SortKey, SortKey]>;
+
+/**
+ * Nulls sort last whichever way the column is pointing. "Unknown" is not
+ * "rarest": the 9 newest tasks have no completion data yet, and letting them win
+ * the ascending sort would park a whole new boss at the top and bury the answer
+ * the sort was asked for. Same reasoning for tasks with no monster.
  */
 function nullsLast<T>(a: T | null, b: T | null): number | null {
   if (a !== null && b !== null) return null;
@@ -131,39 +145,61 @@ function nullsLast<T>(a: T | null, b: T | null): number | null {
 }
 
 function compare(a: TaskRow, b: TaskRow, sort: SortKey): number {
+  const flip = sortDirection(sort) === "desc" ? -1 : 1;
+
   switch (sort) {
-    case "comp": {
+    case "comp_asc":
+    case "comp_desc": {
       const nulls = nullsLast(a.completionPct, b.completionPct);
-      return nulls ?? b.completionPct! - a.completionPct!;
+      return nulls ?? (a.completionPct! - b.completionPct!) * flip;
     }
-    case "monster": {
+    case "monster_asc":
+    case "monster_desc": {
       const nulls = nullsLast(a.monster, b.monster);
-      return nulls ?? a.monster!.localeCompare(b.monster!);
+      return nulls ?? a.monster!.localeCompare(b.monster!) * flip;
     }
-    case "tier":
-      return TIER_ORDER.get(a.tier)! - TIER_ORDER.get(b.tier)!;
-    case "type":
-      return TYPE_ORDER.get(a.type)! - TYPE_ORDER.get(b.type)!;
-    case "points":
-      return b.points - a.points;
+    case "tier_asc":
+    case "tier_desc":
+      return (TIER_ORDER.get(a.tier)! - TIER_ORDER.get(b.tier)!) * flip;
+    case "type_asc":
+    case "type_desc":
+      return (TYPE_ORDER.get(a.type)! - TYPE_ORDER.get(b.type)!) * flip;
+    case "points_asc":
+    case "points_desc":
+      return (a.points - b.points) * flip;
   }
 }
 
+/**
+ * The order groups come in, which is always the column's natural one: groups
+ * are where you look things up, so Vorkath stays where the alphabet put it
+ * whichever way the rows inside are sorted.
+ */
+const GROUP_SORT: Record<GroupKey, SortKey> = {
+  monster: "monster_asc",
+  type: "type_asc",
+  tier: "tier_asc",
+};
+
+/**
+ * No sort is a real state, not a missing one: it is the wiki's own order, which
+ * is id order, and it's what the table opens in. The id comparison that ends
+ * every sort is that order showing through.
+ */
 export function sortTasks(
   tasks: readonly TaskRow[],
-  sort: SortKey = DEFAULT_SORT,
+  sort?: SortKey,
   group?: GroupKey,
 ): TaskRow[] {
-  const key = SORT_KEYS.includes(sort) ? sort : DEFAULT_SORT;
-  // A group column's values are also a sort key of the same name.
-  const first: SortKey | null = group ?? null;
+  const key = sort && SORT_KEYS.includes(sort) ? sort : null;
+  const first = group ? GROUP_SORT[group] : null;
   // Copy, so callers can hand us the bundle without it being reordered under them.
   // The id tiebreak keeps equal rows in a fixed order rather than reshuffling
   // whenever some unrelated state change causes a re-sort.
   return [...tasks].sort(
     (a, b) =>
       (first ? compare(a, b, first) : 0) ||
-      compare(a, b, key) ||
+      (key ? compare(a, b, key) : 0) ||
       a.wikiId - b.wikiId,
   );
 }
@@ -176,7 +212,7 @@ export function applyQuery(
 ): TaskRow[] {
   return sortTasks(
     filterTasks(tasks, query, completed, profile),
-    query.sort ?? DEFAULT_SORT,
+    query.sort,
     query.group,
   );
 }
@@ -246,19 +282,20 @@ export function serializeQuery(query: TaskQuery): URLSearchParams {
   // Written even though it's inert without a profile: the link is a description
   // of a view, and the recipient may well have their own levels entered.
   if (query.reqs !== undefined) params.set("reqs", query.reqs);
-  if (query.sort && query.sort !== DEFAULT_SORT) params.set("sort", query.sort);
+  if (query.sort) params.set("sort", query.sort);
   if (query.group) params.set("group", query.group);
   return params;
 }
 
 /**
- * Old links carry a direction (`tier_desc`, `comp_asc`). The column is kept and
- * the direction dropped, so they land on the column they asked for. `name` is
- * gone with the name sort and falls back to the default.
+ * Sorts as they were named before the headers became the control. Old links
+ * still work; they just land on the ascending form, which is what those keys
+ * used to do. `name` is gone with the name sort and falls back to the default.
  */
-function legacySort(raw: string): string {
-  return raw.replace(/_(asc|desc)$/, "");
-}
+const LEGACY_SORT: Record<string, SortKey> = {
+  tier: "tier_asc",
+  monster: "monster_asc",
+};
 
 /**
  * The query string is user-editable and shareable, so it's untrusted: anything
@@ -296,10 +333,10 @@ export function parseQuery(params: URLSearchParams): TaskQuery {
   }
 
   const raw = params.get("sort");
-  const sort = raw ? legacySort(raw) : null;
-  if (sort && SORT_KEYS.includes(sort as SortKey) && sort !== DEFAULT_SORT) {
-    query.sort = sort as SortKey;
-  }
+  const sort = raw
+    ? (LEGACY_SORT[raw] ?? (SORT_KEYS.includes(raw as SortKey) ? raw : null))
+    : null;
+  if (sort) query.sort = sort as SortKey;
 
   const group = params.get("group");
   if (group !== null && GROUP_KEYS.includes(group as GroupKey)) {

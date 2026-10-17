@@ -4,11 +4,11 @@
 // These were three things in three places -- click the header to sort, a picker
 // in the bar above to filter, and grouping only as a side effect of sorting by
 // monster. Every one of them is a question about this column, so they are asked
-// here. The header itself stays a plain label; what is in force shows as ticks
-// in the menu, not as marks on the header.
+// here. The header itself stays a plain label; what is in force shows in the
+// menu, not as marks on the header.
 
 import { useState, type ReactNode } from "react";
-import { Check, Ellipsis } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Check, Ellipsis } from "lucide-react";
 import {
   TIERS,
   TASK_TYPES,
@@ -19,7 +19,7 @@ import {
   type TaskType,
   type Tier,
 } from "@/lib/types";
-import { COLUMN_SORT } from "@/lib/task-query";
+import { COLUMN_SORT, sortDirection } from "@/lib/task-query";
 import { MonsterOptions } from "@/components/monster-picker";
 import { TierBadge } from "@/components/tier-badge";
 import {
@@ -33,6 +33,41 @@ type SortableColumn = keyof typeof COLUMN_SORT;
 export function isSortableColumn(id: string): id is SortableColumn {
   return id in COLUMN_SORT;
 }
+
+/**
+ * What each direction means, in the column's own words. "Ascending" makes you
+ * work out which end of Comp% is the rare one; "Rarest first" doesn't.
+ */
+const SORT_LABEL: Record<SortKey, string> = {
+  monster_asc: "A to Z",
+  monster_desc: "Z to A",
+  type_asc: "A to Z",
+  type_desc: "Z to A",
+  tier_asc: "Easy first",
+  tier_desc: "Grandmaster first",
+  points_desc: "Most points first",
+  points_asc: "Fewest points first",
+  comp_desc: "Most common first",
+  comp_asc: "Rarest first",
+};
+
+/**
+ * Off, then the column's first direction, then its other one, then off again.
+ * Arriving from another column's sort counts as off.
+ */
+function nextSort(
+  pair: readonly SortKey[],
+  current: SortKey | undefined,
+): SortKey | undefined {
+  const at = current === undefined ? -1 : pair.indexOf(current);
+  return at === -1 ? pair[0] : at === 0 ? pair[1] : undefined;
+}
+
+const GROUP_LABEL: Record<GroupKey, string> = {
+  monster: "Group by monster",
+  type: "Group by type",
+  tier: "Group by tier",
+};
 
 function isGroupColumn(id: SortableColumn): id is GroupKey {
   return id === "monster" || id === "type" || id === "tier";
@@ -100,8 +135,9 @@ export interface ColumnMenuProps {
   /** The column's name in words, for the trigger's accessible name. */
   name: string;
   query: TaskQuery;
-  sort: SortKey;
-  onSortChange: (next: SortKey) => void;
+  /** Undefined is the wiki's own order. */
+  sort: SortKey | undefined;
+  onSortChange: (next: SortKey | undefined) => void;
   onQueryChange: (next: TaskQuery) => void;
   /** Every monster with its task count, for the Monster column's filter. */
   monsters: readonly { name: string; count: number }[];
@@ -120,7 +156,13 @@ export function ColumnMenu({
   onToggleMonster,
 }: ColumnMenuProps) {
   const [open, setOpen] = useState(false);
-  const sortKey: SortKey = COLUMN_SORT[column];
+  const pair: readonly SortKey[] = COLUMN_SORT[column];
+  const active = sort !== undefined && pair.includes(sort);
+  const SortIcon = !active
+    ? ArrowUpDown
+    : sortDirection(sort!) === "asc"
+      ? ArrowUp
+      : ArrowDown;
   const groupable = isGroupColumn(column);
   const grouped = groupable && query.group === column;
 
@@ -138,21 +180,24 @@ export function ColumnMenu({
       </PopoverTrigger>
 
       <PopoverContent className="w-64" aria-label={`${name} column`}>
-        {/* Sort and group sit together without a heading: each is one row
-            that says what it does. Sorting is a choice of one, so it closes the
-            menu, and picking the sort already in force just closes it; group
-            and filter rows are the kind you set several of, so those keep it
-            open. */}
+        {/* One sort row that steps through the column's two directions and
+            back to none, the way a spreadsheet header does -- it says where it
+            is, so the menu stays open while you step. Group sits with it, one
+            tick, no heading needed. */}
         <div className="border-b p-1 last:border-b-0">
-          <CheckRow
-            checked={sort === sortKey}
-            onClick={() => {
-              if (sort !== sortKey) onSortChange(sortKey);
-              setOpen(false);
-            }}
+          <button
+            type="button"
+            onClick={() => onSortChange(nextSort(pair, sort))}
+            className="hover:bg-muted flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm transition-colors"
           >
-            Sort by {name.toLowerCase()}
-          </CheckRow>
+            <SortIcon
+              className={`size-4 shrink-0 ${active ? "" : "text-muted-foreground"}`}
+              aria-hidden
+            />
+            <span className="min-w-0 flex-1 truncate">
+              {active ? `Sort: ${SORT_LABEL[sort!]}` : "Sort"}
+            </span>
+          </button>
           {groupable && (
             <CheckRow
               checked={grouped}
@@ -160,7 +205,7 @@ export function ColumnMenu({
                 onQueryChange({ ...query, group: grouped ? undefined : column })
               }
             >
-              Group by {name.toLowerCase()}
+              {GROUP_LABEL[column]}
             </CheckRow>
           )}
         </div>

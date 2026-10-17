@@ -14,12 +14,7 @@
 // to its wiki page instead.
 
 import { useCallback, useState } from "react";
-import {
-  DEFAULT_SORT,
-  addMonster,
-  clearMonster,
-  removeMonster,
-} from "@/lib/task-query";
+import { addMonster, clearMonster, removeMonster } from "@/lib/task-query";
 import type { SortKey, TaskQuery } from "@/lib/types";
 import type { SetQuery } from "@/lib/use-task-query";
 
@@ -31,7 +26,8 @@ export interface MonsterFilter {
   /** Search text the last pivot set aside, if any. */
   parkedSearch: string | null;
   restoreSearch: () => void;
-  setSort: (sort: SortKey) => void;
+  /** Undefined is the wiki's own order. */
+  setSort: (sort: SortKey | undefined) => void;
   /** Clear every filter, and forget the parked search with them. */
   clearAll: () => void;
 }
@@ -73,8 +69,7 @@ export function useMonsterFilter(
   }, [parkedSearch, query, setQuery]);
 
   const setSort = useCallback(
-    (sort: SortKey) =>
-      setQuery({ ...query, sort: sort === DEFAULT_SORT ? undefined : sort }),
+    (sort: SortKey | undefined) => setQuery({ ...query, sort }),
     [query, setQuery],
   );
 
