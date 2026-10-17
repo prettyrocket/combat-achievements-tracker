@@ -26,10 +26,14 @@ import {
 } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { gateReason, type GateCheck } from "@/lib/requirements";
-import type { SortKey, TaskRow } from "@/lib/types";
+import type { SortKey, TaskQuery, TaskRow } from "@/lib/types";
 import { buildColumns, type TableMeta } from "@/components/task-table/columns";
 import { DraggableRow } from "@/components/task-table/draggable-row";
 import { GroupBanner } from "@/components/task-table/group-banner";
+import {
+  HeadFilter,
+  isFilteredColumn,
+} from "@/components/task-table/head-filter";
 import { SortableHead } from "@/components/task-table/sortable-head";
 import { groupKey, useRowItems } from "@/components/task-table/use-row-items";
 // Note the missing `Table`: that wrapper brings its own `overflow-x-auto` div,
@@ -74,6 +78,12 @@ export interface TaskTableProps {
   /** Current sort, for the header arrows. */
   sort: SortKey;
   onSortChange: (next: SortKey) => void;
+  /** The whole query, for the Monster, Type and Tier header filters. */
+  query: TaskQuery;
+  onQueryChange: (next: TaskQuery) => void;
+  /** Every monster with its task count, for the Monster header's picker. */
+  monsters: readonly { name: string; count: number }[];
+  onToggleMonster: (monster: string) => void;
 }
 
 export function TaskTable({
@@ -87,6 +97,10 @@ export function TaskTable({
   gates,
   sort,
   onSortChange,
+  query,
+  onQueryChange,
+  monsters,
+  onToggleMonster,
 }: TaskTableProps) {
   // Deliberately does *not* depend on `completed` or `onList` -- see TableMeta.
   const columns = useMemo(
@@ -148,17 +162,47 @@ export function TaskTable({
             <TableRow key={group.id} className="hover:bg-transparent">
               {group.headers.map((header) => (
                 <TableHead key={header.id} className="border-b">
-                  <SortableHead
-                    header={header}
-                    sort={sort}
-                    onSortChange={onSortChange}
-                  />
+                  {isFilteredColumn(header.column.id) ? (
+                    <span className="inline-flex items-center gap-1">
+                      <SortableHead
+                        header={header}
+                        sort={sort}
+                        onSortChange={onSortChange}
+                      />
+                      <HeadFilter
+                        column={header.column.id}
+                        query={query}
+                        onQueryChange={onQueryChange}
+                        monsters={monsters}
+                        onToggleMonster={onToggleMonster}
+                      />
+                    </span>
+                  ) : (
+                    <SortableHead
+                      header={header}
+                      sort={sort}
+                      onSortChange={onSortChange}
+                    />
+                  )}
                 </TableHead>
               ))}
             </TableRow>
           ))}
         </TableHeader>
         <TableBody>
+          {/* In the body rather than instead of the table: the header holds
+              three of the filters, and taking it away with the last row would
+              leave nothing to widen them back out with. */}
+          {items.length === 0 && (
+            <tr>
+              <td
+                colSpan={columnCount}
+                className="text-muted-foreground py-12 text-center text-sm"
+              >
+                No tasks match these filters.
+              </td>
+            </tr>
+          )}
           {paddingTop > 0 && (
             <tr aria-hidden>
               <td colSpan={columnCount} style={{ height: paddingTop }} />

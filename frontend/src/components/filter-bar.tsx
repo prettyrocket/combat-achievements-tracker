@@ -1,25 +1,16 @@
-// Search, facet pickers, monster picker and the menu of hide options.
+// Search and the menu of hide options.
 //
 // Every control writes through to the same TaskQuery, which is serialised to the
 // URL -- so there is no local state here to drift out of sync with the address
 // bar, and every visible arrangement is a link someone can send.
 //
-// Sort left this bar: the column headers own it now, which is where you were
-// already pointing when you decided to re-sort.
+// Sort left this bar for the column headers, which is where you were already
+// pointing when you decided to re-sort -- and the Monster, Type and Tier filters
+// followed it there for the same reason.
 
 import { Ellipsis, Search, X } from "lucide-react";
 import { isEmptyQuery } from "@/lib/task-query";
-import {
-  TIERS,
-  TASK_TYPES,
-  TYPE_LABEL,
-  type TaskQuery,
-  type TaskType,
-  type Tier,
-} from "@/lib/types";
-import { FacetPicker } from "@/components/facet-picker";
-import { MonsterPicker } from "@/components/monster-picker";
-import { TierBadge } from "@/components/tier-badge";
+import type { TaskQuery } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -29,21 +20,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 
-/** Adds or removes one value from a facet, returning undefined when it empties. */
-function toggleFacet<T>(current: T[] | undefined, value: T): T[] | undefined {
-  const next = current?.includes(value)
-    ? current.filter((v) => v !== value)
-    : [...(current ?? []), value];
-  return next.length ? next : undefined;
-}
-
 export interface FilterBarProps {
   query: TaskQuery;
   onChange: (next: TaskQuery) => void;
   onClear: () => void;
-  /** Every monster with its task count, for the picker. */
-  monsters: readonly { name: string; count: number }[];
-  onToggleMonster: (monster: string) => void;
   resultCount: number;
   totalCount: number;
   /** True while there are no levels or quests to check requirements against. */
@@ -56,8 +36,6 @@ export function FilterBar({
   query,
   onChange,
   onClear,
-  monsters,
-  onToggleMonster,
   resultCount,
   totalCount,
   profileIsEmpty,
@@ -65,7 +43,6 @@ export function FilterBar({
 }: FilterBarProps) {
   const patch = (partial: Partial<TaskQuery>) =>
     onChange({ ...query, ...partial });
-  const selected = query.monster ?? [];
   const hidingCompleted = query.completed === false;
   const hidingUnmet = !profileIsEmpty && query.reqs === "met";
 
@@ -87,39 +64,6 @@ export function FilterBar({
             className="pl-8"
           />
         </div>
-
-        {/* The picker, not a text box: with the table filtered to one monster
-            there is no second monster left on screen to click, so this is the
-            only way to build a set of them. The same control appears in the
-            breadcrumb, where the chosen ones are listed. */}
-        <MonsterPicker
-          monsters={monsters}
-          selected={selected}
-          onToggle={onToggleMonster}
-          label="Monsters"
-          className="h-9"
-        />
-
-        {/* Beside the monster picker rather than on their own row: all three
-            answer "which tasks", and they now share one shape, so they belong
-            in one place. */}
-        <FacetPicker
-          label="Tiers"
-          options={TIERS}
-          selected={query.tier ?? []}
-          onToggle={(tier) => patch({ tier: toggleFacet(query.tier, tier) })}
-          renderOption={(tier: Tier) => <TierBadge tier={tier} />}
-          className="h-9"
-        />
-
-        <FacetPicker
-          label="Types"
-          options={TASK_TYPES}
-          selected={query.type ?? []}
-          onToggle={(type) => patch({ type: toggleFacet(query.type, type) })}
-          renderOption={(type: TaskType) => TYPE_LABEL[type]}
-          className="h-9"
-        />
 
         {/* Two yes/no questions rather than two three-state cycles: hiding
             is the only direction anyone reached for. Filled while either is on,
@@ -199,11 +143,6 @@ export function FilterBar({
           </Button>
         </span>
       </div>
-
-      {/* The selected monsters are deliberately *not* listed here. The breadcrumb
-          directly below already shows each one with its own progress count and
-          its own ✕, and two rows of the same chips is just noise. This bar adds
-          them; the breadcrumb is where they live. */}
     </section>
   );
 }

@@ -9,7 +9,7 @@
 // want a count beside each name and a tick showing what's already chosen, and
 // the browser's autocomplete can show neither.
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type ReactElement } from "react";
 import { Check, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,8 @@ export interface MonsterPickerProps {
   /** Off in the breadcrumb, where the chosen monsters are listed right beside it. */
   showCount?: boolean;
   className?: string;
+  /** Replaces the default button, for the table's column header. */
+  trigger?: ReactElement;
 }
 
 export function MonsterPicker({
@@ -38,6 +40,7 @@ export function MonsterPicker({
   label = "Add monster",
   showCount = true,
   className,
+  trigger,
 }: MonsterPickerProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -65,17 +68,19 @@ export function MonsterPicker({
       }}
     >
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className={className}>
-          <Plus className="size-3.5" aria-hidden />
-          {label}
-          {/* Reserved whether or not there's a number in it, so picking a
+        {trigger ?? (
+          <Button variant="outline" size="sm" className={className}>
+            <Plus className="size-3.5" aria-hidden />
+            {label}
+            {/* Reserved whether or not there's a number in it, so picking a
               monster doesn't nudge everything downstream of this button. */}
-          {showCount && (
-            <span className="text-muted-foreground min-w-4 text-right tabular-nums">
-              {selected.length > 0 ? selected.length : ""}
-            </span>
-          )}
-        </Button>
+            {showCount && (
+              <span className="text-muted-foreground min-w-4 text-right tabular-nums">
+                {selected.length > 0 ? selected.length : ""}
+              </span>
+            )}
+          </Button>
+        )}
       </PopoverTrigger>
 
       <PopoverContent className="w-72">

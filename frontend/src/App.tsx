@@ -532,8 +532,6 @@ export default function App() {
                 query={query}
                 onChange={setQuery}
                 onClear={filter.clearAll}
-                monsters={MONSTERS}
-                onToggleMonster={filter.toggleMonster}
                 resultCount={visible.length}
                 totalCount={TASKS.length}
                 profileIsEmpty={profile.isEmpty}
@@ -587,24 +585,22 @@ export default function App() {
               <main
                 className={`min-h-0 min-w-0 flex-1 ${TABLE_ORDER[prefs.listPosition]}`}
               >
-                {visible.length === 0 ? (
-                  <p className="text-muted-foreground rounded-lg border border-dashed py-12 text-center text-sm">
-                    No tasks match these filters.
-                  </p>
-                ) : (
-                  <TaskTable
-                    tasks={visible}
-                    completed={completed}
-                    onToggle={toggle}
-                    manualTracking={prefs.manualTracking}
-                    onList={listedIds}
-                    onToggleListed={taskList.toggle}
-                    onAddManyToList={taskList.addMany}
-                    gates={gates}
-                    sort={query.sort ?? DEFAULT_SORT}
-                    onSortChange={filter.setSort}
-                  />
-                )}
+                <TaskTable
+                  tasks={visible}
+                  completed={completed}
+                  onToggle={toggle}
+                  manualTracking={prefs.manualTracking}
+                  onList={listedIds}
+                  onToggleListed={taskList.toggle}
+                  onAddManyToList={taskList.addMany}
+                  gates={gates}
+                  sort={query.sort ?? DEFAULT_SORT}
+                  onSortChange={filter.setSort}
+                  query={query}
+                  onQueryChange={setQuery}
+                  monsters={MONSTERS}
+                  onToggleMonster={filter.toggleMonster}
+                />
               </main>
             </div>
           </>

@@ -92,7 +92,7 @@ export function ListToggle({
  * something else -- monsters filtered the table, tasks did nothing at all. Two
  * targets a few pixels apart doing unrelated things is a worse deal than one
  * obvious one: the name is the page, and filtering by monster is what the
- * filter bar's picker is for.
+ * Monster header's picker is for.
  */
 export function WikiName({
   value,

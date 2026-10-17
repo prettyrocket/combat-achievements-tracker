@@ -8,7 +8,7 @@
 // like losing your place. So the old text is kept here, and the breadcrumb
 // offers it back.
 //
-// The one door in is `toggleMonster`, from the filter bar's picker and the
+// The one door in is `toggleMonster`, from the Monster header's picker and the
 // breadcrumb. There were two more -- `pivot` and `addToPivot`, for clicking and
 // shift-clicking a monster's name in the table -- until the name became a link
 // to its wiki page instead.

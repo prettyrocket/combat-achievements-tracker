@@ -9,7 +9,7 @@
 // Stays open across picks, for the same reason the monster picker does: choosing
 // Master and Grandmaster is one decision, not two.
 
-import { useState, type ReactNode } from "react";
+import { useState, type ReactElement, type ReactNode } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +27,8 @@ export interface FacetPickerProps<T extends string> {
   /** How a row reads, so tiers can wear the same badge they wear in the table. */
   renderOption: (value: T) => ReactNode;
   className?: string;
+  /** Replaces the default button, for the table's column headers. */
+  trigger?: ReactElement;
 }
 
 export function FacetPicker<T extends string>({
@@ -36,6 +38,7 @@ export function FacetPicker<T extends string>({
   onToggle,
   renderOption,
   className,
+  trigger,
 }: FacetPickerProps<T>) {
   const [open, setOpen] = useState(false);
   const chosen = new Set(selected);
@@ -43,27 +46,29 @@ export function FacetPicker<T extends string>({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className={className}
-          // The count is the whole point of collapsing the chips, so it reads
-          // as part of the label rather than as decoration beside it.
-          aria-label={
-            selected.length === 0
-              ? label
-              : `${label}, ${selected.length} selected`
-          }
-        >
-          {label}
-          {/* The slot is always here, empty or not. Growing the button on the
+        {trigger ?? (
+          <Button
+            variant="outline"
+            size="sm"
+            className={className}
+            // The count is the whole point of collapsing the chips, so it reads
+            // as part of the label rather than as decoration beside it.
+            aria-label={
+              selected.length === 0
+                ? label
+                : `${label}, ${selected.length} selected`
+            }
+          >
+            {label}
+            {/* The slot is always here, empty or not. Growing the button on the
               first pick shoved every control to its right along the bar, which
               is a strange thing for choosing a filter to do. */}
-          <span className="text-muted-foreground min-w-4 text-right tabular-nums">
-            {selected.length > 0 ? selected.length : ""}
-          </span>
-          <ChevronDown className="size-3.5 opacity-60" aria-hidden />
-        </Button>
+            <span className="text-muted-foreground min-w-4 text-right tabular-nums">
+              {selected.length > 0 ? selected.length : ""}
+            </span>
+            <ChevronDown className="size-3.5 opacity-60" aria-hidden />
+          </Button>
+        )}
       </PopoverTrigger>
 
       <PopoverContent className="w-56">
