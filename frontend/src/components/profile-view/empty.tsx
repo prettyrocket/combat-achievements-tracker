@@ -4,10 +4,9 @@
 // no progress has nothing to say but how to get some. The way out goes to the
 // catalog, where planning doesn't need any of it.
 
-import { Table2 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { LoadSourceId } from "@/lib/load-source";
 import { SourceCards } from "@/components/source-cards";
-import { Button } from "@/components/ui/button";
 
 export function ProfileEmpty({
   onPick,
@@ -27,20 +26,22 @@ export function ProfileEmpty({
         id="profile-empty-heading"
         className="text-center text-2xl font-semibold tracking-tight"
       >
-        Would you like to sync your progress?
+        Sync your progress to get started
       </h2>
 
       <SourceCards onPick={onPick} />
 
-      <div className="flex flex-wrap items-center justify-center gap-3">
-        <span className="text-muted-foreground text-sm">
-          or start planning right away
-        </span>
-        <Button variant="outline" onClick={onBrowse}>
-          <Table2 aria-hidden />
-          Catalog
-        </Button>
-      </div>
+      <p className="text-muted-foreground text-center text-sm">
+        or start planning right away.{" "}
+        <button
+          type="button"
+          onClick={onBrowse}
+          className="text-foreground inline-flex items-center gap-1 decoration-muted-foreground hover:decoration-foreground focus-visible:decoration-foreground font-medium underline underline-offset-4 focus-visible:outline-none"
+        >
+          Go to the catalog
+          <ArrowRight className="size-3.5" aria-hidden />
+        </button>
+      </p>
     </section>
   );
 }
