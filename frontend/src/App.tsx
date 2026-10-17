@@ -142,6 +142,10 @@ export default function App() {
   const openProfileEditor = useCallback(() => setManualOpen(true), []);
 
   const openLoad = useCallback(() => setLoadOpen(true), []);
+  const openLoadOn = useCallback((source: LoadSourceId) => {
+    setLoadSource(source);
+    setLoadOpen(true);
+  }, []);
 
   // Read once, on arrival -- see welcome.ts for what counts as a first visit.
   const [welcomeOpen, setWelcomeOpen] = useState(shouldWelcome);
@@ -149,12 +153,14 @@ export default function App() {
   // saying so.
   const [pointAtProfile, setPointAtProfile] = useState(false);
 
-  const pickWelcome = useCallback((source: LoadSourceId) => {
-    markWelcomed();
-    setWelcomeOpen(false);
-    setLoadSource(source);
-    setLoadOpen(true);
-  }, []);
+  const pickWelcome = useCallback(
+    (source: LoadSourceId) => {
+      markWelcomed();
+      setWelcomeOpen(false);
+      openLoadOn(source);
+    },
+    [openLoadOn],
+  );
 
   const skipWelcome = useCallback(() => {
     markWelcomed();
@@ -480,7 +486,11 @@ export default function App() {
               summary={summary}
               rewards={rewards}
               rsn={prefs.lastRsn}
+              syncKind={quickLoadKind}
+              syncBusy={quickLoad.busy}
+              onSync={onHeaderLoad}
               onLoadOpen={openLoad}
+              onLoadSource={openLoadOn}
             />
           </main>
         ) : view === "list" ? (

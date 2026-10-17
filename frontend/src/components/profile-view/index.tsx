@@ -4,34 +4,50 @@
 // table's height and had to collapse to one line to earn its place. Here it has
 // the room, and the page is where the rest of "what have I done" goes.
 
-import { Upload } from "lucide-react";
+import type { LoadSourceId } from "@/lib/load-source";
+import type { QuickLoad } from "@/lib/quick-load";
 import type { RewardStatus } from "@/lib/rewards";
 import type { ProgressSummary } from "@/lib/types";
 import { SummaryCard } from "@/components/profile-view/summary";
-import { Button } from "@/components/ui/button";
+import { SyncSection } from "@/components/profile-view/sync-section";
 
 export interface ProfileViewProps {
   summary: ProgressSummary;
   rewards: RewardStatus;
   /** Whose progress this is, or null before anything has been loaded. */
   rsn: string | null;
+  /** How you last loaded, as the header's Load reads it. */
+  syncKind: QuickLoad;
+  syncBusy: boolean;
+  /** The header's Load, run from here. */
+  onSync: () => void;
   /** Opens the Load dialog, which App owns. */
   onLoadOpen: () => void;
+  /** Opens the Load dialog on one source. */
+  onLoadSource: (source: LoadSourceId) => void;
 }
 
 export function ProfileView({
   summary,
   rewards,
   rsn,
+  syncKind,
+  syncBusy,
+  onSync,
   onLoadOpen,
+  onLoadSource,
 }: ProfileViewProps) {
   return (
     <div className="flex h-full flex-col items-start gap-3 overflow-y-auto">
       <SummaryCard summary={summary} rewards={rewards} rsn={rsn} />
-      <Button variant="outline" size="sm" onClick={onLoadOpen}>
-        <Upload />
-        Load progress
-      </Button>
+      <SyncSection
+        kind={syncKind}
+        rsn={rsn}
+        busy={syncBusy}
+        onSync={onSync}
+        onChange={onLoadOpen}
+        onPick={onLoadSource}
+      />
     </div>
   );
 }
