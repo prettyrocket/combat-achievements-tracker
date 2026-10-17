@@ -34,6 +34,7 @@ import {
   type PlayerProfile,
 } from "@/lib/requirements";
 import { quickWins } from "@/lib/quick-wins";
+import { rarestCompletions } from "@/lib/rarest";
 import { rewardStatus } from "@/lib/rewards";
 import type { ShareCodeResult } from "@/lib/share-code";
 import { MONSTERS, REWARD_TIERS } from "@/lib/task-index";
@@ -285,6 +286,11 @@ export default function App() {
     [summary.pointsEarned],
   );
 
+  const rarest = useMemo(
+    () => rarestCompletions(TASKS, completed, 8),
+    [completed],
+  );
+
   const visible = useMemo(
     () => applyQuery(TASKS, query, completed, profile.profile),
     [query, completed, profile.profile],
@@ -493,6 +499,7 @@ export default function App() {
               summary={summary}
               rewards={rewards}
               rewardTiers={REWARD_TIERS}
+              rarest={rarest}
               rsn={prefs.lastRsn}
               syncKind={quickLoadKind}
               syncBusy={quickLoad.busy}

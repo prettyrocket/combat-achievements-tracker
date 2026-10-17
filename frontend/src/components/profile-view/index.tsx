@@ -6,10 +6,12 @@
 
 import type { LoadSourceId } from "@/lib/load-source";
 import type { QuickLoad } from "@/lib/quick-load";
+import type { RareTask } from "@/lib/rarest";
 import type { RewardStatus, RewardTier } from "@/lib/rewards";
 import type { ProgressSummary, TaskRow } from "@/lib/types";
 import { ProfileEmpty } from "@/components/profile-view/empty";
 import { QuickWinsCard } from "@/components/profile-view/quick-wins-card";
+import { RarestCard } from "@/components/profile-view/rarest-card";
 import { RewardCard } from "@/components/profile-view/reward-card";
 import { SummaryCard } from "@/components/profile-view/summary";
 import { TierCard } from "@/components/profile-view/tier-card";
@@ -18,6 +20,8 @@ export interface ProfileViewProps {
   summary: ProgressSummary;
   rewards: RewardStatus;
   rewardTiers: readonly RewardTier[];
+  /** Completed tasks, rarest first; empty hides the card. */
+  rarest: readonly RareTask[];
   /** Whose progress this is, or null before anything has been loaded. */
   rsn: string | null;
   /** How you last loaded, as the header's Load reads it. */
@@ -42,6 +46,7 @@ export function ProfileView({
   summary,
   rewards,
   rewardTiers,
+  rarest,
   rsn,
   syncKind,
   syncBusy,
@@ -89,13 +94,18 @@ export function ProfileView({
         <RewardCard status={rewards} tiers={rewardTiers} />
       </div>
 
-      {quickWins.length > 0 && (
+      {/* Below the main section: what to do next, and what you've done
+          beyond the totals. */}
+      {(quickWins.length > 0 || rarest.length > 0) && (
         <div className="grid w-full items-start gap-3 md:grid-cols-2 xl:max-w-5xl">
-          <QuickWinsCard
-            tasks={quickWins}
-            listed={listed}
-            onToggleListed={onToggleListed}
-          />
+          {quickWins.length > 0 && (
+            <QuickWinsCard
+              tasks={quickWins}
+              listed={listed}
+              onToggleListed={onToggleListed}
+            />
+          )}
+          {rarest.length > 0 && <RarestCard tasks={rarest} />}
         </div>
       )}
     </div>
