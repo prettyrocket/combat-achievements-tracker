@@ -25,7 +25,8 @@ export const ACCOUNT_TYPES = [
 export type AccountType = (typeof ACCOUNT_TYPES)[number];
 
 export const ACCOUNT_TYPE_LABEL: Record<AccountType, string> = {
-  regular: "Regular",
+  // "Main" is what players call it; both sources say regular or normal.
+  regular: "Main",
   ironman: "Ironman",
   hardcore: "Hardcore Ironman",
   ultimate: "Ultimate Ironman",

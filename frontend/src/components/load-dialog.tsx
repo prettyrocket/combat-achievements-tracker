@@ -137,9 +137,11 @@ export function LoadDialog({
       accountType.commit(name);
     }
     // The form has no Import to land, so typing into it is what counts as
-    // landing. Only when nothing else is remembered, though: somebody who syncs
-    // from RuneProfile and nudges one level by hand still syncs from RuneProfile.
-    if (active === "manual" && !profileIsEmpty) {
+    // landing -- a level, a quest, or just the name: saying who you are on the
+    // by-hand pane is choosing it. Only when nothing else is remembered, though:
+    // somebody who syncs from RuneProfile and nudges one level by hand still
+    // syncs from RuneProfile.
+    if (active === "manual" && (!profileIsEmpty || name !== "")) {
       let stored = readStoredSource();
       if (stored === null || stored === "file") {
         writeLastSource("manual");

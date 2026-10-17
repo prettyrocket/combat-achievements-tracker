@@ -42,9 +42,9 @@ export function ProfileView({
   onLoadSource,
   onBrowse,
 }: ProfileViewProps) {
-  // Nothing set up and nothing ticked is nobody's progress. Ticks without a
-  // source are somebody's, though, so they keep the cards.
-  if (syncKind === "setup" && summary.completedTasks === 0)
+  // Nothing set up, nothing ticked and no name is nobody's progress. Ticks or
+  // a name without a source are somebody's, though, so they keep the cards.
+  if (syncKind === "setup" && summary.completedTasks === 0 && rsn === null)
     return (
       <div className="h-full overflow-y-auto">
         <ProfileEmpty onPick={onLoadSource} onBrowse={onBrowse} />
