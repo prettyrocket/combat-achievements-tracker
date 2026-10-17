@@ -8,6 +8,7 @@ import type { LoadSourceId } from "@/lib/load-source";
 import type { QuickLoad } from "@/lib/quick-load";
 import type { RewardStatus } from "@/lib/rewards";
 import type { ProgressSummary } from "@/lib/types";
+import { RewardCard } from "@/components/profile-view/reward-card";
 import { SummaryCard } from "@/components/profile-view/summary";
 import { SyncSection } from "@/components/profile-view/sync-section";
 
@@ -39,7 +40,12 @@ export function ProfileView({
 }: ProfileViewProps) {
   return (
     <div className="flex h-full flex-col items-start gap-3 overflow-y-auto">
-      <SummaryCard summary={summary} rewards={rewards} rsn={rsn} />
+      {/* Side by side once there's the width, so neither meter stretches into
+          the hairline a single full-width bar becomes. */}
+      <div className="grid w-full gap-3 md:grid-cols-[3fr_2fr] xl:max-w-5xl">
+        <SummaryCard summary={summary} rsn={rsn} />
+        <RewardCard status={rewards} />
+      </div>
       <SyncSection
         kind={syncKind}
         rsn={rsn}

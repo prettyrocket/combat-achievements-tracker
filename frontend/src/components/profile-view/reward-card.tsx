@@ -3,23 +3,25 @@ import type { RewardStatus } from "@/lib/rewards";
 import { HiltLink, Meter } from "@/components/profile-view/meter";
 
 /**
- * What the points are for, as the second of the two stat columns.
+ * What the points are for: Ghommal's hilt, on a card of its own beside the
+ * summary.
  *
- * Built to the same three-part shape as the overall column beside it -- a
+ * Built to the same three-part shape as the summary's overall figure -- a
  * headline, a meter, a line of detail -- so the pair read as two answers to the
- * same question rather than two unrelated widgets. Side by side is also what
- * stops either meter from becoming the full-width hairline that started all
- * this: two 480px bars use the room that one 1,000px bar was wasting.
+ * same question rather than two unrelated widgets.
  *
  * The meter spans the last threshold to the next rather than 0-100, so late on --
  * where 1,945 of 2,671 points is a bar that barely moves -- the gap you're
  * actually closing is still legible.
  */
-export function RewardStat({ status }: { status: RewardStatus }) {
+export function RewardCard({ status }: { status: RewardStatus }) {
   const { unlocked, next, pointsToNext, percentToNext } = status;
 
   return (
-    <div>
+    <section
+      aria-label="Combat achievement rewards"
+      className="rounded-lg border p-4"
+    >
       <p className="flex items-baseline gap-1.5 text-lg font-semibold">
         <Swords
           className="text-muted-foreground size-4 shrink-0 self-center"
@@ -70,6 +72,6 @@ export function RewardStat({ status }: { status: RewardStatus }) {
           <>Every reward tier claimed.</>
         )}
       </p>
-    </div>
+    </section>
   );
 }
