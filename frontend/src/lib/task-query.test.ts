@@ -294,29 +294,77 @@ describe("sortDirection", () => {
 });
 
 describe("sortTasks", () => {
-  // Groups are where you look things up, so they keep the column's natural
-  // order; the sort decides the order of rows inside each one.
-  it("orders by the group first, then by the sort within each group", () => {
-    const tasks = [
+  describe("grouped", () => {
+    const tiered = () => [
       task({ wikiId: 1, tier: "HARD", completionPct: 10 }),
       task({ wikiId: 2, tier: "EASY", completionPct: 20 }),
       task({ wikiId: 3, tier: "HARD", completionPct: 90 }),
       task({ wikiId: 4, tier: "EASY", completionPct: 80 }),
     ];
-    expect(sortTasks(tasks, "comp_desc", "tier").map((t) => t.wikiId)).toEqual([
-      4, 2, 3, 1,
-    ]);
-  });
 
-  it("keeps groups in natural order when the sort is the same column reversed", () => {
-    const tasks = [
-      task({ wikiId: 1, monster: "Zulrah" }),
-      task({ wikiId: 2, monster: "Abyssal Sire" }),
-      task({ wikiId: 3, monster: null }),
-    ];
-    expect(
-      sortTasks(tasks, "monster_desc", "monster").map((t) => t.wikiId),
-    ).toEqual([2, 1, 3]);
+    it("keeps groups in their natural order with no sort", () => {
+      expect(ids(sortTasks(tiered(), undefined, "tier"))).toEqual([2, 4, 1, 3]);
+    });
+
+    it("sorts rows within each group and leads with the group whose first row wins", () => {
+      expect(ids(sortTasks(tiered(), "comp_desc", "tier"))).toEqual([
+        3, 1, 4, 2,
+      ]);
+      expect(ids(sortTasks(tiered(), "comp_asc", "tier"))).toEqual([
+        1, 3, 2, 4,
+      ]);
+    });
+
+    // The no-op this replaced: groups were pinned A to Z whatever the sort said.
+    it("orders the groups themselves when sorting by the grouped column", () => {
+      const tasks = [
+        task({ wikiId: 1, monster: "Zulrah" }),
+        task({ wikiId: 2, monster: "Abyssal Sire" }),
+        task({ wikiId: 3, monster: null }),
+        task({ wikiId: 4, monster: "Zulrah" }),
+      ];
+      expect(ids(sortTasks(tasks, "monster_desc", "monster"))).toEqual([
+        1, 4, 2, 3,
+      ]);
+      expect(ids(sortTasks(tasks, "monster_asc", "monster"))).toEqual([
+        2, 1, 4, 3,
+      ]);
+    });
+
+    it("orders tiers by points when grouped by tier", () => {
+      expect(
+        sortTasks(tiered(), "points_desc", "tier").map((t) => t.tier),
+      ).toEqual(["HARD", "HARD", "EASY", "EASY"]);
+    });
+
+    // Alphabetising another column is not a ranking: groups stay put.
+    it("keeps groups in natural order when sorting another column A to Z", () => {
+      const tasks = [
+        task({ wikiId: 1, tier: "HARD", monster: "Araxxor" }),
+        task({ wikiId: 2, tier: "EASY", monster: "Zulrah" }),
+        task({ wikiId: 3, tier: "EASY", monster: "Barrows" }),
+      ];
+      expect(ids(sortTasks(tasks, "monster_asc", "tier"))).toEqual([3, 2, 1]);
+    });
+
+    it("falls back to natural group order when first rows tie", () => {
+      const tasks = [
+        task({ wikiId: 1, tier: "HARD", monster: "Vorkath" }),
+        task({ wikiId: 2, tier: "EASY", monster: "Vorkath" }),
+      ];
+      expect(ids(sortTasks(tasks, "monster_asc", "tier"))).toEqual([2, 1]);
+    });
+
+    it("never splits a group, whatever the sort", () => {
+      const tasks = [
+        task({ monster: "Zulrah", completionPct: 90 }),
+        task({ monster: "Vorkath", completionPct: 50 }),
+        task({ monster: "Zulrah", completionPct: 10 }),
+      ];
+      expect(
+        sortTasks(tasks, "comp_desc", "monster").map((t) => t.monster),
+      ).toEqual(["Zulrah", "Zulrah", "Vorkath"]);
+    });
   });
 
   it("keeps the wiki's own order, id order, when there is no sort", () => {

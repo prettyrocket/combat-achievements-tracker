@@ -170,11 +170,7 @@ function compare(a: TaskRow, b: TaskRow, sort: SortKey): number {
   }
 }
 
-/**
- * The order groups come in, which is always the column's natural one: groups
- * are where you look things up, so Vorkath stays where the alphabet put it
- * whichever way the rows inside are sorted.
- */
+/** A group column's natural order: where its groups sit when nothing else decides. */
 const GROUP_SORT: Record<GroupKey, SortKey> = {
   monster: "monster_asc",
   type: "type_asc",
@@ -182,9 +178,39 @@ const GROUP_SORT: Record<GroupKey, SortKey> = {
 };
 
 /**
+ * The sorts that rank tasks rather than alphabetise them. Only these, and a
+ * sort by the grouped column itself, get to move whole groups -- see sortTasks.
+ */
+const RANKING_SORTS: ReadonlySet<SortKey> = new Set([
+  "comp_desc",
+  "comp_asc",
+  "points_desc",
+  "points_asc",
+  "tier_asc",
+  "tier_desc",
+]);
+
+/**
  * No sort is a real state, not a missing one: it is the wiki's own order, which
  * is id order, and it's what the table opens in. The id comparison that ends
  * every sort is that order showing through.
+ *
+ * Grouped, rows are always sorted within their group. Whether the groups move
+ * too depends on what the sort is:
+ *
+ * - By the grouped column, it orders the groups, since every row in a group
+ *   shares the value -- Monster Z to A puts Zulrah's banner first.
+ * - By a ranking (Comp%, Pts, Tier), groups follow their best row: "Most common
+ *   first" grouped by monster leads with the boss whose easiest task is the
+ *   most common, so the top of the table says what the sort says. Pts grouped
+ *   by tier lands here too, and orders the tiers.
+ * - By another column's alphabet (Monster A to Z, grouped by tier), groups
+ *   stay in their natural order. Leading with whichever tier happens to hold
+ *   the first boss alphabetically is a shuffle, not an answer.
+ *
+ * Pinning groups to their natural order in every case -- how this started --
+ * made the first a no-op and buried the second under Aberrant Spectre. With no
+ * sort, and between groups whose first rows tie, the natural order holds.
  */
 export function sortTasks(
   tasks: readonly TaskRow[],
@@ -192,16 +218,32 @@ export function sortTasks(
   group?: GroupKey,
 ): TaskRow[] {
   const key = sort && SORT_KEYS.includes(sort) ? sort : null;
-  const first = group ? GROUP_SORT[group] : null;
   // Copy, so callers can hand us the bundle without it being reordered under them.
   // The id tiebreak keeps equal rows in a fixed order rather than reshuffling
   // whenever some unrelated state change causes a re-sort.
-  return [...tasks].sort(
-    (a, b) =>
-      (first ? compare(a, b, first) : 0) ||
-      (key ? compare(a, b, key) : 0) ||
-      a.wikiId - b.wikiId,
+  const rows = [...tasks].sort(
+    (a, b) => (key ? compare(a, b, key) : 0) || a.wikiId - b.wikiId,
   );
+  if (!group) return rows;
+
+  // Map keeps insertion order, so each group's rows stay in sorted order and
+  // its first row is its best.
+  const groups = new Map<string | null, TaskRow[]>();
+  for (const row of rows) {
+    const value = row[group];
+    const bucket = groups.get(value);
+    if (bucket) bucket.push(row);
+    else groups.set(value, [row]);
+  }
+  const natural = GROUP_SORT[group];
+  const leads =
+    key !== null &&
+    (RANKING_SORTS.has(key) || COLUMN_SORT[group].some((k) => k === key));
+  return [...groups.values()]
+    .sort(
+      ([a], [b]) => (leads ? compare(a, b, key) : 0) || compare(a, b, natural),
+    )
+    .flat();
 }
 
 export function applyQuery(
