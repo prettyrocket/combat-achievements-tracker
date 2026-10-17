@@ -15,6 +15,7 @@ import {
   setProfile,
   setQuest,
   subscribe,
+  undo,
   type ProfileSource,
 } from "@/lib/profile-store";
 import { profileIsEmpty, type PlayerProfile } from "@/lib/requirements";
@@ -30,6 +31,8 @@ export interface UseProfile {
   setLevel: (skill: string, level: number) => void;
   setQuest: (quest: string, finished: boolean) => void;
   clear: () => void;
+  /** Steps back one change -- see profile-store's undo. */
+  undo: () => void;
 }
 
 export function useProfile(): UseProfile {
@@ -70,5 +73,6 @@ export function useProfile(): UseProfile {
       [],
     ),
     clear: useCallback(() => clearProfile(), []),
+    undo: useCallback(() => void undo(), []),
   };
 }

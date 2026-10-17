@@ -27,6 +27,62 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+describe("undo", () => {
+  it("has nothing to undo until something changes", async () => {
+    const { store } = await load();
+    expect(store.canUndo()).toBe(false);
+    expect(store.undo()).toBe(false);
+  });
+
+  it("takes back a lookup, source and all", async () => {
+    const { store } = await load();
+    store.setLevel("Slayer", 80);
+    store.setLevels({ Slayer: 92, Ranged: 70 }, "wiseoldman");
+    expect(store.getSource()).toBe("wiseoldman");
+
+    expect(store.undo()).toBe(true);
+    expect(store.getProfile().levels).toEqual({ Slayer: 80 });
+    expect(store.getSource()).toBe("manual");
+  });
+
+  it("writes the undone state back to disk", async () => {
+    const { store, storage } = await load();
+    store.setProfile({ levels: { Slayer: 92 }, quests: [] }, "runeprofile");
+    store.undo();
+    const stored = JSON.parse(storage.map.get("ca-tracker:profile:v1")!);
+    expect(stored.levels).toEqual({});
+  });
+
+  it("does not make the undo itself undoable", async () => {
+    const { store } = await load();
+    store.setLevel("Slayer", 80);
+    store.undo();
+    expect(store.canUndo()).toBe(false);
+  });
+});
+
+describe("sameProfile", () => {
+  it("ignores order and quest spelling differences it would dedupe", async () => {
+    const { store } = await load();
+    expect(
+      store.sameProfile(
+        { levels: { Slayer: 92, Ranged: 70 }, quests: ["Dragon Slayer I"] },
+        { levels: { Ranged: 70, Slayer: 92 }, quests: ["Dragon Slayer I"] },
+      ),
+    ).toBe(true);
+  });
+
+  it("notices a changed level", async () => {
+    const { store } = await load();
+    expect(
+      store.sameProfile(
+        { levels: { Slayer: 92 }, quests: [] },
+        { levels: { Slayer: 93 }, quests: [] },
+      ),
+    ).toBe(false);
+  });
+});
+
 describe("sanitizeLevels", () => {
   it("keeps a plain map of levels", async () => {
     const { store } = await load();

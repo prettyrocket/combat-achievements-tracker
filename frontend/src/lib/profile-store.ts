@@ -111,7 +111,42 @@ let current: PlayerProfile = load();
 let currentSource: ProfileSource = loadSource();
 const listeners = new Set<() => void>();
 
-function commit(next: PlayerProfile, source: ProfileSource): void {
+// --- undo -------------------------------------------------------------------
+//
+// The same mechanism as progress-store's, for the same reasons: whole snapshots,
+// memory-only, capped. It exists so a sync from the header can be taken back in
+// one press -- a lookup replaces levels you may have typed by hand, and the
+// toast that reports it is the place to change your mind.
+
+const UNDO_LIMIT = 50;
+interface Snapshot {
+  profile: PlayerProfile;
+  source: ProfileSource;
+}
+let undoStack: Snapshot[] = [];
+
+/** The state before the most recent change, if there is one to go back to. */
+export function canUndo(): boolean {
+  return undoStack.length > 0;
+}
+
+/** Steps back one change. Returns false when there's nothing to step back to. */
+export function undo(): boolean {
+  const previous = undoStack.pop();
+  if (previous === undefined) return false;
+  commit(previous.profile, previous.source, false);
+  return true;
+}
+
+function commit(
+  next: PlayerProfile,
+  source: ProfileSource,
+  undoable = true,
+): void {
+  if (undoable) {
+    undoStack.push({ profile: current, source: currentSource });
+    if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+  }
   current = next;
   currentSource = source;
   const payload: StoredProfile = {
@@ -196,10 +231,13 @@ export function refreshFromStorage(): void {
   if (sameProfile(next, current)) return;
   current = next;
   currentSource = loadSource();
+  // Another tab is the authority now, so this tab's history no longer applies.
+  undoStack = [];
   for (const listener of listeners) listener();
 }
 
-function sameProfile(a: PlayerProfile, b: PlayerProfile): boolean {
+/** Whether two profiles hold the same levels and the same finished quests. */
+export function sameProfile(a: PlayerProfile, b: PlayerProfile): boolean {
   const aLevels = Object.entries(a.levels);
   if (aLevels.length !== Object.keys(b.levels).length) return false;
   if (aLevels.some(([skill, level]) => b.levels[skill] !== level)) return false;
