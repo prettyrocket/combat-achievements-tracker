@@ -632,6 +632,8 @@ export default function App() {
       <ManualDialog
         open={manualOpen}
         onOpenChange={setManualOpen}
+        lastRsn={prefs.lastRsn}
+        onRsnCommit={rememberRsn}
         profile={profile.profile}
         profileIsEmpty={profile.isEmpty}
         onSetLevel={profile.setLevel}

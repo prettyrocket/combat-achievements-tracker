@@ -1,12 +1,14 @@
 // The levels-and-quests form on its own, for the header's Load button.
 //
 // Somebody who types their levels in has nothing to fetch, so their Load is
-// the form itself -- without the rail, the name row, or the sources they don't
-// use. The full dialog stays on Profile.
+// the form itself -- without the rail or the sources they don't use. The name
+// row stays: with nothing to look up it's the only place a Manual player would
+// say who they are. The full dialog stays on Profile.
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PlayerProfile } from "@/lib/requirements";
 import { ManualPanel } from "@/components/load/manual-panel";
+import { NameRow } from "@/components/load/name-row";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +19,10 @@ import {
 export interface ManualDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** The account this browser tracks, which seeds the name row. */
+  lastRsn: string | null;
+  /** Remembers the name, on close -- the same timing as the full dialog. */
+  onRsnCommit: (rsn: string) => void;
   profile: PlayerProfile;
   profileIsEmpty: boolean;
   onSetLevel: (skill: string, level: number) => void;
@@ -29,6 +35,8 @@ export interface ManualDialogProps {
 export function ManualDialog({
   open,
   onOpenChange,
+  lastRsn,
+  onRsnCommit,
   profile,
   profileIsEmpty,
   onSetLevel,
@@ -39,15 +47,22 @@ export function ManualDialog({
   // Same rule as the full dialog's by-hand pane: opening the form to look at it
   // isn't a sync, typing into it is.
   const edited = useRef(false);
+  const [rsn, setRsn] = useState("");
   useEffect(() => {
-    if (open) edited.current = false;
-  }, [open]);
+    if (!open) return;
+    edited.current = false;
+    setRsn(lastRsn ?? "");
+  }, [open, lastRsn]);
 
   return (
     <Dialog
       open={open}
       onOpenChange={(next) => {
-        if (!next && edited.current && !profileIsEmpty) onManualLanded();
+        if (!next) {
+          const name = rsn.trim();
+          if (name !== "") onRsnCommit(name);
+          if (edited.current && !profileIsEmpty) onManualLanded();
+        }
         onOpenChange(next);
       }}
     >
@@ -55,6 +70,7 @@ export function ManualDialog({
         <DialogHeader>
           <DialogTitle>Levels and quests</DialogTitle>
         </DialogHeader>
+        <NameRow rsn={rsn} onChange={setRsn} />
         <ManualPanel
           profile={profile}
           isEmpty={profileIsEmpty}

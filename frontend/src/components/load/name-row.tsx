@@ -2,7 +2,8 @@
 //
 // Its own file because it is the one piece of the Load dialog that belongs to
 // the dialog rather than to a pane: everything in pane-parts.tsx is furniture
-// the five panes share, and this sits above all of them.
+// the five panes share, and this sits above all of them. The by-hand form's own
+// dialog (manual-dialog.tsx) borrows it too.
 //
 // Not an input to importing -- the identity of the profile being built, which
 // is why it shows on every source including the two that never send it
