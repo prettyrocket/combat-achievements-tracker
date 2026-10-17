@@ -22,6 +22,7 @@ import {
   DEFAULT_LOAD_SOURCE,
   LOAD_SOURCES,
   readLastSource,
+  readStoredSource,
   writeLastSource,
   type AccountSource,
   type LoadSourceId,
@@ -113,6 +114,13 @@ export function LoadDialog({
   function close() {
     const name = rsn.trim();
     if (name !== "") onRsnCommit(name);
+    // The form has no Import to land, so typing into it is what counts as
+    // landing. Only when nothing else is remembered, though: somebody who syncs
+    // from RuneProfile and nudges one level by hand still syncs from RuneProfile.
+    if (active === "manual" && !profileIsEmpty) {
+      const stored = readStoredSource();
+      if (stored === null || stored === "file") writeLastSource("manual");
+    }
     onOpenChange(false);
   }
 

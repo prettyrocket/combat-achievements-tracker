@@ -12,6 +12,8 @@ import { TASKS } from "@/data/tasks";
 import { TaskTable } from "@/components/task-table";
 import { ProgressToolbar } from "@/components/toolbar";
 import { LoadDialog } from "@/components/load-dialog";
+import { ManualDialog } from "@/components/load/manual-dialog";
+import { LoadIcon } from "@/components/toolbar/load-icon";
 import { FilterBar } from "@/components/filter-bar";
 import { MonsterBreadcrumb } from "@/components/monster-breadcrumb";
 import { ShareCodePrompt } from "@/components/share-code-prompt";
@@ -45,7 +47,13 @@ import { DEFAULT_SORT, applyQuery } from "@/lib/task-query";
 import { useMonsterFilter } from "@/lib/use-monster-filter";
 import { useProfile } from "@/lib/use-profile";
 import { isSideDocked, type ListPosition } from "@/lib/list-position";
-import type { AccountSource, LoadSourceId } from "@/lib/load-source";
+import {
+  readStoredSource,
+  type AccountSource,
+  type LoadSourceId,
+} from "@/lib/load-source";
+import { quickLoadFor } from "@/lib/quick-load";
+import { useQuickLoad } from "@/lib/use-quick-load";
 import { useProgress } from "@/lib/use-progress";
 import { useShareCode } from "@/lib/use-share-code";
 import { useTaskList } from "@/lib/use-tasklist";
@@ -83,6 +91,7 @@ export default function App() {
     toggle,
     setMany,
     reset,
+    undo: undoProgress,
     storageError,
   } = useProgress();
   const { query, setQuery, clear } = useTaskQuery();
@@ -121,10 +130,10 @@ export default function App() {
   const [notice, setNotice] = useState<Notice | null>(null);
   const dismissNotice = useCallback(() => setNotice(null), []);
 
-  const openProfileEditor = useCallback(() => {
-    setLoadSource("manual");
-    setLoadOpen(true);
-  }, []);
+  // The levels form on its own -- from the requirement filter as well as from
+  // Load. The full dialog with every source is Profile's alone.
+  const [manualOpen, setManualOpen] = useState(false);
+  const openProfileEditor = useCallback(() => setManualOpen(true), []);
 
   const openLoad = useCallback(() => setLoadOpen(true), []);
 
@@ -164,12 +173,42 @@ export default function App() {
     return () => window.clearTimeout(timer);
   }, [pointAtProfile, view]);
 
+  // How you last loaded, which decides what the header's Load does. Read again
+  // whenever the dialog closes, since that's where it gets written.
+  const [lastLoadedFrom, setLastLoadedFrom] = useState(readStoredSource);
+
   const onLoadOpenChange = useCallback((open: boolean) => {
     setLoadOpen(open);
     // Cleared on close so the next plain Load click gets the remembered source
     // rather than being pinned to wherever the filter last sent you.
-    if (!open) setLoadSource(null);
+    if (!open) {
+      setLoadSource(null);
+      setLastLoadedFrom(readStoredSource());
+    }
   }, []);
+
+  const goToProfile = useCallback(() => setView("profile"), [setView]);
+  const quickLoadKind = quickLoadFor(lastLoadedFrom, prefs.lastRsn);
+  const quickLoad = useQuickLoad({
+    kind: quickLoadKind,
+    rsn: prefs.lastRsn,
+    completed,
+    profile: profile.profile,
+    setMany,
+    setProfile,
+    importLevels: profile.importLevels,
+    undoProgress,
+    undoProfile: profile.undo,
+    onNotice: setNotice,
+    goToProfile,
+  });
+
+  const { sync } = quickLoad;
+  const onHeaderLoad = useCallback(() => {
+    if (quickLoadKind === "manual") setManualOpen(true);
+    else if (quickLoadKind === "setup") goToProfile();
+    else void sync();
+  }, [quickLoadKind, goToProfile, sync]);
 
   /**
    * Rethrows rather than swallowing: the file pane shows the failure beside its
@@ -378,7 +417,9 @@ export default function App() {
               onReset={reset}
               onClearList={taskList.clear}
               onClearProfile={profile.clear}
-              onLoadOpen={openLoad}
+              onLoad={onHeaderLoad}
+              loadIcon={<LoadIcon kind={quickLoadKind} />}
+              loadBusy={quickLoad.busy}
               onNotice={setNotice}
               manualTracking={prefs.manualTracking}
               onManualTrackingChange={prefs.setManualTracking}
@@ -540,6 +581,16 @@ export default function App() {
       />
 
       <Toast notice={notice} onDismiss={dismissNotice} />
+
+      <ManualDialog
+        open={manualOpen}
+        onOpenChange={setManualOpen}
+        profile={profile.profile}
+        profileIsEmpty={profile.isEmpty}
+        onSetLevel={profile.setLevel}
+        onSetQuest={profile.setQuest}
+        onClearProfile={profile.clear}
+      />
 
       <WelcomeDialog
         open={welcomeOpen}

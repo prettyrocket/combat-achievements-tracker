@@ -16,14 +16,14 @@
 // One button and one menu at every width, so the header never has to wrap or
 // rearrange itself to fit a narrow window.
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   Download,
   Ellipsis,
   Link2,
+  LoaderCircle,
   RotateCcw,
   Settings,
-  Upload,
 } from "lucide-react";
 import type { ListPosition } from "@/lib/list-position";
 import type { Notice } from "@/lib/notice";
@@ -53,8 +53,12 @@ export interface ProgressToolbarProps {
   onReset: () => void;
   onClearList: () => void;
   onClearProfile: () => void;
-  /** Opens the Load dialog, which App owns. */
-  onLoadOpen: () => void;
+  /** What Load does depends on how you last loaded -- see quick-load.ts. */
+  onLoad: () => void;
+  /** The source's own mark, so the button says where it will load from. */
+  loadIcon: ReactNode;
+  /** A lookup is running. */
+  loadBusy: boolean;
   /**
    * Owned by App because a file import finishes *after* its dialog has closed,
    * and that message describes three stores at once -- it has to outlive the
@@ -78,7 +82,9 @@ export function ProgressToolbar({
   onReset,
   onClearList,
   onClearProfile,
-  onLoadOpen,
+  onLoad,
+  loadIcon,
+  loadBusy,
   onNotice,
   manualTracking,
   onManualTrackingChange,
@@ -101,11 +107,20 @@ export function ProgressToolbar({
 
   return (
     <div className="flex items-center gap-2">
-      {/* One button, because there is one question -- where should this come
-          from -- and the dialog is where it gets asked. A menu here would be
-          the same five options with nowhere to say what any of them carry. */}
-      <Button variant="outline" size="sm" onClick={onLoadOpen}>
-        <Upload className="size-4" aria-hidden />
+      {/* One button, and it repeats whatever you set up rather than asking
+          again: the full dialog lives on Profile. */}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={onLoad}
+        disabled={loadBusy}
+        aria-busy={loadBusy}
+      >
+        {loadBusy ? (
+          <LoaderCircle className="size-4 animate-spin" aria-hidden />
+        ) : (
+          loadIcon
+        )}
         Load
       </Button>
 

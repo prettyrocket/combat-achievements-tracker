@@ -82,10 +82,22 @@ const STORAGE_KEY = "ca-tracker:load-source:v1";
  * player re-pick it every time is a click that buys nothing.
  */
 export function readLastSource(): LoadSourceId {
+  return readStoredSource() ?? DEFAULT_LOAD_SOURCE;
+}
+
+/**
+ * The source last imported from, or null if nothing ever landed -- or what
+ * landed came from a source that has since been retired.
+ *
+ * Separate from readLastSource because the header's Load button asks a
+ * different question: not "where should the dialog open" but "has this person
+ * set anything up yet".
+ */
+export function readStoredSource(): LoadSourceId | null {
   const stored = readJson(STORAGE_KEY);
   return typeof stored === "string" && IDS.has(stored)
     ? (stored as LoadSourceId)
-    : DEFAULT_LOAD_SOURCE;
+    : null;
 }
 
 /**
