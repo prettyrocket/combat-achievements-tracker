@@ -20,10 +20,10 @@ export function RarestCard({ tasks }: { tasks: readonly RareTask[] }) {
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{task.name}</p>
               <p className="text-muted-foreground truncate text-xs">
+                {task.monster && <>{task.monster} · </>}
                 <span className={TIER_TEXT_CLASS[task.tier]}>
                   {TIER_LABEL[task.tier]}
                 </span>
-                {task.monster && <> · {task.monster}</>}
               </p>
             </div>
             <span className="shrink-0 text-base font-semibold tabular-nums">
