@@ -31,3 +31,13 @@ export const TIER_FILL_CLASS: Record<Tier, string> = {
   MASTER: "bg-rose-400/25",
   GRANDMASTER: "bg-fuchsia-400/25",
 };
+
+/** The ramp at full strength, for a bar that is the whole of the mark. */
+export const TIER_BAR_CLASS: Record<Tier, string> = {
+  EASY: "bg-emerald-400",
+  MEDIUM: "bg-sky-400",
+  HARD: "bg-violet-400",
+  ELITE: "bg-amber-400",
+  MASTER: "bg-rose-400",
+  GRANDMASTER: "bg-fuchsia-400",
+};
