@@ -1,37 +1,49 @@
-// The full form: worth its height while you're planning.
+// Overall progress and the next reward, over a chip per tier.
 
-import type { ReactNode } from "react";
+import { percent } from "@/lib/progress-summary";
 import type { RewardStatus } from "@/lib/rewards";
 import type { ProgressSummary } from "@/lib/types";
-import { Meter } from "@/components/progress-header/meter";
-import { RewardStat } from "@/components/progress-header/reward-stat";
-import { TierChips } from "@/components/progress-header/tier-chips";
+import { Meter } from "@/components/profile-view/meter";
+import { RewardStat } from "@/components/profile-view/reward-stat";
+import { TierChips } from "@/components/profile-view/tier-chips";
 
-export function ExpandedSummary({
-  who,
-  headline,
-  overall,
+export function SummaryCard({
   summary,
   rewards,
+  rsn,
 }: {
-  who: ReactNode;
-  headline: string;
-  overall: number;
   summary: ProgressSummary;
   rewards: RewardStatus;
+  /** Whose progress this is, or null before anything has been loaded. */
+  rsn: string | null;
 }) {
+  const overall = percent(summary.pointsEarned, summary.pointsTotal);
+
   return (
-    <>
+    <section
+      aria-label="Progress summary"
+      className="rounded-lg border p-4 xl:max-w-5xl"
+    >
       {/* The two headline facts as a pair of columns: how much of the game is
           done, and what the next reward costs. Same three-part shape each --
           headline, meter, detail -- and half the card apiece, which is what keeps
           the meters a readable length instead of the hairline a single full-width
           bar had become. */}
-      <div className="grid gap-x-8 gap-y-5 pr-10 sm:grid-cols-2">
+      <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
         <div>
           <h2 className="text-lg font-semibold tabular-nums">
-            {who}
-            {headline}%
+            {/* The figure belongs to somebody, so their name goes in front of
+                it. Nothing at all before a first load: a blank slot where a
+                name goes reads as a bug. */}
+            {rsn && (
+              <>
+                {rsn}{" "}
+                <span className="text-muted-foreground font-normal">
+                  ·
+                </span>{" "}
+              </>
+            )}
+            {overall.toFixed(1)}%
             <span className="text-muted-foreground text-sm font-normal">
               {" "}
               complete
@@ -64,11 +76,9 @@ export function ExpandedSummary({
         <RewardStat status={rewards} />
       </div>
 
-      {/* The same chips the collapsed form shows, under a rule: expanding adds
-          the two columns above them, it doesn't redraw what was already there. */}
       <div className="mt-4 border-t pt-3.5">
         <TierChips perTier={summary.perTier} />
       </div>
-    </>
+    </section>
   );
 }

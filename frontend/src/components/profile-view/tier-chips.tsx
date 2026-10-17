@@ -1,10 +1,8 @@
-// The six tier chips, in both forms of the header.
+// The six tier chips, under the summary card's two stat columns.
 //
-// The expanded view used to draw its own tier meters -- a name row, a bar and a
-// points row each. The chips say the same thing in a sixth of the space and are
-// already the collapsed view's answer to the same question, so expanding is now
-// about what the chips *can't* tell you: the overall figure and the next reward.
-// Per-tier points live in the chip's tooltip, as they already did when collapsed.
+// The card used to draw its own tier meters -- a name row, a bar and a points
+// row each. The chips say the same thing in a sixth of the space. Per-tier
+// points live in the chip's tooltip.
 
 import { percent } from "@/lib/progress-summary";
 import { TIER_FILL_CLASS } from "@/lib/tier-style";

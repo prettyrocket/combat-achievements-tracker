@@ -13,6 +13,10 @@ describe("parseView", () => {
     expect(parseView(params("view=list"))).toBe("list");
   });
 
+  it("reads the profile", () => {
+    expect(parseView(params("view=profile"))).toBe("profile");
+  });
+
   it("treats a view it doesn't know as the table", () => {
     expect(parseView(params("view=kanban"))).toBe("table");
   });

@@ -7,12 +7,11 @@
 // thing an App file should be for.
 
 import { useCallback, useMemo, useState } from "react";
-import { ListChecks, Table2 } from "lucide-react";
+import { ListChecks, Table2, UserRound } from "lucide-react";
 import { TASKS } from "@/data/tasks";
 import { TaskTable } from "@/components/task-table";
 import { ProgressToolbar } from "@/components/toolbar";
 import { LoadDialog } from "@/components/load-dialog";
-import { ProgressHeader } from "@/components/progress-header";
 import { FilterBar } from "@/components/filter-bar";
 import { MonsterBreadcrumb } from "@/components/monster-breadcrumb";
 import { ShareCodePrompt } from "@/components/share-code-prompt";
@@ -21,6 +20,7 @@ import { TaskDragProvider } from "@/components/task-drag-provider";
 import { PlanOverlay } from "@/components/plan-overlay";
 import { TaskListPanel } from "@/components/tasklist-panel";
 import { ListView } from "@/components/list-view";
+import { ProfileView } from "@/components/profile-view";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { importBackup } from "@/lib/backup";
 import type { Notice } from "@/lib/notice";
@@ -319,6 +319,14 @@ export default function App() {
               <ListChecks />
               <span className="max-sm:hidden">My list</span>
             </ToggleGroupItem>
+            <ToggleGroupItem
+              value="profile"
+              aria-label="Profile"
+              className="sm:px-3"
+            >
+              <UserRound />
+              <span className="max-sm:hidden">Profile</span>
+            </ToggleGroupItem>
           </ToggleGroup>
           <div className="justify-self-end">
             <ProgressToolbar
@@ -350,7 +358,15 @@ export default function App() {
           </p>
         )}
 
-        {view === "list" ? (
+        {view === "profile" ? (
+          <main className="mt-4 min-h-0 flex-1">
+            <ProfileView
+              summary={summary}
+              rewards={rewards}
+              rsn={prefs.lastRsn}
+            />
+          </main>
+        ) : view === "list" ? (
           <main className="mt-3 min-h-0 flex-1">
             <ListView
               entries={entries}
@@ -366,14 +382,6 @@ export default function App() {
         ) : (
           <>
             <div className="shrink-0">
-              <ProgressHeader
-                summary={summary}
-                rewards={rewards}
-                rsn={prefs.lastRsn}
-                compact={prefs.compactSummary}
-                onCompactChange={prefs.setCompactSummary}
-              />
-
               <FilterBar
                 query={query}
                 onChange={setQuery}

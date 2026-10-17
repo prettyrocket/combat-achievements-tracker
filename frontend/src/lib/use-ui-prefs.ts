@@ -16,7 +16,6 @@ import { readJson, writeJson } from "@/lib/local-store";
 import { fromAnAccount, type ProgressSource } from "@/lib/progress-store";
 
 const PANEL_KEY = "ca-tracker:tasklist-open:v1";
-const COMPACT_KEY = "ca-tracker:summary-compact:v1";
 const MANUAL_TRACKING_KEY = "ca-tracker:manual-tracking:v1";
 const LIST_POSITION_KEY = "ca-tracker:list-position:v1";
 // The account the last WikiSync import came from, so a later import can tell
@@ -26,20 +25,6 @@ const RSN_KEY = "ca-tracker:last-rsn:v1";
 function storedFlag(key: string, fallback: boolean): boolean {
   const stored = readJson(key);
   return typeof stored === "boolean" ? stored : fallback;
-}
-
-/**
- * Whether the summary should start collapsed, for someone who has never said.
- *
- * Nothing above the table scrolls away any more, which is the point -- but it
- * also means the header block is charged to the table's height. On a short or
- * narrow window the six tier meters would leave a table two rows tall, so the
- * first impression there is the one-line form. Say otherwise once and that
- * choice is remembered.
- */
-function compactByDefault(): boolean {
-  if (typeof window === "undefined") return false;
-  return window.innerWidth < 1024 || window.innerHeight < 900;
 }
 
 /**
@@ -66,8 +51,6 @@ export function resolveManualTracking(
 export interface UiPrefs {
   panelOpen: boolean;
   setPanelOpen: (open: boolean) => void;
-  compactSummary: boolean;
-  setCompactSummary: (compact: boolean) => void;
   /**
    * Whether the checkboxes are there at all.
    *
@@ -95,9 +78,6 @@ export function useUiPrefs(progressSource: ProgressSource): UiPrefs {
   const [panelOpen, setPanelOpenState] = useState(() =>
     storedFlag(PANEL_KEY, true),
   );
-  const [compactSummary, setCompactSummaryState] = useState(() =>
-    storedFlag(COMPACT_KEY, compactByDefault()),
-  );
   // `null` means never answered -- see resolveManualTracking for what that buys.
   const [chosenManualTracking, setChosenManualTracking] = useState<
     boolean | null
@@ -121,11 +101,6 @@ export function useUiPrefs(progressSource: ProgressSource): UiPrefs {
     writeJson(PANEL_KEY, open);
   }, []);
 
-  const setCompactSummary = useCallback((compact: boolean) => {
-    setCompactSummaryState(compact);
-    writeJson(COMPACT_KEY, compact);
-  }, []);
-
   const setManualTracking = useCallback((allowed: boolean) => {
     setChosenManualTracking(allowed);
     writeJson(MANUAL_TRACKING_KEY, allowed);
@@ -146,8 +121,6 @@ export function useUiPrefs(progressSource: ProgressSource): UiPrefs {
   return {
     panelOpen,
     setPanelOpen,
-    compactSummary,
-    setCompactSummary,
     manualTracking: resolveManualTracking(chosenManualTracking, progressSource),
     setManualTracking,
     listPosition,

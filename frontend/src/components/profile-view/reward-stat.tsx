@@ -1,6 +1,6 @@
 import { Swords } from "lucide-react";
 import type { RewardStatus } from "@/lib/rewards";
-import { HiltLink, Meter } from "@/components/progress-header/meter";
+import { HiltLink, Meter } from "@/components/profile-view/meter";
 
 /**
  * What the points are for, as the second of the two stat columns.
