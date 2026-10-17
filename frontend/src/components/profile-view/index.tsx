@@ -11,7 +11,6 @@ import type { ProgressSummary } from "@/lib/types";
 import { RewardCard } from "@/components/profile-view/reward-card";
 import { SummaryCard } from "@/components/profile-view/summary";
 import { TierCard } from "@/components/profile-view/tier-card";
-import { SyncSection } from "@/components/profile-view/sync-section";
 
 export interface ProfileViewProps {
   summary: ProgressSummary;
@@ -44,18 +43,17 @@ export function ProfileView({
       {/* Side by side once there's the width, so neither meter stretches into
           the hairline a single full-width bar becomes. */}
       <div className="grid w-full gap-3 md:grid-cols-2 xl:max-w-5xl">
-        <SummaryCard summary={summary} rsn={rsn} />
+        <SummaryCard
+          kind={syncKind}
+          rsn={rsn}
+          busy={syncBusy}
+          onSync={onSync}
+          onChange={onLoadOpen}
+          onPick={onLoadSource}
+        />
         <RewardCard status={rewards} />
         <TierCard summary={summary} />
       </div>
-      <SyncSection
-        kind={syncKind}
-        rsn={rsn}
-        busy={syncBusy}
-        onSync={onSync}
-        onChange={onLoadOpen}
-        onPick={onLoadSource}
-      />
     </div>
   );
 }

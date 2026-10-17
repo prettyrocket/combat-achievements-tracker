@@ -14,7 +14,10 @@ export function TierCard({ summary }: { summary: ProgressSummary }) {
   const [measure, setMeasure] = useState<Measure>("percent");
 
   return (
-    <section aria-labelledby="progress-heading" className="rounded-lg border p-4">
+    <section
+      aria-labelledby="progress-heading"
+      className="rounded-lg border p-4"
+    >
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 id="progress-heading" className="font-semibold">
           Progress
