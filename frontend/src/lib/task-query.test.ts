@@ -10,7 +10,6 @@ import {
   pivotToMonster,
   removeMonster,
   serializeQuery,
-  sortDirection,
   sortTasks,
 } from "@/lib/task-query";
 import type { PlayerProfile } from "@/lib/requirements";
@@ -287,16 +286,8 @@ describe("filterTasks: requirements", () => {
   });
 });
 
-describe("sortDirection", () => {
-  it("reads the direction off the key", () => {
-    expect(sortDirection("comp_desc")).toBe("desc");
-    expect(sortDirection("tier_asc")).toBe("asc");
-  });
-});
-
 describe("sortTasks", () => {
-  // Groups are where you look things up, so they keep the column's natural
-  // order; the sort decides the order of rows inside each one.
+  // Groups come in their column's order; the sort orders the rows inside each.
   it("orders by the group first, then by the sort within each group", () => {
     const tasks = [
       task({ wikiId: 1, tier: "HARD", completionPct: 10 }),
@@ -304,93 +295,56 @@ describe("sortTasks", () => {
       task({ wikiId: 3, tier: "HARD", completionPct: 90 }),
       task({ wikiId: 4, tier: "EASY", completionPct: 80 }),
     ];
-    expect(sortTasks(tasks, "comp_desc", "tier").map((t) => t.wikiId)).toEqual([
+    expect(sortTasks(tasks, "comp", "tier").map((t) => t.wikiId)).toEqual([
       4, 2, 3, 1,
     ]);
   });
 
-  it("keeps groups in natural order when the sort is the same column reversed", () => {
-    const tasks = [
-      task({ wikiId: 1, monster: "Zulrah" }),
-      task({ wikiId: 2, monster: "Abyssal Sire" }),
-      task({ wikiId: 3, monster: null }),
-    ];
-    expect(
-      sortTasks(tasks, "monster_desc", "monster").map((t) => t.wikiId),
-    ).toEqual([2, 1, 3]);
-  });
-
   it("defaults to most-completed first, the easiest-remaining view", () => {
-    expect(DEFAULT_SORT).toBe("comp_desc");
+    expect(DEFAULT_SORT).toBe("comp");
   });
 
-  it("sorts by completion percentage descending", () => {
+  it("sorts by completion percentage, most common first", () => {
     const tasks = [
       task({ completionPct: 5 }),
       task({ completionPct: 70 }),
       task({ completionPct: 30 }),
     ];
-    expect(sortTasks(tasks, "comp_desc").map((t) => t.completionPct)).toEqual([
+    expect(sortTasks(tasks, "comp").map((t) => t.completionPct)).toEqual([
       70, 30, 5,
     ]);
   });
 
-  it("sorts by completion percentage ascending", () => {
-    const tasks = [
-      task({ completionPct: 5 }),
-      task({ completionPct: 70 }),
-      task({ completionPct: 30 }),
-    ];
-    expect(sortTasks(tasks, "comp_asc").map((t) => t.completionPct)).toEqual([
-      5, 30, 70,
-    ]);
-  });
-
-  // The 9 newest tasks have no Comp% yet. "Unknown" is not "rarest": letting
-  // nulls win the ascending sort would park a whole new boss at the top of the
-  // list and bury the actual answer.
-  it("puts unknown percentages last in BOTH directions", () => {
+  // The 9 newest tasks have no Comp% yet. Unknown is not "least common", so it
+  // goes after everything that is known.
+  it("puts unknown percentages last", () => {
     const tasks = [task({ completionPct: null }), task({ completionPct: 40 })];
-    expect(sortTasks(tasks, "comp_desc").map((t) => t.completionPct)).toEqual([
-      40,
-      null,
-    ]);
-    expect(sortTasks(tasks, "comp_asc").map((t) => t.completionPct)).toEqual([
+    expect(sortTasks(tasks, "comp").map((t) => t.completionPct)).toEqual([
       40,
       null,
     ]);
   });
 
-  it("sorts by tier in both directions", () => {
+  it("sorts by tier, easiest first", () => {
     const tasks = [
       task({ tier: "MASTER" }),
       task({ tier: "EASY" }),
       task({ tier: "ELITE" }),
     ];
-    expect(sortTasks(tasks, "tier_asc").map((t) => t.tier)).toEqual([
+    expect(sortTasks(tasks, "tier").map((t) => t.tier)).toEqual([
       "EASY",
       "ELITE",
       "MASTER",
-    ]);
-    expect(sortTasks(tasks, "tier_desc").map((t) => t.tier)).toEqual([
-      "MASTER",
-      "ELITE",
-      "EASY",
     ]);
   });
 
-  it("sorts by points, biggest first by default", () => {
+  it("sorts by points, biggest first", () => {
     const tasks = [
       task({ tier: "EASY" }),
       task({ tier: "GRANDMASTER" }),
       task({ tier: "HARD" }),
     ];
-    expect(sortTasks(tasks, "points_desc").map((t) => t.points)).toEqual([
-      6, 3, 1,
-    ]);
-    expect(sortTasks(tasks, "points_asc").map((t) => t.points)).toEqual([
-      1, 3, 6,
-    ]);
+    expect(sortTasks(tasks, "points").map((t) => t.points)).toEqual([6, 3, 1]);
   });
 
   // Restriction comes before Mechanical in the game's order; A to Z it doesn't.
@@ -400,32 +354,22 @@ describe("sortTasks", () => {
       task({ type: "STAMINA" }),
       task({ type: "MECHANICAL" }),
     ];
-    expect(sortTasks(tasks, "type_asc").map((t) => t.type)).toEqual([
+    expect(sortTasks(tasks, "type").map((t) => t.type)).toEqual([
       "MECHANICAL",
       "RESTRICTION",
       "STAMINA",
-    ]);
-    expect(sortTasks(tasks, "type_desc").map((t) => t.type)).toEqual([
-      "STAMINA",
-      "RESTRICTION",
-      "MECHANICAL",
     ]);
   });
 
-  it("sorts by monster, with the no-monster tasks last in both directions", () => {
+  it("sorts by monster A to Z, with the no-monster tasks last", () => {
     const tasks = [
       task({ monster: "Zulrah" }),
       task({ monster: null }),
       task({ monster: "Araxxor" }),
     ];
-    expect(sortTasks(tasks, "monster_asc").map((t) => t.monster)).toEqual([
+    expect(sortTasks(tasks, "monster").map((t) => t.monster)).toEqual([
       "Araxxor",
       "Zulrah",
-      null,
-    ]);
-    expect(sortTasks(tasks, "monster_desc").map((t) => t.monster)).toEqual([
-      "Zulrah",
-      "Araxxor",
       null,
     ]);
   });
@@ -438,8 +382,8 @@ describe("sortTasks", () => {
       task({ completionPct: 10 }),
       task({ completionPct: 10 }),
     ];
-    const forward = sortTasks(tasks, "comp_desc");
-    const reversed = sortTasks([...tasks].reverse(), "comp_desc");
+    const forward = sortTasks(tasks, "comp");
+    const reversed = sortTasks([...tasks].reverse(), "comp");
     expect(ids(forward)).toEqual(ids(reversed));
     expect(ids(forward)).toEqual([...ids(tasks)].sort((a, b) => a - b));
   });
@@ -447,7 +391,7 @@ describe("sortTasks", () => {
   it("does not mutate the array it was given", () => {
     const tasks = [task({ completionPct: 5 }), task({ completionPct: 70 })];
     const before = ids(tasks);
-    sortTasks(tasks, "comp_desc");
+    sortTasks(tasks, "comp");
     expect(ids(tasks)).toEqual(before);
   });
 });
@@ -461,7 +405,7 @@ describe("applyQuery", () => {
     ];
     const result = applyQuery(
       tasks,
-      { tier: ["EASY"], sort: "comp_desc" },
+      { tier: ["EASY"], sort: "comp" },
       new Set(),
     );
     expect(result.map((t) => t.completionPct)).toEqual([80, 10]);
@@ -484,7 +428,7 @@ describe("serializeQuery / parseQuery", () => {
 
   it("omits the default sort but keeps a non-default one", () => {
     expect(serializeQuery({ sort: DEFAULT_SORT }).toString()).toBe("");
-    expect(serializeQuery({ sort: "tier_desc" }).get("sort")).toBe("tier_desc");
+    expect(serializeQuery({ sort: "tier" }).get("sort")).toBe("tier");
   });
 
   it("omits empty facet lists and blank searches", () => {
@@ -511,7 +455,7 @@ describe("serializeQuery / parseQuery", () => {
     ["completed false", { completed: false }],
     ["requirements met", { reqs: "met" as const }],
     ["requirements unmet", { reqs: "unmet" as const }],
-    ["a sort", { sort: "tier_asc" as const }],
+    ["a sort", { sort: "tier" as const }],
     ["a grouping", { group: "tier" as const }],
     [
       "everything at once",
@@ -521,7 +465,7 @@ describe("serializeQuery / parseQuery", () => {
         monster: ["Zulrah", "Vorkath"],
         q: "orb",
         completed: false,
-        sort: "tier_desc" as const,
+        sort: "tier" as const,
       },
     ],
   ])("round-trips %s", (_label, query) => {
@@ -534,13 +478,22 @@ describe("serializeQuery / parseQuery", () => {
     ).toEqual(["Chambers of Xeric: Challenge Mode"]);
   });
 
-  // Links shared before the headers took over sorting still have to work.
-  it("accepts the old directionless sort names", () => {
-    expect(parseQuery(new URLSearchParams("sort=tier")).sort).toBe("tier_asc");
-    expect(parseQuery(new URLSearchParams("sort=name")).sort).toBeUndefined();
-    expect(parseQuery(new URLSearchParams("sort=monster")).sort).toBe(
-      "monster_asc",
+  // Links from when every column had two directions still land on the column.
+  it("keeps the column of an old directional sort and drops the direction", () => {
+    expect(parseQuery(new URLSearchParams("sort=tier_desc")).sort).toBe("tier");
+    expect(parseQuery(new URLSearchParams("sort=monster_asc")).sort).toBe(
+      "monster",
     );
+    expect(
+      parseQuery(new URLSearchParams("sort=comp_asc")).sort,
+    ).toBeUndefined();
+  });
+
+  it("drops the retired name sort", () => {
+    expect(parseQuery(new URLSearchParams("sort=name")).sort).toBeUndefined();
+    expect(
+      parseQuery(new URLSearchParams("sort=name_asc")).sort,
+    ).toBeUndefined();
   });
 
   // The query string is user-editable and shareable, so it is untrusted input.
@@ -602,7 +555,7 @@ describe("isEmptyQuery", () => {
     expect(isEmptyQuery({ tier: ["EASY"] })).toBe(false);
     expect(isEmptyQuery({ q: "x" })).toBe(false);
     expect(isEmptyQuery({ completed: false })).toBe(false);
-    expect(isEmptyQuery({ sort: "tier_desc" })).toBe(false);
+    expect(isEmptyQuery({ sort: "tier" })).toBe(false);
     expect(isEmptyQuery({ monster: ["Zulrah"] })).toBe(false);
   });
 });
@@ -616,7 +569,7 @@ describe("pivotToMonster", () => {
   // boss, and still be looking at that boss's easiest remaining tasks.
   it("keeps sort, completion and facet filters through the pivot", () => {
     const query: TaskQuery = {
-      sort: "comp_desc",
+      sort: "comp",
       completed: false,
       tier: ["EASY", "MEDIUM"],
       type: ["KILL_COUNT"],
@@ -647,7 +600,7 @@ describe("pivotToMonster", () => {
   });
 
   it("round-trips through the URL", () => {
-    const pivoted = pivotToMonster({ sort: "tier_desc" }, "Kree'arra");
+    const pivoted = pivotToMonster({ sort: "tier" }, "Kree'arra");
     expect(parseQuery(serializeQuery(pivoted))).toEqual(pivoted);
   });
 });
@@ -700,12 +653,12 @@ describe("clearMonster", () => {
       monster: ["Zulrah", "Vorkath"],
       tier: ["ELITE"],
       completed: false,
-      sort: "tier_desc",
+      sort: "tier",
     };
     expect(clearMonster(query)).toEqual({
       tier: ["ELITE"],
       completed: false,
-      sort: "tier_desc",
+      sort: "tier",
     });
   });
 
@@ -728,7 +681,7 @@ describe("pivot: end to end over a task list", () => {
       task({ monster: "Zulrah", completionPct: 80 }),
     ];
     const completed = new Set([tasks[0].wikiId]);
-    const start: TaskQuery = { sort: "comp_desc", completed: false };
+    const start: TaskQuery = { sort: "comp", completed: false };
 
     const pivoted = pivotToMonster(start, "Vardorvis");
     expect(ids(applyQuery(tasks, pivoted, completed))).toEqual([

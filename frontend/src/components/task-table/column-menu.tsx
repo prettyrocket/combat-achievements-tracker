@@ -34,30 +34,6 @@ export function isSortableColumn(id: string): id is SortableColumn {
   return id in COLUMN_SORT;
 }
 
-/**
- * What each direction means, in the column's own words. "Ascending" makes you
- * work out which end of Comp% is the rare one; "Rarest first" doesn't. Keyed by
- * sort rather than by column so the two rows can't come out swapped.
- */
-const SORT_LABEL: Record<SortKey, string> = {
-  monster_asc: "A to Z",
-  monster_desc: "Z to A",
-  type_asc: "A to Z",
-  type_desc: "Z to A",
-  tier_asc: "Easy first",
-  tier_desc: "Grandmaster first",
-  points_desc: "Most points first",
-  points_asc: "Fewest points first",
-  comp_desc: "Most common first",
-  comp_asc: "Rarest first",
-};
-
-const GROUP_LABEL: Record<GroupKey, string> = {
-  monster: "Group by monster",
-  type: "Group by type",
-  tier: "Group by tier",
-};
-
 function isGroupColumn(id: SortableColumn): id is GroupKey {
   return id === "monster" || id === "type" || id === "tier";
 }
@@ -144,7 +120,7 @@ export function ColumnMenu({
   onToggleMonster,
 }: ColumnMenuProps) {
   const [open, setOpen] = useState(false);
-  const pair: readonly SortKey[] = COLUMN_SORT[column];
+  const sortKey: SortKey = COLUMN_SORT[column];
   const groupable = isGroupColumn(column);
   const grouped = groupable && query.group === column;
 
@@ -162,35 +138,32 @@ export function ColumnMenu({
       </PopoverTrigger>
 
       <PopoverContent className="w-64" aria-label={`${name} column`}>
-        {/* A sort is a choice of one, so picking it closes the menu; group and
-            filter rows are the kind you pick several of, so those keep it open. */}
-        <Section label="Sort">
-          {pair.map((key) => (
-            <CheckRow
-              key={key}
-              checked={sort === key}
-              onClick={() => {
-                onSortChange(key);
-                setOpen(false);
-              }}
-            >
-              {SORT_LABEL[key]}
-            </CheckRow>
-          ))}
-        </Section>
-
-        {groupable && (
-          <Section label="Group">
+        {/* Sort and group sit together without a heading: each is one row
+            that says what it does. Sorting is a choice of one, so it closes the
+            menu, and picking the sort already in force just closes it; group
+            and filter rows are the kind you set several of, so those keep it
+            open. */}
+        <div className="border-b p-1 last:border-b-0">
+          <CheckRow
+            checked={sort === sortKey}
+            onClick={() => {
+              if (sort !== sortKey) onSortChange(sortKey);
+              setOpen(false);
+            }}
+          >
+            Sort by {name.toLowerCase()}
+          </CheckRow>
+          {groupable && (
             <CheckRow
               checked={grouped}
               onClick={() =>
                 onQueryChange({ ...query, group: grouped ? undefined : column })
               }
             >
-              {GROUP_LABEL[column]}
+              Group by {name.toLowerCase()}
             </CheckRow>
-          </Section>
-        )}
+          )}
+        </div>
 
         {column === "monster" && (
           <Section label="Filter">
