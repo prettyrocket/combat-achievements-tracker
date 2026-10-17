@@ -7,8 +7,9 @@
 import type { LoadSourceId } from "@/lib/load-source";
 import type { QuickLoad } from "@/lib/quick-load";
 import type { RewardStatus, RewardTier } from "@/lib/rewards";
-import type { ProgressSummary } from "@/lib/types";
+import type { ProgressSummary, TaskRow } from "@/lib/types";
 import { ProfileEmpty } from "@/components/profile-view/empty";
+import { QuickWinsCard } from "@/components/profile-view/quick-wins-card";
 import { RewardCard } from "@/components/profile-view/reward-card";
 import { SummaryCard } from "@/components/profile-view/summary";
 import { TierCard } from "@/components/profile-view/tier-card";
@@ -30,6 +31,11 @@ export interface ProfileViewProps {
   onLoadSource: (source: LoadSourceId) => void;
   /** Off to the catalog, from the empty state. */
   onBrowse: () => void;
+  /** Ranked and cut already -- see quickWins. */
+  quickWins: readonly TaskRow[];
+  /** What's on the plan, so a quick win can show it's already there. */
+  listed: ReadonlySet<number>;
+  onToggleListed: (wikiId: number) => void;
 }
 
 export function ProfileView({
@@ -43,6 +49,9 @@ export function ProfileView({
   onLoadOpen,
   onLoadSource,
   onBrowse,
+  quickWins,
+  listed,
+  onToggleListed,
 }: ProfileViewProps) {
   // Nothing set up, nothing ticked and no name is nobody's progress. Ticks or
   // a name without a source are somebody's, though, so they keep the cards.
@@ -79,6 +88,16 @@ export function ProfileView({
         </div>
         <RewardCard status={rewards} tiers={rewardTiers} />
       </div>
+
+      {quickWins.length > 0 && (
+        <div className="grid w-full items-start gap-3 md:grid-cols-2 xl:max-w-5xl">
+          <QuickWinsCard
+            tasks={quickWins}
+            listed={listed}
+            onToggleListed={onToggleListed}
+          />
+        </div>
+      )}
     </div>
   );
 }

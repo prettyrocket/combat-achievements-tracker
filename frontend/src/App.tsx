@@ -33,6 +33,7 @@ import {
   profileIsEmpty,
   type PlayerProfile,
 } from "@/lib/requirements";
+import { quickWins } from "@/lib/quick-wins";
 import { rewardStatus } from "@/lib/rewards";
 import type { ShareCodeResult } from "@/lib/share-code";
 import { MONSTERS, REWARD_TIERS } from "@/lib/task-index";
@@ -311,6 +312,11 @@ export default function App() {
 
   const listedIds = useMemo(() => new Set(taskList.list), [taskList.list]);
 
+  const wins = useMemo(
+    () => quickWins(TASKS, completed, gates, profile.isEmpty),
+    [completed, gates, profile.isEmpty],
+  );
+
   // A one-press reorder, committed like any other: the plan it hands back is an
   // ordinary plan, and dragging out of a run it just made is allowed.
   const gatherPlan = useCallback(
@@ -494,6 +500,9 @@ export default function App() {
               onLoadOpen={openLoad}
               onLoadSource={openLoadOn}
               onBrowse={goToCatalog}
+              quickWins={wins}
+              listed={listedIds}
+              onToggleListed={taskList.toggle}
             />
           </main>
         ) : view === "list" ? (
