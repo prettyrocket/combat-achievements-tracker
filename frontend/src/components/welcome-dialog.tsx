@@ -7,7 +7,11 @@
 
 import type { ReactNode } from "react";
 import { FileUp, PenLine } from "lucide-react";
-import { LOAD_SOURCES, type LoadSourceId } from "@/lib/load-source";
+import {
+  LOAD_SOURCES,
+  type LoadSourceId,
+  type LoadSourceMeta,
+} from "@/lib/load-source";
 import runeProfileLogo from "@/assets/logos/runeprofile.png";
 import wikiSyncLogo from "@/assets/logos/wikisync.png";
 import wiseOldManLogo from "@/assets/logos/wiseoldman.svg";
@@ -34,6 +38,20 @@ const LOGO: Record<LoadSourceId, ReactNode> = {
   wiseoldman: <Logo src={wiseOldManLogo} />,
   file: <FileUp className="size-8" aria-hidden />,
 };
+
+// Not the rail's order: the two that bring achievements lead, then levels,
+// then the two that need nothing fetched.
+const ORDER: readonly LoadSourceId[] = [
+  "runeprofile",
+  "wikisync",
+  "wiseoldman",
+  "manual",
+  "file",
+];
+
+const CARDS: readonly LoadSourceMeta[] = ORDER.map((id) =>
+  LOAD_SOURCES.find((source) => source.id === id)!,
+);
 
 export interface WelcomeDialogProps {
   open: boolean;
@@ -67,7 +85,7 @@ export function WelcomeDialog({ open, onPick, onSkip }: WelcomeDialogProps) {
             columns with every card spanning two, and the fourth nudged one
             column in. */}
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-6 sm:[&>li:nth-child(4)]:col-start-2">
-          {LOAD_SOURCES.map((source) => (
+          {CARDS.map((source) => (
             <li key={source.id} className="sm:col-span-2">
               <button
                 type="button"
