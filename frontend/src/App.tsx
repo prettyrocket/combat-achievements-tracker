@@ -200,6 +200,7 @@ export default function App() {
   }, []);
 
   const goToProfile = useCallback(() => setView("profile"), [setView]);
+  const goToCatalog = useCallback(() => setView("table"), [setView]);
   const quickLoadKind = quickLoadFor(lastLoadedFrom, prefs.lastRsn);
   const quickLoad = useQuickLoad({
     kind: quickLoadKind,
@@ -491,6 +492,7 @@ export default function App() {
               onSync={onHeaderLoad}
               onLoadOpen={openLoad}
               onLoadSource={openLoadOn}
+              onBrowse={goToCatalog}
             />
           </main>
         ) : view === "list" ? (
