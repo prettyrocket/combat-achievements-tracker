@@ -9,6 +9,8 @@ import {
   SORT_KEYS,
   TIERS,
   TASK_TYPES,
+  GROUP_KEYS,
+  type GroupKey,
   type RequirementFilter,
   type SortKey,
   type TaskQuery,
@@ -167,15 +169,33 @@ function compare(a: TaskRow, b: TaskRow, sort: SortKey): number {
   }
 }
 
+/**
+ * The order groups come in, which is always the column's natural one: groups
+ * are where you look things up, so Vorkath stays where the alphabet put it
+ * whichever way the rows inside are sorted.
+ */
+const GROUP_SORT: Record<GroupKey, SortKey> = {
+  monster: "monster_asc",
+  type: "type_asc",
+  tier: "tier_asc",
+};
+
 export function sortTasks(
   tasks: readonly TaskRow[],
   sort: SortKey = DEFAULT_SORT,
+  group?: GroupKey,
 ): TaskRow[] {
   const key = SORT_KEYS.includes(sort) ? sort : DEFAULT_SORT;
+  const first = group ? GROUP_SORT[group] : null;
   // Copy, so callers can hand us the bundle without it being reordered under them.
   // The id tiebreak keeps equal rows in a fixed order rather than reshuffling
   // whenever some unrelated state change causes a re-sort.
-  return [...tasks].sort((a, b) => compare(a, b, key) || a.wikiId - b.wikiId);
+  return [...tasks].sort(
+    (a, b) =>
+      (first ? compare(a, b, first) : 0) ||
+      compare(a, b, key) ||
+      a.wikiId - b.wikiId,
+  );
 }
 
 export function applyQuery(
@@ -187,6 +207,7 @@ export function applyQuery(
   return sortTasks(
     filterTasks(tasks, query, completed, profile),
     query.sort ?? DEFAULT_SORT,
+    query.group,
   );
 }
 
@@ -256,6 +277,7 @@ export function serializeQuery(query: TaskQuery): URLSearchParams {
   // of a view, and the recipient may well have their own levels entered.
   if (query.reqs !== undefined) params.set("reqs", query.reqs);
   if (query.sort && query.sort !== DEFAULT_SORT) params.set("sort", query.sort);
+  if (query.group) params.set("group", query.group);
   return params;
 }
 
@@ -310,6 +332,11 @@ export function parseQuery(params: URLSearchParams): TaskQuery {
     ? (LEGACY_SORT[raw] ?? (SORT_KEYS.includes(raw as SortKey) ? raw : null))
     : null;
   if (sort && sort !== DEFAULT_SORT) query.sort = sort as SortKey;
+
+  const group = params.get("group");
+  if (group !== null && GROUP_KEYS.includes(group as GroupKey)) {
+    query.group = group as GroupKey;
+  }
 
   return query;
 }

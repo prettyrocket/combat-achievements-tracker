@@ -295,6 +295,31 @@ describe("sortDirection", () => {
 });
 
 describe("sortTasks", () => {
+  // Groups are where you look things up, so they keep the column's natural
+  // order; the sort decides the order of rows inside each one.
+  it("orders by the group first, then by the sort within each group", () => {
+    const tasks = [
+      task({ wikiId: 1, tier: "HARD", completionPct: 10 }),
+      task({ wikiId: 2, tier: "EASY", completionPct: 20 }),
+      task({ wikiId: 3, tier: "HARD", completionPct: 90 }),
+      task({ wikiId: 4, tier: "EASY", completionPct: 80 }),
+    ];
+    expect(sortTasks(tasks, "comp_desc", "tier").map((t) => t.wikiId)).toEqual([
+      4, 2, 3, 1,
+    ]);
+  });
+
+  it("keeps groups in natural order when the sort is the same column reversed", () => {
+    const tasks = [
+      task({ wikiId: 1, monster: "Zulrah" }),
+      task({ wikiId: 2, monster: "Abyssal Sire" }),
+      task({ wikiId: 3, monster: null }),
+    ];
+    expect(
+      sortTasks(tasks, "monster_desc", "monster").map((t) => t.wikiId),
+    ).toEqual([2, 1, 3]);
+  });
+
   it("defaults to most-completed first, the easiest-remaining view", () => {
     expect(DEFAULT_SORT).toBe("comp_desc");
   });
@@ -504,6 +529,7 @@ describe("serializeQuery / parseQuery", () => {
     ["requirements met", { reqs: "met" as const }],
     ["requirements unmet", { reqs: "unmet" as const }],
     ["a sort", { sort: "tier_asc" as const }],
+    ["a grouping", { group: "tier" as const }],
     [
       "everything at once",
       {
@@ -541,6 +567,12 @@ describe("serializeQuery / parseQuery", () => {
     );
     expect(parsed.tier).toEqual(["EASY"]);
     expect(parsed.type).toBeUndefined();
+  });
+
+  it("ignores an unknown grouping", () => {
+    expect(
+      parseQuery(new URLSearchParams("group=description")).group,
+    ).toBeUndefined();
   });
 
   it("ignores an unknown sort key and falls back to the default", () => {

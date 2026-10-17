@@ -26,15 +26,15 @@ import {
 } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { gateReason, type GateCheck } from "@/lib/requirements";
+import { COLUMN_SORT } from "@/lib/task-query";
 import type { SortKey, TaskQuery, TaskRow } from "@/lib/types";
 import { buildColumns, type TableMeta } from "@/components/task-table/columns";
 import { DraggableRow } from "@/components/task-table/draggable-row";
 import { GroupBanner } from "@/components/task-table/group-banner";
 import {
-  HeadFilter,
-  isFilteredColumn,
-} from "@/components/task-table/head-filter";
-import { SortableHead } from "@/components/task-table/sortable-head";
+  ColumnMenu,
+  isSortableColumn,
+} from "@/components/task-table/column-menu";
 import { groupKey, useRowItems } from "@/components/task-table/use-row-items";
 // Note the missing `Table`: that wrapper brings its own `overflow-x-auto` div,
 // and nesting one inside this viewport puts the horizontal scrollbar back at the
@@ -53,6 +53,16 @@ import {
 // and the fallbacks were branches no run of the app could reach. A second caller
 // that genuinely wants a read-only table can make them optional again, with the
 // benefit of knowing what it actually needs.
+/** Each sortable column's name in words, where its header is an abbreviation. */
+const COLUMN_NAME: Record<keyof typeof COLUMN_SORT, string> = {
+  monster: "Monster",
+  name: "Name",
+  type: "Type",
+  tier: "Tier",
+  points: "Points",
+  completionPct: "Completion",
+};
+
 export interface TaskTableProps {
   tasks: readonly TaskRow[];
   completed: ReadonlySet<number>;
@@ -75,10 +85,10 @@ export interface TaskTableProps {
   onAddManyToList: (wikiIds: number[]) => void;
   /** Per-monster requirement verdicts, for the lock marker. */
   gates: ReadonlyMap<string, GateCheck>;
-  /** Current sort, for the header arrows. */
+  /** Current sort, for the header menus. */
   sort: SortKey;
   onSortChange: (next: SortKey) => void;
-  /** The whole query, for the Monster, Type and Tier header filters. */
+  /** The whole query, for the header menus' group and filter options. */
   query: TaskQuery;
   onQueryChange: (next: TaskQuery) => void;
   /** Every monster with its task count, for the Monster header's picker. */
@@ -126,7 +136,10 @@ export function TaskTable({
   const rows = table.getRowModel().rows;
   const viewportRef = useRef<HTMLDivElement>(null);
 
-  const { items, isCollapsed, toggleCollapsed } = useRowItems(rows, sort);
+  const { items, isCollapsed, toggleCollapsed } = useRowItems(
+    rows,
+    query.group,
+  );
 
   const virtualizer = useVirtualizer({
     count: items.length,
@@ -162,27 +175,28 @@ export function TaskTable({
             <TableRow key={group.id} className="hover:bg-transparent">
               {group.headers.map((header) => (
                 <TableHead key={header.id} className="border-b">
-                  {isFilteredColumn(header.column.id) ? (
-                    <span className="inline-flex items-center gap-1">
-                      <SortableHead
-                        header={header}
-                        sort={sort}
-                        onSortChange={onSortChange}
-                      />
-                      <HeadFilter
-                        column={header.column.id}
-                        query={query}
-                        onQueryChange={onQueryChange}
-                        monsters={monsters}
-                        onToggleMonster={onToggleMonster}
-                      />
-                    </span>
-                  ) : (
-                    <SortableHead
-                      header={header}
+                  {isSortableColumn(header.column.id) ? (
+                    <ColumnMenu
+                      column={header.column.id}
+                      label={flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
+                      name={COLUMN_NAME[header.column.id]}
+                      query={query}
                       sort={sort}
                       onSortChange={onSortChange}
+                      onQueryChange={onQueryChange}
+                      monsters={monsters}
+                      onToggleMonster={onToggleMonster}
                     />
+                  ) : (
+                    // The checkbox columns and Description: nothing to sort,
+                    // group or filter by, so the header is just its label.
+                    flexRender(
+                      header.column.columnDef.header,
+                      header.getContext(),
+                    )
                   )}
                 </TableHead>
               ))}
@@ -213,16 +227,18 @@ export function TaskTable({
             if (item.kind === "group") {
               return (
                 <GroupBanner
-                  key={groupKey(item.monster)}
+                  key={groupKey(item.by, item.value)}
                   group={item}
                   index={virtualRow.index}
                   columnCount={columnCount}
                   measureRef={virtualizer.measureElement}
-                  collapsed={isCollapsed(item.monster)}
+                  collapsed={isCollapsed(groupKey(item.by, item.value))}
                   onToggleCollapsed={toggleCollapsed}
                   completed={completed}
                   onList={onList}
-                  requires={gateReason(gates, item.monster)}
+                  requires={
+                    item.by === "monster" ? gateReason(gates, item.value) : null
+                  }
                   onAddManyToList={onAddManyToList}
                 />
               );

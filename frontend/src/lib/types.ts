@@ -125,6 +125,17 @@ export type SortKey = (typeof SORT_KEYS)[number];
 export const REQUIREMENT_FILTERS = ["met", "unmet"] as const;
 export type RequirementFilter = (typeof REQUIREMENT_FILTERS)[number];
 
+/**
+ * The columns the table can be grouped by: the ones with few enough values that
+ * a banner per value is a shape rather than a second row per task.
+ *
+ * Its own setting rather than a side effect of sorting by monster, which is how
+ * grouping started. Tied to the sort, "group by tier, easiest first within" was
+ * a view nobody could ask for.
+ */
+export const GROUP_KEYS = ["monster", "type", "tier"] as const;
+export type GroupKey = (typeof GROUP_KEYS)[number];
+
 // Client-side filter/sort state (was a query string to the API; now it just
 // drives filtering over the in-memory task list, and serialises to the URL).
 export interface TaskQuery {
@@ -137,4 +148,6 @@ export interface TaskQuery {
   /** Inert without a player profile -- see filterTasks. */
   reqs?: RequirementFilter;
   sort?: SortKey;
+  /** Banner rows per value of this column, with the sort applied within each. */
+  group?: GroupKey;
 }

@@ -1,13 +1,25 @@
 import { ChevronDown, ChevronRight, ListPlus, Lock } from "lucide-react";
-import type { GroupItem } from "@/components/task-table/use-row-items";
+import { TIER_LABEL, TYPE_LABEL, type TaskType, type Tier } from "@/lib/types";
+import { TierBadge } from "@/components/tier-badge";
+import {
+  groupKey,
+  type GroupItem,
+} from "@/components/task-table/use-row-items";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+/** How a group reads in words, for the add button's title and label. */
+function groupName({ by, value }: GroupItem): string {
+  if (by === "tier") return TIER_LABEL[value as Tier];
+  if (by === "type") return TYPE_LABEL[value as TaskType];
+  return value ?? "Any monster";
+}
+
 /**
- * A monster's banner: collapses its rows, and puts the whole group on the plan
+ * A group's banner: collapses its rows, and puts the whole group on the plan
  * in one click.
  *
  * Two buttons rather than one clickable row. The row's job is collapsing, which
@@ -32,7 +44,7 @@ export function GroupBanner({
   columnCount: number;
   measureRef: (node: HTMLElement | null) => void;
   collapsed: boolean;
-  onToggleCollapsed: (monster: string | null) => void;
+  onToggleCollapsed: (key: string) => void;
   completed: ReadonlySet<number>;
   onList: ReadonlySet<number>;
   /** What this monster needs first, or null when nothing. Bulk-adding is the row
@@ -40,7 +52,7 @@ export function GroupBanner({
   requires: string | null;
   onAddManyToList: (wikiIds: number[]) => void;
 }) {
-  const name = group.monster ?? "Any monster";
+  const name = groupName(group);
   // A plan is what's left to do. Filtered to "All tasks" a group carries the
   // ones you've already finished, and putting those on the list is the one
   // thing this button must never quietly do.
@@ -93,16 +105,21 @@ export function GroupBanner({
         <div className="flex items-center gap-1 px-2 py-1">
           <button
             type="button"
-            onClick={() => onToggleCollapsed(group.monster)}
+            onClick={() => onToggleCollapsed(groupKey(group.by, group.value))}
             aria-expanded={!collapsed}
             className="hover:text-foreground text-foreground flex min-w-0 items-center gap-1.5 rounded px-1 py-0.5 text-left text-xs font-semibold transition-colors"
           >
             <Chevron className="size-3.5 shrink-0 opacity-70" aria-hidden />
-            <span
-              className={`truncate ${group.monster === null ? "italic" : ""}`}
-            >
-              {name}
-            </span>
+            {/* A tier wears the badge it wears in its column. */}
+            {group.by === "tier" ? (
+              <TierBadge tier={group.value as Tier} />
+            ) : (
+              <span
+                className={`truncate ${group.value === null ? "italic" : ""}`}
+              >
+                {name}
+              </span>
+            )}
             <span className="text-muted-foreground shrink-0 font-normal tabular-nums">
               {group.wikiIds.length}
             </span>
