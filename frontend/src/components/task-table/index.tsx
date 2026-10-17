@@ -18,7 +18,7 @@
 // columns.tsx, the banner/row flattening in use-row-items.ts, and the individual
 // pieces in their own files beside them.
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -61,6 +61,33 @@ const COLUMN_NAME: Record<keyof typeof COLUMN_SORT, string> = {
   points: "Points",
   completionPct: "Completion",
 };
+
+/**
+ * Every column's width but Description's, which takes what is left.
+ *
+ * Fixed, because an automatic table sizes its columns from the rows it is
+ * showing -- and a virtualised table changes which rows those are as it
+ * scrolls. One long name coming into view widened its column, which squeezed
+ * Description, which made rows taller, which pushed that name back out, which
+ * gave Description its room back... The table drew 19 rows, then 21, then 19,
+ * forever: the shaking after unsorting a grouped table.
+ *
+ * Sized from the data at 14px: Monster and Name fit nine names in ten on one
+ * line and wrap the rest; Tier fits "Grandmaster" with its icon.
+ */
+const COLUMN_WIDTH: Record<string, string> = {
+  completed: "2.5rem",
+  listed: "2.5rem",
+  monster: "10rem",
+  name: "13rem",
+  type: "7rem",
+  tier: "8.5rem",
+  points: "3.5rem",
+  completionPct: "5.5rem",
+};
+
+/** Names wrap inside their fixed width rather than spilling into the next column. */
+const WRAPS = new Set(["monster", "name"]);
 
 export interface TaskTableProps {
   tasks: readonly TaskRow[];
@@ -143,12 +170,29 @@ export function TaskTable({
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => viewportRef.current,
+    // Measured heights belong to a banner or a task, not to a position. Keyed
+    // by index, a re-sort handed every row the height of whatever used to sit
+    // there -- a 30px banner's to a five-line task -- and the scroll position
+    // lurched while the real heights came back in.
+    getItemKey: (index) => {
+      const item = items[index];
+      return item.kind === "group"
+        ? groupKey(item.by, item.value)
+        : item.row.id;
+    },
     // A one-line row; anything taller is measured for real once it mounts.
     estimateSize: () => 45,
     // Enough rows above and below to survive a flick of the wheel without a
     // visible gap, and few enough that a tick stays cheap.
     overscan: 12,
   });
+
+  // A new sort or grouping is a new list, and its answer is at the top. Left
+  // where it was, the view lands mid-way through a reshuffle and the sort looks
+  // like it did nothing.
+  useEffect(() => {
+    viewportRef.current?.scrollTo({ top: 0 });
+  }, [sort, query.group]);
 
   const virtualRows = virtualizer.getVirtualItems();
   const columnCount = table.getAllLeafColumns().length;
@@ -168,7 +212,14 @@ export function TaskTable({
       // at the bottom of what you can see rather than 646 rows below it.
       className="h-full overflow-auto rounded-lg border"
     >
-      <table className="w-full caption-bottom text-sm">
+      {/* min-w keeps Description at least 12rem wide; below that the table
+          scrolls sideways rather than squeezing it to a word per line. */}
+      <table className="w-full min-w-[62rem] table-fixed caption-bottom text-sm">
+        <colgroup>
+          {table.getAllLeafColumns().map((column) => (
+            <col key={column.id} style={{ width: COLUMN_WIDTH[column.id] }} />
+          ))}
+        </colgroup>
         <TableHeader className="bg-background sticky top-0 z-10 [&_tr]:border-b-0">
           {table.getHeaderGroups().map((group) => (
             <TableRow key={group.id} className="hover:bg-transparent">
@@ -253,7 +304,14 @@ export function TaskTable({
                 isCompleted={completed.has(task.wikiId)}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
+                  <TableCell
+                    key={cell.id}
+                    className={
+                      WRAPS.has(cell.column.id)
+                        ? "break-words whitespace-normal"
+                        : undefined
+                    }
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
