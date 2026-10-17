@@ -85,14 +85,15 @@ export function SummaryCard({
       {/* Manual with no name has nobody to name, and the source row below
           already says Manual. The type only ever comes with a name. */}
       {rsn && (
-        <div className="min-w-0">
-          <h2 className="truncate text-lg font-semibold">{rsn}</h2>
+        <h2 className="truncate text-lg font-semibold">
+          {rsn}
           {accountType && (
-            <p className="text-muted-foreground text-sm">
-              {ACCOUNT_TYPE_LABEL[accountType]}
-            </p>
+            <span className="text-muted-foreground font-normal">
+              {" "}
+              · {ACCOUNT_TYPE_LABEL[accountType]}
+            </span>
           )}
-        </div>
+        </h2>
       )}
 
       <div
