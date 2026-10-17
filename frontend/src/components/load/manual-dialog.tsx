@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import type { PlayerProfile } from "@/lib/requirements";
 import { ManualPanel } from "@/components/load/manual-panel";
 import { NameRow } from "@/components/load/name-row";
+import { useAccountTypeDraft } from "@/lib/use-account-type";
 import {
   Dialog,
   DialogContent,
@@ -48,6 +49,7 @@ export function ManualDialog({
   // isn't a sync, typing into it is.
   const edited = useRef(false);
   const [rsn, setRsn] = useState("");
+  const accountType = useAccountTypeDraft(open, lastRsn);
   useEffect(() => {
     if (!open) return;
     edited.current = false;
@@ -60,7 +62,10 @@ export function ManualDialog({
       onOpenChange={(next) => {
         if (!next) {
           const name = rsn.trim();
-          if (name !== "") onRsnCommit(name);
+          if (name !== "") {
+            onRsnCommit(name);
+            accountType.commit(name);
+          }
           if (edited.current && !profileIsEmpty) onManualLanded();
         }
         onOpenChange(next);
@@ -70,7 +75,12 @@ export function ManualDialog({
         <DialogHeader>
           <DialogTitle>Levels and quests</DialogTitle>
         </DialogHeader>
-        <NameRow rsn={rsn} onChange={setRsn} />
+        <NameRow
+          rsn={rsn}
+          onChange={setRsn}
+          type={accountType.type}
+          onTypeChange={accountType.pick}
+        />
         <ManualPanel
           profile={profile}
           isEmpty={profileIsEmpty}

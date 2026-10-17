@@ -18,6 +18,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { NameRow } from "@/components/load/name-row";
+import { useAccountTypeDraft } from "@/lib/use-account-type";
 import {
   DEFAULT_LOAD_SOURCE,
   LOAD_SOURCES,
@@ -107,6 +108,7 @@ export function LoadDialog({
   // only asks that a profile exists, because it is a guess at where you'll go
   // next; calling it a sync needs something to have been entered.
   const edited = useRef(false);
+  const accountType = useAccountTypeDraft(open, lastRsn);
 
   // Chosen on open rather than held between openings: the remembered source is
   // a fact about the last import, and reading it fresh each time means another
@@ -130,7 +132,10 @@ export function LoadDialog({
    */
   function close() {
     const name = rsn.trim();
-    if (name !== "") onRsnCommit(name);
+    if (name !== "") {
+      onRsnCommit(name);
+      accountType.commit(name);
+    }
     // The form has no Import to land, so typing into it is what counts as
     // landing. Only when nothing else is remembered, though: somebody who syncs
     // from RuneProfile and nudges one level by hand still syncs from RuneProfile.
@@ -179,7 +184,12 @@ export function LoadDialog({
             send it anywhere. It is who this browser is tracking, not a step in
             any particular import, so it neither moves nor disappears as you go
             down the rail. */}
-        <NameRow rsn={rsn} onChange={setRsn} />
+        <NameRow
+          rsn={rsn}
+          onChange={setRsn}
+          type={accountType.type}
+          onTypeChange={active === "manual" ? accountType.pick : undefined}
+        />
 
         <div className="flex min-h-0 flex-1 gap-5">
           {/* A listbox rather than tabs: four entries with a second line each is

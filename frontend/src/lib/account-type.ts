@@ -1,9 +1,8 @@
 // What kind of account the remembered name is: Ironman, Hardcore, and so on.
 //
-// Both lookups already said, and until now both answers were dropped on the
-// floor. Kept beside the name it describes rather than in the profile store: it
-// isn't something you can do, it isn't typed by hand, and it doesn't belong in a
-// backup or a share code. A record for some other name says nothing about this
+// Both lookups say, and a Manual player picks it beside their name. Kept beside
+// the name it describes rather than in the profile store: it isn't something
+// you can do, and it doesn't belong in a backup or a share code. A record for some other name says nothing about this
 // one, so it answers only for the name it was stored against.
 //
 // Same shape as the other stores: plain functions over a cached snapshot, with
@@ -93,7 +92,7 @@ export function getStoredAccountType(): StoredAccountType | null {
   return current;
 }
 
-/** What kind of account `rsn` is, if a lookup for that name said. */
+/** What kind of account `rsn` is, if anything has said for that name. */
 export function accountTypeFor(
   stored: StoredAccountType | null,
   rsn: string | null,
@@ -108,7 +107,7 @@ export function subscribe(listener: () => void): () => void {
 }
 
 /**
- * What a lookup said, for the name it looked up.
+ * What a lookup said, or a Manual player picked, for that name.
  *
  * The latest answer wins, since a type really does change: a Hardcore dies, an
  * Ironman de-irons. No answer leaves the last one alone -- `unknown` from Wise
