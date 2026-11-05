@@ -7186,7 +7186,7 @@
     "wikiId": 653,
     "name": "Juggling Act",
     "monster": "Mad Angel",
-    "description": "Kill the Mad Angel after attacking her between each bounce of the blast attack during her enrage phase.",
+    "description": "Kill the Mad Angel after attacking her between each bounce of the blast attack during her enrage phase. This does not need to be done immediately prior to the Mad Angel dying; it just needs to be done at any point in the fight after she becomes enraged.",
     "tier": "MEDIUM",
     "points": 2,
     "type": "MECHANICAL",
